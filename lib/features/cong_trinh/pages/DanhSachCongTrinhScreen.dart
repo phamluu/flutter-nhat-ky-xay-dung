@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
+import '../../home/controllers/thong_ke_controller.dart';
 import 'SuaCongTrinhScreen.dart';
 import 'ThemCongTrinhScreen.dart';
 
@@ -39,6 +40,7 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
       setState(() {
         _loadData();
       });
+
     }
   }
 
@@ -73,7 +75,7 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
             itemBuilder: (context, index) {
               final ct = data[index];
               return ListTile(
-                title: Text(ct.ten),
+                title: Text((index+1).toString() + '. ' + ct.ten),
                 subtitle: Text(ct.diaChi ?? 'Không có địa chỉ'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

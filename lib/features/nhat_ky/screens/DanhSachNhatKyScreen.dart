@@ -70,7 +70,7 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
             itemBuilder: (context, index) {
               final nk = data[index];
               return ListTile(
-                title: Text(nk.tenNhatKy ?? "Chưa đặt tên"),
+                title: Text((index+1).toString() + '. ' + (nk.tenNhatKy ?? "Chưa đặt tên")),
                 subtitle: Text(nk.noiDung ?? ""),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

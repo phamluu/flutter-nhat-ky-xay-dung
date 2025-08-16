@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/data/models/CongTrinh.dart';
+import 'package:nhat_ky_xay_dung/services/cong_trinh_service.dart';
 
 import '../../../data/models/DanhMucThuChi.dart';
 import '../../../data/models/ThuChi.dart';
@@ -21,10 +24,15 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
 
   final _thuChiService = ThuChiService();
   final _dmService = DanhMucThuChiService();
+  final _ctService = CongTrinhService();
+  final _dateFormat = DateFormat("dd/MM/yyyy");
 
   int _loai = 0; // 0: chi, 1: thu
   List<DanhMucThuChi> _danhMucs = [];
   int? _selectedDanhMucId;
+
+  List<CongTrinh> _conTrinhs = [];
+  int? _selectedCongTrinhId;
 
   @override
   void initState() {
@@ -34,31 +42,48 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
 
   Future<void> _initData() async {
     final dms = await _dmService.getAll();
-    setState(() => _danhMucs = dms);
+    final cts = await _ctService.getDanhSachCongTrinh();
 
-    if (widget.thuChi != null) {
-      _soTienController.text = widget.thuChi!.soTien.toString();
-      _ghiChuController.text = widget.thuChi!.ghiChu ?? "";
-      _ngayController.text = widget.thuChi!.ngay;
-      _loai = widget.thuChi!.loai;
-      _selectedDanhMucId = widget.thuChi!.idDanhMucThuChi;
-    } else {
-      _ngayController.text = DateTime.now().toIso8601String();
-      if (_danhMucs.isNotEmpty) _selectedDanhMucId = _danhMucs.first.id;
-    }
+    setState(() {
+      _danhMucs = dms;
+      _conTrinhs = cts;
+
+      if (widget.thuChi != null) {
+        _soTienController.text = widget.thuChi!.soTien.toString();
+        _ghiChuController.text = widget.thuChi!.ghiChu ?? "";
+        _ngayController.text =
+            _dateFormat.format(DateTime.parse(widget.thuChi!.ngay));
+        _loai = widget.thuChi!.loai;
+        _selectedDanhMucId = widget.thuChi!.idDanhMucThuChi;
+        _selectedCongTrinhId = widget.thuChi!.idCongTrinh;
+      } else {
+        _ngayController.text = _dateFormat.format(DateTime.now());
+        if (_danhMucs.isNotEmpty) _selectedDanhMucId = _danhMucs.first.id;
+
+      }
+    });
   }
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final initial = DateTime.tryParse(_ngayController.text) ?? now;
+    DateTime initial;
+
+    try {
+      final parts = _ngayController.text.split('/');
+      initial = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+    } catch (_) {
+      initial = now;
+    }
+
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
+
     if (picked != null) {
-      _ngayController.text = picked.toIso8601String();
+      _ngayController.text = _dateFormat.format(picked);
       setState(() {});
     }
   }
@@ -72,14 +97,17 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
       return;
     }
 
+    final dateParts = _ngayController.text.split('/');
+    final tcDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
+
     final tc = ThuChi(
       id: widget.thuChi?.id,
       idDanhMucThuChi: _selectedDanhMucId!,
       loai: _loai,
       soTien: double.parse(_soTienController.text),
       ghiChu: _ghiChuController.text.isEmpty ? null : _ghiChuController.text,
-      ngay: _ngayController.text,
-      idCongTrinh: widget.thuChi?.idCongTrinh,
+      ngay: tcDate.toIso8601String(),
+      idCongTrinh: _selectedCongTrinhId,
       ngayTao: widget.thuChi?.ngayTao ?? DateTime.now().toIso8601String(),
     );
 
@@ -155,6 +183,24 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
                 decoration: const InputDecoration(labelText: "Danh mục"),
                 validator: (v) => v == null ? 'Chọn danh mục' : null,
               ),
+              const SizedBox(height: 8),
+            DropdownButtonFormField<int?>(
+              value: _selectedCongTrinhId,
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text("Chọn công trình"),
+                ),
+                ..._conTrinhs.map((ct) => DropdownMenuItem(
+                  value: ct.id,
+                  child: Text(ct.ten),
+                ))
+              ],
+              onChanged: (v) => setState(() => _selectedCongTrinhId = v),
+              decoration: const InputDecoration(labelText: "Công Trình"),
+              // validator có thể bỏ nếu muốn null
+            ),
+
               const SizedBox(height: 8),
               TextFormField(
                 controller: _soTienController,

@@ -94,8 +94,21 @@ class _DanhSachThuChiScreenState extends State<DanhSachThuChiScreen> {
                 children: danhMucList.map((dm) {
                   final items = grouped[dm.id] ?? [];
                   if (items.isEmpty) return const SizedBox.shrink();
+                  final total = items.fold<double>(
+                    0.0,
+                        (sum, tc) => sum + (tc.loai == 1 ? tc.soTien : -tc.soTien),
+                  );
                   return ExpansionTile(
-                    title: Text(dm.ten),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(dm.ten),
+                        Text(
+                            _currencyFormat.format(total),
+                            style: const TextStyle(fontSize: 12), // font nhỏ
+                        ),
+                      ],
+                    ),
                     children: items.map((tc) {
                       return ListTile(
                         title: Text("${tc.loai == 1 ? "Thu" : "Chi"}: ${_currencyFormat.format(tc.soTien)}"),
@@ -113,6 +126,7 @@ class _DanhSachThuChiScreenState extends State<DanhSachThuChiScreen> {
                       );
                     }).toList(),
                   );
+
                 }).toList(),
               );
             },

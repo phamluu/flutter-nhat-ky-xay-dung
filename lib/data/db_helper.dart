@@ -48,7 +48,8 @@ class DBHelper {
         id_cong_trinh INTEGER NOT NULL,
         trang_thai INTEGER,
         thoi_tiet_sang INTEGER,
-        thoi_tiet_chieu INTEGER
+        thoi_tiet_chieu INTEGER,
+        FOREIGN KEY (id_cong_trinh) REFERENCES cong_trinh(id) ON DELETE CASCADE ON UPDATE NO ACTION
       )
     ''');
 
@@ -89,10 +90,22 @@ class DBHelper {
       )
     ''');
 
+    await db.execute('''
+        CREATE TABLE nhan_vien_cong_trinh(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idNhanVien INTEGER NOT NULL,
+          idCongTrinh INTEGER NOT NULL,
+          ngayBatDau TEXT,
+          ngayKetThuc TEXT,
+          vaiTro TEXT,
+          FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id),
+          FOREIGN KEY (idCongTrinh) REFERENCES cong_trinh(id)
+        )
+    ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Version 2: tạo các bảng mới (ngoại trừ cong_trinh)
+    if (oldVersion < 1) {
+      // Version 1: tạo các bảng mới (ngoại trừ cong_trinh)
       await db.execute('''
       CREATE TABLE IF NOT EXISTS nhat_ky (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -140,6 +153,34 @@ class DBHelper {
         FOREIGN KEY (id_danh_muc_thu_chi) REFERENCES danh_muc_thu_chi(id)
       )
     ''');
+    }
+
+    // Version 3: Bổ sung liên kết khóa ngoại
+    if (oldVersion < 2) {
+      await db.execute('''
+      CREATE TABLE nhat_ky_temp (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ten_nhat_ky TEXT,
+            noi_dung TEXT,
+            ngay_tao TEXT NOT NULL,
+            ngay_trien_khai TEXT,
+            id_cong_trinh INTEGER NOT NULL,
+            trang_thai INTEGER,
+            thoi_tiet_sang INTEGER,
+            thoi_tiet_chieu INTEGER,
+            FOREIGN KEY (id_cong_trinh) REFERENCES cong_trinh(id)
+        );
+      ''');
+      await db.execute('''
+          INSERT INTO nhat_ky_temp (id, ten_nhat_ky, noi_dung, ngay_tao, ngay_trien_khai, id_cong_trinh, trang_thai, thoi_tiet_sang, thoi_tiet_chieu)
+          SELECT id, ten_nhat_ky, noi_dung, ngay_tao, ngay_trien_khai, id_cong_trinh, trang_thai, thoi_tiet_sang, thoi_tiet_chieu
+          FROM nhat_ky;
+      ''');
+
+      await db.execute('''
+          DROP TABLE nhat_ky;
+      ''');
+      await db.execute(''' ALTER TABLE nhat_ky_temp RENAME TO nhat_ky; ''');
     }
 
     // Sau này nếu version 3,4,... muốn thêm cột hay bảng khác, tiếp tục ở đây
