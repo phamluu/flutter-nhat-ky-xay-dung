@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
-import '../../home/controllers/thong_ke_controller.dart';
+import '../../../controllers/thong_ke_controller.dart';
 import 'SuaCongTrinhScreen.dart';
 import 'ThemCongTrinhScreen.dart';
 
@@ -49,6 +51,9 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Danh sách công trình'),
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -74,16 +79,35 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final ct = data[index];
-              return ListTile(
-                title: Text((index+1).toString() + '. ' + ct.ten),
-                subtitle: Text(ct.diaChi ?? 'Không có địa chỉ'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+
+              return Slidable(
+                key: ValueKey(ct.id),
+                endActionPane: ActionPane(
+                  motion: const DrawerMotion(), // hiệu ứng trượt
+                  extentRatio: 0.4, // chiếm 40% chiều rộng
                   children: [
-                    Text(ct.ngayBatDau ?? ''),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
+                    SlidableAction(
+                      onPressed: (_) async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SuaCongTrinhScreen(congTrinh: ct),
+                          ),
+                        );
+
+                        if (result == true) {
+                          setState(() {
+                            _loadData();
+                          });
+                        }
+                      },
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      icon: Icons.edit,
+                      label: 'Sửa',
+                    ),
+                    SlidableAction(
+                      onPressed: (_) async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
@@ -105,27 +129,47 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                         if (confirm == true) {
                           await _service.deleteCongTrinh(ct.id!);
                           setState(() {
-                            _loadData(); // load lại danh sách
+                            _loadData();
                           });
                         }
                       },
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Xóa',
                     ),
                   ],
                 ),
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SuaCongTrinhScreen(congTrinh: ct),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50, // nền nhẹ, dịu mắt
+                    borderRadius: BorderRadius.circular(12), // bo góc mềm
+                    border: Border.all(
+                      color: Colors.grey.shade50, // border nhẹ nhàng
+                      width: 1,
                     ),
-                  );
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    title: Text('${index + 1}. ${ct.ten}'),
+                    subtitle: Text(ct.diaChi ?? 'Không có địa chỉ'),
+                    trailing: Text(ct.ngayBatDau ?? ''),
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChiTietCongTrinhScreen(congTrinh: ct),
+                        ),
+                      );
 
-                  if (result == true) {
-                    setState(() {
-                      _loadData();
-                    });
-                  }
-                },
+                      if (result == true) {
+                        setState(() {
+                          _loadData();
+                        });
+                      }
+                    },
+                  ),
+                ),
               );
             },
           );

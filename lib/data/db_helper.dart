@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -90,6 +90,7 @@ class DBHelper {
       )
     ''');
 
+    // Tạo bảng nhân viên công trình
     await db.execute('''
         CREATE TABLE nhan_vien_cong_trinh(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,6 +102,20 @@ class DBHelper {
           FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id),
           FOREIGN KEY (idCongTrinh) REFERENCES cong_trinh(id)
         )
+    ''');
+
+    await db.execute(''' 
+        CREATE TABLE cham_cong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_nhan_vien_cong_trinh INTEGER NOT NULL,
+          ngay TEXT NOT NULL,               -- lưu dạng yyyy-MM-dd
+          trang_thai_sang INTEGER,          -- 0: nghỉ, 1: đi làm, 2: có phép
+          trang_thai_chieu INTEGER,
+          tang_ca_bat_dau TEXT,             -- lưu dạng HH:mm
+          tang_ca_ket_thuc TEXT,            -- lưu dạng HH:mm
+          ghi_chu TEXT,
+          ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
+        );
     ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -183,6 +198,36 @@ class DBHelper {
       await db.execute(''' ALTER TABLE nhat_ky_temp RENAME TO nhat_ky; ''');
     }
 
+    if (oldVersion < 3){
+      await db.execute('''
+        CREATE TABLE nhan_vien_cong_trinh(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idNhanVien INTEGER NOT NULL,
+          idCongTrinh INTEGER NOT NULL,
+          ngayBatDau TEXT,
+          ngayKetThuc TEXT,
+          vaiTro TEXT,
+          FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id),
+          FOREIGN KEY (idCongTrinh) REFERENCES cong_trinh(id)
+        )
+    ''');
+    }
+
+    if(oldVersion < 4){
+      await db.execute(''' 
+        CREATE TABLE cham_cong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_nhan_vien_cong_trinh INTEGER NOT NULL,
+          ngay TEXT NOT NULL,               -- lưu dạng yyyy-MM-dd
+          trang_thai_sang INTEGER,          -- 0: nghỉ, 1: đi làm, 2: có phép
+          trang_thai_chieu INTEGER,
+          tang_ca_bat_dau TEXT,             -- lưu dạng HH:mm
+          tang_ca_ket_thuc TEXT,            -- lưu dạng HH:mm
+          ghi_chu TEXT,
+          ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
+        );
+    ''');
+    }
     // Sau này nếu version 3,4,... muốn thêm cột hay bảng khác, tiếp tục ở đây
   }
 

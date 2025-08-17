@@ -1,6 +1,8 @@
+import 'package:nhat_ky_xay_dung/data/models/NhanVien.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../data/db_helper.dart';
+import '../data/models/CongTrinh.dart';
 import '../data/models/NhanVienCongTrinh.dart';
 
 class NhanVienCongTrinhService {
@@ -57,13 +59,36 @@ class NhanVienCongTrinhService {
     return maps.map((e) => NhanVienCongTrinh.fromMap(e)).toList();
   }
 
-  Future<List<NhanVienCongTrinh>> getByCongTrinh(int idCongTrinh) async {
+  Future<List<NhanVienCongTrinh>> getByCongTrinh(int? idCongTrinh) async {
     final db = await _dbHelper.database;
-    final maps = await db.query(
-      'nhan_vien_cong_trinh',
-      where: 'idCongTrinh = ?',
-      whereArgs: [idCongTrinh],
-    );
-    return maps.map((e) => NhanVienCongTrinh.fromMap(e)).toList();
+
+    // 1. Lấy tất cả công trình
+    final congTrinhMaps = await db.query('cong_trinh');
+    final congTrinhList = congTrinhMaps.map((e) => CongTrinh.fromMap(e)).toList();
+    final congTrinhMap = {for (var c in congTrinhList) c.id: c};
+
+    //2. Lấy tất cả nhân viên
+    final nhanVienMaps = await db.query('nhan_vien');
+    final nhanVienList = nhanVienMaps.map((e) => NhanVien.fromMap(e)).toList();
+    final nhanVienMap = {for (var c in nhanVienList) c.id: c};
+
+    List<Map<String, dynamic>> maps;
+    if (idCongTrinh != null) {
+      maps = await db.query(
+        'nhan_vien_cong_trinh',
+        where: 'idCongTrinh = ?',
+        whereArgs: [idCongTrinh]
+      );
+    } else {
+      maps = await db.query(
+        'nhan_vien_cong_trinh'
+      );
+    }
+    // 3. Map idCongTrinh sang CongTrinh
+    return maps.map((e) {
+      final ct = congTrinhMap[e['idCongTrinh']];
+      final nv = nhanVienMap[e['idNhanVien']];
+      return NhanVienCongTrinh.fromMap(e, congTrinh: ct, nhanVien: nv);
+    }).toList();
   }
 }

@@ -10,7 +10,7 @@ class NhatKyService {
     return await db.insert('nhat_ky', nk.toMap());
   }
 
-  Future<List<NhatKy>> getAllNhatKy() async {
+  Future<List<NhatKy>> getAllNhatKy([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
 
     // 1. Lấy tất cả công trình
@@ -18,8 +18,21 @@ class NhatKyService {
     final congTrinhList = congTrinhMaps.map((e) => CongTrinh.fromMap(e)).toList();
     final congTrinhMap = {for (var c in congTrinhList) c.id: c};
 
-    // 2. Lấy nhật ký
-    final maps = await db.query('nhat_ky', orderBy: 'ngay_tao DESC');
+    // 2. Lấy nhật ký (có lọc theo công trình nếu truyền vào)
+    List<Map<String, dynamic>> maps;
+    if (idCongTrinh != null) {
+      maps = await db.query(
+        'nhat_ky',
+        where: 'id_cong_trinh = ?',
+        whereArgs: [idCongTrinh],
+        orderBy: 'ngay_tao DESC',
+      );
+    } else {
+      maps = await db.query(
+        'nhat_ky',
+        orderBy: 'ngay_tao DESC',
+      );
+    }
 
     // 3. Map idCongTrinh sang CongTrinh
     return maps.map((e) {

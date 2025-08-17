@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../controllers/thong_ke_controller.dart';
+import '../../../controllers/thong_ke_controller.dart';
 
 class ThongKeGrid extends StatelessWidget {
   final ThongKeController controller;

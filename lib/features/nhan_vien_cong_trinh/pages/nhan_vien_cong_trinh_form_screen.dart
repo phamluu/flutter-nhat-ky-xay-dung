@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/services/cong_trinh_service.dart';
 import 'package:nhat_ky_xay_dung/services/nhan_vien_service.dart';
 
+import '../../../core/utils/date_utils.dart';
+import '../../../data/models/CongTrinh.dart';
+import '../../../data/models/NhanVien.dart';
 import '../../../data/models/NhanVienCongTrinh.dart';
 import '../../../services/nhan_vien_cong_trinh_service.dart';
 
@@ -22,8 +25,9 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
   final _service = NhanVienCongTrinhService();
   final _nhanvienservice = NhanVienService();
   final _congtrinhservice = CongTrinhService();
-  List<Map<String, dynamic>> _nhanViens = [];
-  List<Map<String, dynamic>> _conTrinhs = [];
+
+  List<NhanVien> _nhanViens = [];
+  List<CongTrinh> _conTrinhs = [];
 
   int? _selectedNhanVienId;
   int? _selectedCongTrinhId;
@@ -39,8 +43,8 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
     final cts = await _congtrinhservice.getDanhSachCongTrinh();
 
     setState(() {
-      _nhanViens = nvs.cast<Map<String, dynamic>>();
-      _conTrinhs = cts.cast<Map<String, dynamic>>();
+      _nhanViens = nvs;
+      _conTrinhs = cts;
 
       if (widget.item != null) {
         _selectedNhanVienId = widget.item!.idNhanVien;
@@ -49,23 +53,11 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
         _ngayBatDauController.text = widget.item!.ngayBatDau ?? '';
         _ngayKetThucController.text = widget.item!.ngayKetThuc ?? '';
       } else {
-        if (_nhanViens.isNotEmpty) _selectedNhanVienId = _nhanViens.first['id'] as int;
+        if (_nhanViens.isNotEmpty) _selectedNhanVienId = _nhanViens.first.id;
       }
     });
   }
 
-  Future<void> _pickDate(TextEditingController controller) async {
-    DateTime initial = DateTime.tryParse(controller.text) ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      controller.text = picked.toIso8601String();
-    }
-  }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -97,7 +89,12 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
   Widget build(BuildContext context) {
     final isEdit = widget.item != null;
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Sửa NV-CT' : 'Thêm NV-CT')),
+      appBar: AppBar(
+          title: Text(isEdit ? 'Sửa Nhân viên Công Trình' : 'Thêm Nhân viên vào công trình'),
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
       body: _nhanViens.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -106,53 +103,61 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
           key: _formKey,
           child: ListView(
             children: [
+              // Dropdown nhân viên
               DropdownButtonFormField<int>(
                 value: _selectedNhanVienId,
                 items: _nhanViens
-                    .map((e) => DropdownMenuItem(value: e['id'] as int, child: Text(e['ten'])))
+                    .map((nv) => DropdownMenuItem(
+                  value: nv.id,
+                  child: Text(nv.hoTen ?? "Không tên"),
+                ))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedNhanVienId = v),
                 decoration: const InputDecoration(labelText: 'Nhân viên'),
                 validator: (v) => v == null ? 'Chọn nhân viên' : null,
               ),
               const SizedBox(height: 8),
+
+              // Dropdown công trình
               DropdownButtonFormField<int?>(
                 value: _selectedCongTrinhId,
                 items: [
                   const DropdownMenuItem<int?>(value: null, child: Text('Chọn công trình')),
-                  ..._conTrinhs.map((e) =>
-                      DropdownMenuItem<int?>(value: e['id'] as int?, child: Text(e['ten'])))
+                  ..._conTrinhs.map((ct) =>
+                      DropdownMenuItem<int?>(value: ct.id, child: Text(ct.ten ?? "Không tên")))
                 ],
                 onChanged: (v) => setState(() => _selectedCongTrinhId = v),
                 decoration: const InputDecoration(labelText: 'Công trình (tùy chọn)'),
-              )
-              ,
+              ),
               const SizedBox(height: 8),
+
               TextFormField(
                 controller: _vaiTroController,
                 decoration: const InputDecoration(labelText: 'Vai trò'),
               ),
               const SizedBox(height: 8),
+
               TextFormField(
                 controller: _ngayBatDauController,
                 readOnly: true,
-                onTap: () => _pickDate(_ngayBatDauController),
+                onTap: () => DateUtilsCore.pickDate(context, _ngayBatDauController, format: "dd/MM/yyyy"),
                 decoration: const InputDecoration(
                   labelText: 'Ngày bắt đầu',
                   suffixIcon: Icon(Icons.calendar_today),
                 ),
               ),
               const SizedBox(height: 8),
+
               TextFormField(
                 controller: _ngayKetThucController,
                 readOnly: true,
-                onTap: () => _pickDate(_ngayKetThucController),
+                onTap: () => DateUtilsCore.pickDate(context, _ngayKetThucController, format: "dd/MM/yyyy"),
                 decoration: const InputDecoration(
                   labelText: 'Ngày kết thúc',
                   suffixIcon: Icon(Icons.calendar_today),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               ElevatedButton(onPressed: _save, child: const Text('Lưu')),
             ],
           ),
@@ -161,3 +166,4 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
     );
   }
 }
+

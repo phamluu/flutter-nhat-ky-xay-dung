@@ -3,6 +3,7 @@ import '../../../data/models/NhatKy.dart';
 import '../../../services/nhat_ky_service.dart';
 import '../../../services/cong_trinh_service.dart';
 import '../../../data/models/CongTrinh.dart';
+import '../widgets/weather_dropdown.dart';
 
 class ThemSuaNhatKyScreen extends StatefulWidget {
   final NhatKy? nhatKy;
@@ -145,32 +146,23 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<int>(
+                      child: buildWeatherDropdown(
                         value: _thoiTietSang,
-                        decoration: const InputDecoration(labelText: "Thời tiết sáng"),
-                        items: [
-                          DropdownMenuItem(value: 0, child: Text("Nắng")),
-                          DropdownMenuItem(value: 1, child: Text("Mưa")),
-                          DropdownMenuItem(value: 2, child: Text("Mây")),
-                        ],
+                        label: "Thời tiết sáng",
                         onChanged: (val) => setState(() => _thoiTietSang = val),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: DropdownButtonFormField<int>(
+                      child: buildWeatherDropdown(
                         value: _thoiTietChieu,
-                        decoration: const InputDecoration(labelText: "Thời tiết chiều"),
-                        items: [
-                          DropdownMenuItem(value: 0, child: Text("Nắng")),
-                          DropdownMenuItem(value: 1, child: Text("Mưa")),
-                          DropdownMenuItem(value: 2, child: Text("Mây")),
-                        ],
+                        label: "Thời tiết chiều",
                         onChanged: (val) => setState(() => _thoiTietChieu = val),
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _save,

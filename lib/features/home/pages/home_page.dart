@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/cham_cong/cham_cong_screen.dart';
 import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/screens/danh_sach_danh_muc_thu_chi_screen.dart';
 import 'package:nhat_ky_xay_dung/features/home/widgets/NhatKyList.dart';
 import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
@@ -7,7 +8,7 @@ import 'package:nhat_ky_xay_dung/features/thu_chi/screens/danh_sach_thu_chi_scre
 import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
-import '../controllers/thong_ke_controller.dart';
+import '../../../controllers/thong_ke_controller.dart';
 import '../widgets/ProjectList.dart';
 import '../widgets/bottomNavigation.dart';
 import '../widgets/thong_ke.dart';
@@ -170,7 +171,10 @@ class _HomePageState extends State<HomePage> {
           );
         },
         onCheckInTap: () {
-          print("Tôi");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>  ChamCongScreen(idCongTrinh: 0, nhanViens: [],)),
+          );
         },
         onProfileTap: () {
           print("Tôi");
