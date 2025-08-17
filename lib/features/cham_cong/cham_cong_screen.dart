@@ -2,10 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/data/models/CongTrinh.dart';
+import 'package:nhat_ky_xay_dung/services/cong_trinh_service.dart';
+import 'package:nhat_ky_xay_dung/services/nhan_vien_cong_trinh_service.dart';
+import '../../core/utils/trang_thai_cham_cong.dart';
 import '../../data/repositories/cham_cong_repository.dart';
 
 import '../../data/models/ChamCong.dart';
 import '../../data/models/NhanVienCongTrinh.dart';
+import 'widgets/halfDaySelector.dart';
 
 class ChamCongScreen extends StatefulWidget {
   final int? idCongTrinh; // để null được
@@ -23,39 +28,42 @@ class ChamCongScreen extends StatefulWidget {
 
 class _ChamCongScreenState extends State<ChamCongScreen> {
   final ChamCongRepository _repo = ChamCongRepository();
+  final CongTrinhService _congTrinhService = CongTrinhService();
+  final NhanVienCongTrinhService _nhanVienCongTrinhService = NhanVienCongTrinhService();
+
   final Map<int, ChamCong> _data = {};
   DateTime _selectedDate = DateTime.now();
 
   int? _selectedCongTrinhId;
   List<NhanVienCongTrinh> _nhanViens = [];
+  List<Map<String, dynamic>> _dsCongTrinh = [];
 
   @override
   void initState() {
     super.initState();
     _selectedCongTrinhId = widget.idCongTrinh;
-    _nhanViens = widget.nhanViens ?? [];
+    _loadDsCongTrinh();
+    _loadDsNhanVien();
     if (_selectedCongTrinhId != null) {
       _loadChamCong();
     }
   }
-
-  Future<void> _chonCongTrinh() async {
-    // TODO: mở màn hình chọn công trình, trả về id & danh sách nhân viên
-    // final result = await Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => ChonCongTrinhScreen(), // màn chọn công trình
-    //   ),
-    // );
-    // if (result != null) {
-    //   setState(() {
-    //     _selectedCongTrinhId = result['idCongTrinh'];
-    //     _nhanViens = result['nhanViens'];
-    //   });
-    //   _loadChamCong();
-    // }
+  Future<void> _loadDsCongTrinh() async {
+    final ds = await _congTrinhService.getDanhSachCongTrinh();
+    setState(() {
+      _dsCongTrinh = ds.map<Map<String, dynamic>>((ct) => {
+        "id": ct.id,
+        "ten": ct.ten,
+      }).toList();
+    });
   }
-
+  Future<void> _loadDsNhanVien() async {
+    if (_selectedCongTrinhId == null) return;
+    final ds = await _nhanVienCongTrinhService.getByCongTrinh(_selectedCongTrinhId!);
+    setState(() {
+      _nhanViens = ds;
+    });
+  }
   Future<void> _loadChamCong() async {
     if (_selectedCongTrinhId == null) return;
 
@@ -94,8 +102,17 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
       }
     }
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Lưu thành công")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Lưu thành công",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
     }
   }
 
@@ -106,6 +123,9 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chấm công"),
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -115,16 +135,31 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
       ),
       body: Column(
         children: [
+          // chọn công trình bằng dropdown
           ListTile(
-            title: Text(
-              _selectedCongTrinhId != null
-                  ? "Công trình: $_selectedCongTrinhId"
-                  : "Chưa chọn công trình",
+            title: DropdownButton<int>(
+              isExpanded: true,
+              value: _dsCongTrinh.any((ct) => ct["id"] == _selectedCongTrinhId)
+                  ? _selectedCongTrinhId
+                  : null,
+              hint: const Text("Chọn công trình"),
+              items: _dsCongTrinh
+                  .map(
+                    (ct) => DropdownMenuItem<int>(
+                  value: ct["id"],
+                  child: Text(ct["ten"]),
+                ),
+              )
+                  .toList(),
+              onChanged: (v) async {
+                setState(() {
+                  _selectedCongTrinhId = v;
+                });
+                await _loadDsNhanVien();
+                await _loadChamCong();
+              },
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.work),
-              onPressed: _chonCongTrinh,
-            ),
+
           ),
           ListTile(
             title: Text("Ngày: $ngayText"),
@@ -152,41 +187,45 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
             )
                 : ListView(
               children: _nhanViens.map((nvct) {
-                final cc = _data[nvct.id]!;
+                final cc = _data[nvct.id] ?? ChamCong(
+                  idNhanVienCongTrinh: nvct.id!,
+                  ngay: DateFormat("yyyy-MM-dd").format(_selectedDate),
+                );
                 return Card(
-                  child: ListTile(
-                    title: Text(nvct.nhanVien?.hoTen ?? "Chưa đặt tên"),
-                    subtitle: Row(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DropdownButton<int?>(
-                          hint: const Text("Sáng"),
-                          value: cc.trangThaiSang,
-                          items: const [
-                            DropdownMenuItem(
-                                value: 1, child: Text("Có mặt")),
-                            DropdownMenuItem(
-                                value: 0, child: Text("Vắng")),
-                          ],
-                          onChanged: (v) =>
-                              setState(() => cc.trangThaiSang = v),
+                        Text(nvct.nhanVien?.hoTen ?? "Chưa đặt tên",
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children:[
+                              Text('Sáng: ${TrangThaiChamCong.fromValue(cc.trangThaiSang).label}'),
+                              HalfDaySelector(
+                                initialValue: cc.trangThaiSang,
+                                onChanged: (v) => setState(() => cc.trangThaiSang = v),
+                              )
+                            ]
                         ),
-                        const SizedBox(width: 16),
-                        DropdownButton<int?>(
-                          hint: const Text("Chiều"),
-                          value: cc.trangThaiChieu,
-                          items: const [
-                            DropdownMenuItem(
-                                value: 1, child: Text("Có mặt")),
-                            DropdownMenuItem(
-                                value: 0, child: Text("Vắng")),
-                          ],
-                          onChanged: (v) =>
-                              setState(() => cc.trangThaiChieu = v),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children:[
+                              Text('Chiều: ${TrangThaiChamCong.fromValue(cc.trangThaiChieu).label}'),
+                              HalfDaySelector(
+                                initialValue: cc.trangThaiChieu,
+                                onChanged: (v) => setState(() => cc.trangThaiChieu = v),
+                              )
+                            ]
                         ),
+
                       ],
                     ),
                   ),
                 );
+
               }).toList(),
             ),
           ),

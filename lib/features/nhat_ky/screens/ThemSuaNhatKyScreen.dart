@@ -100,6 +100,9 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.nhatKy == null ? "Thêm nhật ký" : "Sửa nhật ký"),
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

@@ -17,19 +17,20 @@ class ChamCong {
 
   factory ChamCong.fromMap(Map<String, dynamic> map) => ChamCong(
     id: map['id'] as int?,
-    idNhanVienCongTrinh: map['idNhanVienCongTrinh'] as int,
+    idNhanVienCongTrinh: map['id_nhan_vien_cong_trinh'] as int,
     ngay: map['ngay'] as String,
-    trangThaiSang: map['trangThaiSang'] as int?,
-    trangThaiChieu: map['trangThaiChieu'] as int?,
-    ghiChu: map['ghiChu'] as String?,
+    trangThaiSang: map['trang_thai_sang'] as int?,
+    trangThaiChieu: map['trang_thai_chieu'] as int?,
+    ghiChu: map['ghi_chu'] as String?,
   );
 
   Map<String, dynamic> toMap() => {
     'id': id,
-    'idNhanVienCongTrinh': idNhanVienCongTrinh,
+    'id_nhan_vien_cong_trinh': idNhanVienCongTrinh,
     'ngay': ngay,
-    'trangThaiSang': trangThaiSang,
-    'trangThaiChieu': trangThaiChieu,
-    'ghiChu': ghiChu,
+    'trang_thai_sang': trangThaiSang,
+    'trang_thai_chieu': trangThaiChieu,
+    'ghi_chu': ghiChu,
+    'ngay_tao': DateTime.now().toIso8601String(),
   };
 }

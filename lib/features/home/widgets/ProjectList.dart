@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
 import '_SectionHeader.dart';
@@ -39,7 +41,14 @@ class _ProjectListState extends State<ProjectList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeSectionHeader(title: 'Dự án', onViewAll: () {}),
+        HomeSectionHeader(title: 'Dự án', onViewAll: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DanhSachCongTrinhScreen(),
+            ),
+          );
+        }),
         const SizedBox(height: 8),
         if (isLoading)
           const Center(child: CircularProgressIndicator())
@@ -47,6 +56,7 @@ class _ProjectListState extends State<ProjectList> {
           const Text('Không có dự án nào')
         else
           ...projects.map((p) => _ProjectItem(
+            congTrinh: p,
             name: p.ten,
             progress: 1,
             updatedAt: p.ngayBatDau!.toString(),
@@ -58,11 +68,13 @@ class _ProjectListState extends State<ProjectList> {
 }
 
 class _ProjectItem extends StatelessWidget {
+  final CongTrinh congTrinh;
   final String name;
   final double progress;
   final String updatedAt;
   final Color progressColor;
   const _ProjectItem({
+    required this.congTrinh,
     required this.name,
     required this.progress,
     required this.updatedAt,
@@ -75,7 +87,14 @@ class _ProjectItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChiTietCongTrinhScreen(congTrinh: congTrinh),
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(

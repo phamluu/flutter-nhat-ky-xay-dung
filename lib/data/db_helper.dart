@@ -104,6 +104,7 @@ class DBHelper {
         )
     ''');
 
+    // Tạo bảng chấm công
     await db.execute(''' 
         CREATE TABLE cham_cong (
           id INTEGER PRIMARY KEY AUTOINCREMENT,

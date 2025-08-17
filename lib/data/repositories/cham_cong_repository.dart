@@ -12,7 +12,7 @@ class ChamCongRepository {
       SELECT cc.*
       FROM cham_cong cc
       INNER JOIN nhan_vien_cong_trinh nvct 
-        ON cc.idNhanVienCongTrinh = nvct.id
+        ON cc.id_nhan_vien_cong_trinh = nvct.id
       WHERE nvct.idCongTrinh = ? AND cc.ngay = ?
     ''', [idCongTrinh, ngay]);
     return result.map((e) => ChamCong.fromMap(e)).toList();

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/data/models/NhatKy.dart';
+import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
+import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/XemChiTietNhatKyScreen.dart';
 import '../../../services/nhat_ky_service.dart';
 import '_SectionHeader.dart';
 
@@ -40,7 +42,14 @@ class _NhatKyListState extends State<NhatKyList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeSectionHeader(title: 'Nhật ký gần đây', onViewAll: () {}),
+        HomeSectionHeader(title: 'Nhật ký gần đây', onViewAll: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DanhSachNhatKyScreen(),
+            ),
+          );
+        }),
         const SizedBox(height: 8),
         if (isLoading)
           const Center(child: CircularProgressIndicator())
@@ -54,7 +63,14 @@ class _NhatKyListState extends State<NhatKyList> {
                   color: Theme.of(context).colorScheme.primary),
               title: Text('${l.ngayTrienKhai.toString() ?? ''}  ${l.tenNhatKy}'),
               subtitle: Text(l.congTrinh?.ten ?? ''),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => XemChiTietNhatKyScreen(nhatKy: l),
+                  ),
+                );
+              },
             ),
           )),
       ],
