@@ -9,7 +9,7 @@ class ThongKeController extends ChangeNotifier {
   int soLuongNhanVien = 0;
   int soLuongNhanVienCongTrinh = 0;
   int soLuongDMThuChi = 0;
-
+  int soLuongCoBan = 0;
   final _service = ThongKeService();
 
   // Load count lần đầu hoặc sau khi thay đổi dữ liệu
@@ -19,7 +19,7 @@ class ThongKeController extends ChangeNotifier {
     soLuongNhanVien = await _service.getSoLuongNhanVien();
     soLuongNhanVienCongTrinh = await _service.getSoLuongNhanVienCongTrinh(idCongTrinh);
     soLuongDMThuChi = await _service.getSoLuongDMThuChi();
-
+    soLuongCoBan = await _service.getSoLuongCoBan();
     notifyListeners(); // thông báo cho UI
   }
 

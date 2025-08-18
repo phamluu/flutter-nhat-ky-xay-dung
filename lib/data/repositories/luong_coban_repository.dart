@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../../services/nhan_vien_service.dart';
 import '../db_helper.dart';
 import '../models/LuongCoBan.dart';
 
@@ -40,11 +41,12 @@ class LuongCoBanRepository {
   Future<List<Luongcoban>> getAll() async {
     final db = await _dbHelper.database;
     final maps = await db.query('luong_co_ban', orderBy: "ngayApDung DESC");
-
+    final nhanViens = await NhanVienService().getAllNhanVien();
     return List.generate(maps.length, (i) {
-      return Luongcoban.fromMap(maps[i]);
+      return Luongcoban.fromMap(maps[i], nhanViens: nhanViens);
     });
   }
+
 
   Future<List<Luongcoban>> getByNhanVien(int idNhanVien) async {
     final db = await _dbHelper.database;

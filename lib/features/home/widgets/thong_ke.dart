@@ -8,6 +8,7 @@ class ThongKeGrid extends StatelessWidget {
   final void Function()? onEmployeesTap;
   final void Function()? onFinanceTap;
   final void Function()? onLuongCoBanTap;
+  final void Function()? onUngLuongTap;
 
   const ThongKeGrid({
     Key? key,
@@ -16,7 +17,8 @@ class ThongKeGrid extends StatelessWidget {
     this.onDiaryTap,
     this.onEmployeesTap,
     this.onFinanceTap,
-    this.onLuongCoBanTap
+    this.onLuongCoBanTap,
+    this.onUngLuongTap
   }) : super(key: key);
 
   @override
@@ -79,7 +81,7 @@ class ThongKeGrid extends StatelessWidget {
               child: _StatCard(
                 icon: Icons.people,
                 label: 'Lương cơ bản',
-                value: controller.soLuongNhanVien.toString(), // hoặc controller.soLuongNhanVien
+                value: controller.soLuongCoBan.toString(), // hoặc controller.soLuongNhanVien
                 color: const Color(0xFF27AE60),
                 onTap: onLuongCoBanTap,
               ),
@@ -91,7 +93,7 @@ class ThongKeGrid extends StatelessWidget {
                 label: 'Chi lương',
                 value: controller.soLuongDMThuChi.toString(), // hoặc controller.soLuongLoaiThuChi
                 color: const Color(0xFFF39C12),
-                onTap: onFinanceTap,
+                onTap: onUngLuongTap,
               ),
             ),
           ],

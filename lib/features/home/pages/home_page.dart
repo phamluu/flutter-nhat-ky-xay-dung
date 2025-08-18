@@ -10,6 +10,7 @@ import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
 import '../../../controllers/thong_ke_controller.dart';
+import '../../ung_luong/screens/UngLuongScreen.dart';
 import '../widgets/ProjectList.dart';
 import '../widgets/bottomNavigation.dart';
 import '../widgets/thong_ke.dart';
@@ -127,6 +128,12 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LuongCoBanScreen()),
+                ).then((_) => controller.loadCounts());
+              },
+              onUngLuongTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UngLuongScreen()),
                 ).then((_) => controller.loadCounts());
               },
             ),

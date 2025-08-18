@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../services/luong_co_ban_service.dart';
 import '../../../services/nhan_vien_service.dart';
+import '../widgets/ConfirmDeleteDialog.dart';
+import '../widgets/LuongCoBanFormDialog.dart';
+
 class LuongCoBanScreen extends StatefulWidget {
   const LuongCoBanScreen({super.key});
 
@@ -17,8 +21,7 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
   final NhanVienService _nhanVienService = NhanVienService();
   final NumberFormat currencyFormat = NumberFormat("#,##0", "vi_VN");
 
-  List<Luongcoban> _luongs = [];
-  List<NhanVien> _nhanViens = [];
+  LuongCoBanViewModel _viewModel = LuongCoBanViewModel();
 
   @override
   void initState() {
@@ -27,149 +30,178 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
   }
 
   Future<void> _loadData() async {
-    final dsLuong = await _service.getAllLuongCoBan();
-    final dsNhanVien = await _nhanVienService.getAllNhanVien();
-    setState(() {
-      _luongs = dsLuong;
-      _nhanViens = dsNhanVien;
-    });
+    try {
+      final vm = await _service.getAllGroupedByNhanVien();
+      setState(() {
+        _viewModel = vm;
+      });
+    } catch (e) {
+      debugPrint("Lỗi load dữ liệu: $e");
+    }
   }
 
-  Future<void> _showForm({Luongcoban? luong}) async {
-    final mucLuongController =
-    TextEditingController(text: luong?.mucLuong?.toString() ?? "");
-    final ngayApDungController = TextEditingController(
-        text: luong?.ngayApDung != null
-            ? DateFormat("dd/MM/yyyy").format(luong!.ngayApDung!)
-            : "");
-    final ghiChuController = TextEditingController(text: luong?.ghiChu ?? "");
-
-    NhanVien? selectedNhanVien = luong?.nhanVien;
-    DateTime? ngayApDung = luong?.ngayApDung;
-
-    await showDialog(
+  void _showForm({Luongcoban? luong}) {
+    showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(luong == null ? "Thêm lương cơ bản" : "Sửa lương cơ bản"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<NhanVien>(
-                value: selectedNhanVien,
-                decoration: const InputDecoration(labelText: "Nhân viên"),
-                items: _nhanViens
-                    .map((nv) => DropdownMenuItem(
-                  value: nv,
-                  child: Text(nv.hoTen ?? "Không tên"),
-                ))
-                    .toList(),
-                onChanged: (nv) {
-                  setState(() => selectedNhanVien = nv);
-                },
-              ),
-              TextField(
-                controller: mucLuongController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: "Mức lương"),
-              ),
-              TextField(
-                controller: ngayApDungController,
-                readOnly: true,
-                decoration: const InputDecoration(labelText: "Ngày áp dụng"),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: ngayApDung ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      ngayApDung = picked;
-                      ngayApDungController.text =
-                          DateFormat("dd/MM/yyyy").format(picked);
-                    });
-                  }
-                },
-              ),
-              TextField(
-                controller: ghiChuController,
-                decoration: const InputDecoration(labelText: "Ghi chú"),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Hủy")),
-          ElevatedButton(
-            onPressed: () async {
-              if (selectedNhanVien == null) return;
-
-              final mucLuong = double.tryParse(mucLuongController.text) ?? 0;
-
-              final newLuong = Luongcoban(
-                id: luong?.id,
-                idNhanVien: selectedNhanVien!.id!,
-                mucLuong: mucLuong,
-                ngayTao: DateTime.now(),
-                ngayApDung: ngayApDung,
-                ghiChu: ghiChuController.text,
-                nhanVien: selectedNhanVien,
+      builder: (_) => LuongCoBanFormDialog(
+        luong: luong,
+        nhanViens: _viewModel.luongNhanViens.map((e) => e.nhanVien).toList(),
+        onSave: (newLuong) async {
+          try {
+            if (luong == null) {
+              await _service.addLuongCoBan(newLuong);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Thêm lương thành công", style: TextStyle(color: Colors.white)),
+                  backgroundColor: Colors.green,
+                ),
               );
-
-              if (luong == null) {
-                await _service.addLuongCoBan(newLuong);
-              } else {
-                await _service.updateLuongCoBan(newLuong);
-              }
-
-              Navigator.pop(context);
-              _loadData();
-            },
-            child: const Text("Lưu"),
-          )
-        ],
+            } else {
+              await _service.updateLuongCoBan(newLuong);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Cập nhật lương thành công", style: TextStyle(color: Colors.white)),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+            _loadData();
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Lỗi: ${e.toString()}")),
+            );
+          }
+        },
       ),
     );
   }
 
-  Future<void> _delete(int id) async {
-    await _service.deleteLuongCoBan(id);
-    _loadData();
+  void _delete(int id) {
+    showDialog(
+      context: context,
+      builder: (_) => ConfirmDeleteDialog(
+        message: "Bạn có chắc chắn muốn xóa không?",
+        onConfirm: () async {
+          try {
+            await _service.deleteLuongCoBan(id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Xóa lương thành công")),
+            );
+            _loadData();
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Xóa thất bại: ${e.toString()}")),
+            );
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Danh sách Lương cơ bản"),
+        title: const Text("Lương cơ bản"),
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: ListView.builder(
-        itemCount: _luongs.length,
+        itemCount: _viewModel.luongNhanViens.length,
         itemBuilder: (context, index) {
-          final luong = _luongs[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: ListTile(
-              title: Text("${luong.nhanVien?.hoTen ?? "Không tên"}"),
-              subtitle: Text(
-                "Mức lương: ${currencyFormat.format(luong.mucLuong ?? 0)}\n"
-                    "Ngày áp dụng: ${luong.ngayApDung != null ? DateFormat("dd/MM/yyyy").format(luong.ngayApDung!) : "Chưa có"}\n"
-                    "Ghi chú: ${luong.ghiChu ?? ""}",
+          final nvModel = _viewModel.luongNhanViens[index];
+          return Column(
+            children: [
+              ExpansionTile(
+                title: Text("${index + 1}. ${nvModel.nhanVien.hoTen ?? "Không có tên"}"),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, // canh trái
+                  children: [
+                    Text('Mức lương hiện tại: ' + currencyFormat.format(nvModel.mucLuongHienTai ?? 0)),
+                    Text('Số lần tăng lương: ' + nvModel.soLanTangLuong.toString()),
+                  ],
+                ),
+                children: nvModel.luongCoBans.map((luong) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Slidable(
+                      key: ValueKey(luong.id),
+                      endActionPane: ActionPane(
+                        motion: const DrawerMotion(), // hiệu ứng trượt
+                        extentRatio: 0.4, // chiếm 40% chiều rộng
+                        children: [
+                          SlidableAction(
+                            onPressed: (_) async {
+                              _showForm(luong: luong);
+                            },
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            icon: Icons.edit,
+                            label: 'Sửa',
+                          ),
+                          SlidableAction(
+                            onPressed: (_) async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text("Xác nhận"),
+                                  content: Text("Bạn có chắc muốn xóa ?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text("Hủy"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text("Xóa"),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                await _service.deleteLuongCoBan(luong.id!);
+                                setState(() {
+                                  _loadData();
+                                });
+                              }
+                            },
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            icon: Icons.delete,
+                            label: 'Xóa',
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50, // nền nhẹ, dịu mắt
+                          borderRadius: BorderRadius.circular(12), // bo góc mềm
+                          border: Border.all(
+                            color: Colors.grey.shade50, // border nhẹ nhàng
+                            width: 1,
+                          ),
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          title: Text("Mức lương: ${currencyFormat.format(luong.mucLuong ?? 0)}"),
+                          subtitle: Text(
+                            "Ngày áp dụng: ${luong.ngayApDung != null ? DateFormat("dd/MM/yyyy").format(luong.ngayApDung!) : "Chưa có"}\n"
+                                "Ghi chú: ${luong.ghiChu ?? ""}",
+                          )
+                        ),
+                      ),
+                    )
+                  );
+                }).toList(),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _showForm(luong: luong)),
-                  IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _delete(luong.id!)),
-                ],
+              Divider(
+                color: Colors.grey.shade300,
+                thickness: 1,
+                height: 1,
               ),
-            ),
+            ],
           );
         },
       ),

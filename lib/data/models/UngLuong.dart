@@ -30,15 +30,15 @@ class Ungluong {
       'idNhanVien': idNhanVien,
       'idNhanVienCongTrinh': idNhanVienCongTrinh,
       'soTien': soTien,
-      'ngayUng': ngayUng,
+      'ngayUng': ngayUng?.toIso8601String(),
       'lyDo': lyDo
     };
-    if (nhanVien != null) {
-      map['nhan_vien'] = nhanVien!.toMap();
-    }
-    if (nhanVienCongTrinh != null) {
-      map['nhan_vien_cong_trinh'] = nhanVienCongTrinh!.toMap();
-    }
+    // if (nhanVien != null) {
+    //   map['nhan_vien'] = nhanVien!.toMap();
+    // }
+    // if (nhanVienCongTrinh != null) {
+    //   map['nhan_vien_cong_trinh'] = nhanVienCongTrinh!.toMap();
+    // }
     return map;
   }
 
@@ -48,7 +48,7 @@ class Ungluong {
         id: map['id'],
         idNhanVien: map['idNhanVien'],
         lyDo: map['lyDo'],
-        ngayUng: map['ngayUng'],
+        ngayUng: map['ngayUng'] != null ? DateTime.parse(map['ngayUng']) : null,
         idNhanVienCongTrinh: map['idNhanVienCongTrinh']
     );
   }
