@@ -25,6 +25,16 @@ class _HalfDaySelectorState extends State<HalfDaySelector> {
     _value = widget.initialValue;
   }
 
+  @override
+  void didUpdateWidget(covariant HalfDaySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      setState(() {
+        _value = widget.initialValue;
+      });
+    }
+  }
+
   void _onSelected(int v) {
     setState(() {
       _value = v;
@@ -42,14 +52,14 @@ class _HalfDaySelectorState extends State<HalfDaySelector> {
           selected: _value == TrangThaiChamCong.coMat.value,
           selectedColor: Colors.amber,
           backgroundColor: Colors.grey.shade50,
-          onSelected: (_) => _onSelected(1),
+          onSelected: (_) => _onSelected(TrangThaiChamCong.coMat.value),
         ),
         ChoiceChip(
           label: const Text("Vắng"),
           selected: _value == TrangThaiChamCong.vang.value,
           selectedColor: Colors.amber,
           backgroundColor: Colors.grey.shade50,
-          onSelected: (_) => _onSelected(0),
+          onSelected: (_) => _onSelected(TrangThaiChamCong.vang.value),
         ),
       ],
     );

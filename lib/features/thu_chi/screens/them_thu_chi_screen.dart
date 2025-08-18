@@ -172,7 +172,9 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
-                value: _selectedDanhMucId,
+                value: _danhMucs.any((dm) => dm.id == _selectedDanhMucId)
+                    ? _selectedDanhMucId
+                    : null,
                 items: _danhMucs
                     .map((dm) => DropdownMenuItem(
                   value: dm.id,
@@ -183,23 +185,26 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
                 decoration: const InputDecoration(labelText: "Danh mục"),
                 validator: (v) => v == null ? 'Chọn danh mục' : null,
               ),
+
               const SizedBox(height: 8),
-            DropdownButtonFormField<int?>(
-              value: _selectedCongTrinhId,
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text("Chọn công trình"),
-                ),
-                ..._conTrinhs.map((ct) => DropdownMenuItem(
-                  value: ct.id,
-                  child: Text(ct.ten),
-                ))
-              ],
-              onChanged: (v) => setState(() => _selectedCongTrinhId = v),
-              decoration: const InputDecoration(labelText: "Công Trình"),
-              // validator có thể bỏ nếu muốn null
-            ),
+              DropdownButtonFormField<int?>(
+                value: _conTrinhs.any((ct) => ct.id == _selectedCongTrinhId)
+                    ? _selectedCongTrinhId
+                    : null,
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text("Chọn công trình"),
+                  ),
+                  ..._conTrinhs.map((ct) => DropdownMenuItem(
+                    value: ct.id,
+                    child: Text(ct.ten),
+                  ))
+                ],
+                onChanged: (v) => setState(() => _selectedCongTrinhId = v),
+                decoration: const InputDecoration(labelText: "Công Trình"),
+              ),
+
 
               const SizedBox(height: 8),
               TextFormField(

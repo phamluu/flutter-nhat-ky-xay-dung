@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -117,6 +117,33 @@ class DBHelper {
           ghi_chu TEXT,
           ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
         );
+    ''');
+
+    // Tạo bảng lương cơ bản
+    await db.execute('''
+        CREATE TABLE luong_co_ban (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              idNhanVien INTEGER NOT NULL,
+              mucLuong REAL,
+              ngayTao TEXT NOT NULL,        -- lưu dạng ISO8601 string (yyyy-MM-dd)
+              ngayApDung TEXT,              -- có thể null
+              ghiChu TEXT,
+              FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE
+          );
+     ''');
+
+    // Tạo bảng ứng lương
+    await db.execute(''' 
+          CREATE TABLE ung_luong (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                idNhanVien INTEGER NOT NULL,
+                idNhanVienCongTrinh INTEGER,
+                soTien REAL,
+                ngayUng TEXT,     -- lưu dạng ISO8601 (yyyy-MM-dd) hoặc timestamp
+                lyDo TEXT,
+                FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE,
+                FOREIGN KEY (idNhanVienCongTrinh) REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
+            );
     ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -227,6 +254,33 @@ class DBHelper {
           ghi_chu TEXT,
           ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
         );
+    ''');
+    }
+
+    if (oldVersion < 5) {
+      await db.execute('''
+        CREATE TABLE luong_co_ban (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              idNhanVien INTEGER NOT NULL,
+              mucLuong REAL,
+              ngayTao TEXT NOT NULL,        -- lưu dạng ISO8601 string (yyyy-MM-dd)
+              ngayApDung TEXT,              -- có thể null
+              ghiChu TEXT,
+              FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE
+          );
+     ''');
+      // Tạo bảng ứng lương
+      await db.execute(''' 
+          CREATE TABLE ung_luong (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                idNhanVien INTEGER NOT NULL,
+                idNhanVienCongTrinh INTEGER,
+                soTien REAL,
+                ngayUng TEXT,     -- lưu dạng ISO8601 (yyyy-MM-dd) hoặc timestamp
+                lyDo TEXT,
+                FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE,
+                FOREIGN KEY (idNhanVienCongTrinh) REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
+            );
     ''');
     }
     // Sau này nếu version 3,4,... muốn thêm cột hay bảng khác, tiếp tục ở đây

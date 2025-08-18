@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/cham_cong/cham_cong_screen.dart';
 import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/screens/danh_sach_danh_muc_thu_chi_screen.dart';
 import 'package:nhat_ky_xay_dung/features/home/widgets/NhatKyList.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
 import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
-import 'package:nhat_ky_xay_dung/features/thu_chi/screens/danh_sach_thu_chi_screen.dart';
+import 'package:nhat_ky_xay_dung/features/thu_chi/screens/thu_chi_screen.dart';
 
 import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
@@ -39,15 +40,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = [
-      {'name': 'Dự án Ba Làng', 'progress': 0.72, 'updated': '20/07/2025'},
-      {'name': 'Dự án B', 'progress': 0.40, 'updated': '19/07/2025'},
-    ];
-
-    final recentLogs = [
-      {'date': '20/07', 'project': 'Dự án Ba Làng', 'title': 'Đổ bê tông tầng 2'},
-      {'date': '19/07', 'project': 'Dự án B', 'title': 'Lắp cốp pha'},
-    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -131,6 +123,12 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (_) => const DanhSachDanhMucThuChiScreen()),
                 ).then((_) => controller.loadCounts());
               },
+              onLuongCoBanTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LuongCoBanScreen()),
+                ).then((_) => controller.loadCounts());
+              },
             ),
 
 
@@ -167,7 +165,7 @@ class _HomePageState extends State<HomePage> {
         onFinanceTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const DanhSachThuChiScreen()),
+            MaterialPageRoute(builder: (context) => const ThuChiScreen()),
           );
         },
         onCheckInTap: () {

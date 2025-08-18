@@ -41,54 +41,14 @@ class _ThemDanhMucThuChiScreenState extends State<ThemDanhMucThuChiScreen> {
     Navigator.pop(context, true);
   }
 
-  void _delete() async {
-    if (widget.danhMuc == null) return;
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Xóa danh mục?'),
-        content: const Text('Bạn chắc chắn muốn xóa?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa'),
-          ),
-        ],
-      ),
-    );
-
-    if (ok != true) return;
-
-    final inUse = await ThuChiService().countByDanhMuc(widget.danhMuc!.id!);
-    if (inUse > 0) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể xóa: đang có $inUse khoản thu/chi dùng danh mục này')),
-      );
-      return;
-    }
-
-    await _service.delete(widget.danhMuc!.id!);
-    if (mounted) Navigator.pop(context, true);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.danhMuc == null ? "Thêm danh mục" : "Sửa danh mục"),
-        actions: [
-          if (widget.danhMuc != null)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _delete,
-            ),
-        ],
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -105,7 +65,15 @@ class _ThemDanhMucThuChiScreenState extends State<ThemDanhMucThuChiScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _save,
-                child: const Text("Lưu"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade400,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text("Lưu", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
