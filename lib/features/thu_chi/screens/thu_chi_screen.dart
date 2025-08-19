@@ -112,6 +112,18 @@ class _ThuChiScreenState extends State<ThuChiScreen> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ThemThuChiScreen()),
+          );
+          if (result == true) {
+            setState(_load); // refresh danh sách khi thêm mới
+          }
+        },
+      ),
     );
   }
 

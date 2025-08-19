@@ -153,9 +153,7 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
             )
         ],
       ),
-      body: _danhMucs.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
+      body:Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,

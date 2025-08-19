@@ -6,15 +6,22 @@ import 'features/home/pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Widget app = const MyApp();
   try{
     if (!kIsWeb) {
       await DBHelper.instance.database; // Chỉ chạy trên mobile
     }
-    runApp(const MyApp());
   }catch (e, s) {
-    print('Error in main: $e');
-    print(s);
+    debugPrint('Error opening database: $e');
+    app = MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text('Lô khởi tạo DB: $e'),
+        ),
+      ),
+    );
   }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

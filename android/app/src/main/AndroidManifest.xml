@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="nhat_ky_xay_dung"
+        android:label="DHLC"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
