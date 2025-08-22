@@ -43,13 +43,22 @@ class Ungluong {
   }
 
 
-  factory Ungluong.fromMap(Map<String, dynamic> map, {NhanVien? nhanVien, NhanVienCongTrinh? nhanVienCongTrinh}) {
+  factory Ungluong.fromMap(Map<String, dynamic> map, {List<NhanVien>? nhanViens, NhanVienCongTrinh? nhanVienCongTrinh}) {
+    NhanVien? nv;
+    if (nhanViens != null) {
+      nv = nhanViens.firstWhere(
+            (e) => e.id == map['idNhanVien'],
+        orElse: () => NhanVien(id: map['idNhanVien'], hoTen: "Không tên"),
+      );
+    }
     return Ungluong(
         id: map['id'],
         idNhanVien: map['idNhanVien'],
+        soTien: map['soTien'],
         lyDo: map['lyDo'],
         ngayUng: map['ngayUng'] != null ? DateTime.parse(map['ngayUng']) : null,
-        idNhanVienCongTrinh: map['idNhanVienCongTrinh']
+        idNhanVienCongTrinh: map['idNhanVienCongTrinh'],
+        nhanVien: nv,
     );
   }
 

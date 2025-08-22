@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/services/nhan_vien_service.dart';
+import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../data/models/UngLuong.dart';
 import '../../../services/ung_luong_service.dart';
@@ -43,10 +45,28 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
         ungLuong: ungLuong,
         nhanViens: nhanViens,
         onSave: (u) async {
-          if (u.id == null) {
-            await service.addUngLuong(u);
-          } else {
-            await service.updateUngLuong(u);
+          try{
+            if (u.id == null) {
+              await service.addUngLuong(u);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Thêm chi lương thành công", style: TextStyle(color: Colors.white)),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            } else {
+              await service.updateUngLuong(u);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Cập nhật chi lương thành công", style: TextStyle(color: Colors.white)),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          }catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Lỗi: ${e.toString()}")),
+            );
           }
           _loadData();
         },
@@ -59,18 +79,42 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Xác nhận'),
-        content: Text('Bạn có chắc muốn xóa ứng lương này không?'),
+        content: const Text('Bạn có chắc muốn xóa ứng lương này không?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xóa')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Hủy')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Xóa')),
         ],
       ),
     );
+
     if (confirm == true) {
-      await service.deleteUngLuong(u.id!);
-      _loadData();
+      try {
+        await service.deleteUngLuong(u.id!);
+        setState(() {
+          _list.removeWhere((item) => item.id == u.id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Xóa ứng lương thành công", style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Xóa thất bại: ${e.toString()}",
+                style: const TextStyle(color: Colors.white)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -82,18 +126,47 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
           final u = _list[index];
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: ListTile(
-              title: Text(u.nhanVien?.hoTen ?? 'Không tên'),
-              subtitle: Text(
-                  'Số tiền: ${u.soTien ?? 0}\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}\nLý do: ${u.lyDo ?? ""}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+            child:Slidable(key: ValueKey(u.id),
+              endActionPane: ActionPane(
+                motion: const DrawerMotion(), // hiệu ứng trượt
+                extentRatio: 0.4, // chiếm 40% chiều rộng
                 children: [
-                  IconButton(onPressed: () => _showForm(ungLuong: u), icon: const Icon(Icons.edit)),
-                  IconButton(onPressed: () => _delete(u), icon: const Icon(Icons.delete, color: Colors.red)),
+                  SlidableAction(
+                    onPressed: (_) async {
+                      _showForm(ungLuong: u);
+                    },
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit,
+                    label: 'Sửa',
+                  ),
+                  SlidableAction(
+                    onPressed: (_) => _delete(u),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete,
+                    label: 'Xóa',
+                  ),
                 ],
               ),
-            ),
+              child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50, // nền nhẹ, dịu mắt
+                borderRadius: BorderRadius.circular(12), // bo góc mềm
+                border: Border.all(
+                  color: Colors.grey.shade50, // border nhẹ nhàng
+                  width: 1,
+                ),
+              ),
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: ListTile(
+                title: Text(u.nhanVien?.hoTen ?? 'Không tên'),
+                subtitle: Text(
+                    'Số tiền: ${currencyFormat.format(u.soTien ?? 0) }\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}\nLý do: ${u.lyDo ?? ""}'),
+
+              ),
+            ),)
+
           );
         },
       ),

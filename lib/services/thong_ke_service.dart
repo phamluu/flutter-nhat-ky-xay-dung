@@ -51,4 +51,9 @@ class ThongKeService {
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM danh_muc_thu_chi');
     return Sqflite.firstIntValue(result) ?? 0;
   }
+  Future<int> getSoLuongUngLuong() async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM ung_luong');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
 }

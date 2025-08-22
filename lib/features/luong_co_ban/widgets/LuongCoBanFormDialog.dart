@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/services/nhan_vien_service.dart';
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/models/NhanVien.dart';
 
 class LuongCoBanFormDialog extends StatefulWidget {
   final Luongcoban? luong;
-  final List<NhanVien> nhanViens;
   final Function(Luongcoban) onSave;
 
   const LuongCoBanFormDialog({
     super.key,
     this.luong,
-    required this.nhanViens,
     required this.onSave,
   });
 
@@ -25,8 +24,11 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
   late TextEditingController ghiChuController;
   NhanVien? selectedNhanVien;
   DateTime? ngayApDung;
+
+  NhanVienService _nhanVienService = NhanVienService();
   final NumberFormat currencyFormat = NumberFormat("#,##0", "vi_VN");
 
+  late List<NhanVien> nhanViens = [];
   @override
   void initState() {
     super.initState();
@@ -43,8 +45,14 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
     ghiChuController = TextEditingController(text: widget.luong?.ghiChu ?? "");
     selectedNhanVien = widget.luong?.nhanVien;
     ngayApDung = widget.luong?.ngayApDung;
+    _loadNhanVien();
   }
-
+  Future<void> _loadNhanVien() async {
+    final data = await _nhanVienService.getAllNhanVien(); // chờ Future
+    setState(() {
+      nhanViens = data;
+    });
+  }
   @override
   void dispose() {
     mucLuongController.dispose();
@@ -70,7 +78,7 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
             DropdownButtonFormField<NhanVien>(
               value: selectedNhanVien,
               decoration: const InputDecoration(labelText: "Nhân viên"),
-              items: widget.nhanViens
+              items: nhanViens
                   .map((nv) => DropdownMenuItem(
                 value: nv,
                 child: Text(nv.hoTen ?? "Không tên"),

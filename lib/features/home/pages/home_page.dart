@@ -182,7 +182,10 @@ class _HomePageState extends State<HomePage> {
           );
         },
         onProfileTap: () {
-          print("Tôi");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>  HomePage()),
+          );
         },
       ),
     );

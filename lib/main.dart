@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'data/db_helper.dart';
 import 'features/home/pages/home_page.dart';
@@ -59,4 +60,10 @@ class MyApp extends StatelessWidget {
       //const MyHomePage(title: 'Nhật ký xây dựng Home Page'),
     );
   }
+}
+
+
+Future<void> printDbPath() async {
+  final dbPath = await getDatabasesPath();
+  print("DB Path: $dbPath/database.db");
 }

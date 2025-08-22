@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../data/models/UngLuong.dart';
 
@@ -10,11 +11,11 @@ class UngLuongFormDialog extends StatefulWidget {
   final Function(Ungluong) onSave;
 
   const UngLuongFormDialog({
-    Key? key,
+    super.key,
     this.ungLuong,
     required this.nhanViens,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<UngLuongFormDialog> createState() => _UngLuongFormDialogState();
@@ -22,16 +23,20 @@ class UngLuongFormDialog extends StatefulWidget {
 
 class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
   NhanVien? selectedNhanVien;
-  final TextEditingController soTienController = TextEditingController();
+  late TextEditingController soTienController;
   final TextEditingController ngayUngController = TextEditingController();
   final TextEditingController lyDoController = TextEditingController();
   DateTime? ngayUng;
-
+  final NumberFormat currencyFormat = NumberFormat("#,##0", "vi_VN");
   @override
   void initState() {
     super.initState();
     selectedNhanVien = widget.ungLuong?.nhanVien;
-    soTienController.text = widget.ungLuong?.soTien?.toString() ?? '';
+    soTienController = TextEditingController(
+      text: widget.ungLuong?.soTien != null
+          ? currencyFormat.format(widget.ungLuong!.soTien!)
+          : "",
+    );
     lyDoController.text = widget.ungLuong?.lyDo ?? '';
     ngayUng = widget.ungLuong?.ngayUng;
     if (ngayUng != null) {
@@ -68,8 +73,27 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
             ),
             TextField(
               controller: soTienController,
-              decoration: const InputDecoration(labelText: 'Số tiền ứng'),
               keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Số tiền ứng"),
+              onChanged: (value) {
+                String cleaned = value.replaceAll(RegExp(r'[^0-9]'), '');
+
+                if (cleaned.isEmpty) {
+                  soTienController.value = TextEditingValue(
+                    text: '',
+                    selection: const TextSelection.collapsed(offset: 0),
+                  );
+                  return;
+                }
+
+                final number = int.parse(cleaned);
+                final formatted = currencyFormat.format(number);
+
+                soTienController.value = TextEditingValue(
+                  text: formatted,
+                  selection: TextSelection.collapsed(offset: formatted.length),
+                );
+              },
             ),
             TextField(
               controller: ngayUngController,
@@ -106,8 +130,7 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
         ElevatedButton(
           onPressed: () {
             if (selectedNhanVien == null) return;
-
-            final soTien = double.tryParse(soTienController.text) ?? 0;
+            final soTien = parseCurrency(soTienController.text);
 
             final newUngLuong = Ungluong(
               id: widget.ungLuong?.id,

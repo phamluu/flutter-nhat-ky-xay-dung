@@ -22,3 +22,6 @@ build/
 *.pyc
 *.swp
 .DS_Store
+
+database.db
+*.db

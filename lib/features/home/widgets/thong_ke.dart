@@ -91,7 +91,7 @@ class ThongKeGrid extends StatelessWidget {
               child: _StatCard(
                 icon: Icons.attach_money,
                 label: 'Chi lương',
-                value: controller.soLuongDMThuChi.toString(), // hoặc controller.soLuongLoaiThuChi
+                value: controller.soLuongUngLuong.toString(), // hoặc controller.soLuongLoaiThuChi
                 color: const Color(0xFFF39C12),
                 onTap: onUngLuongTap,
               ),

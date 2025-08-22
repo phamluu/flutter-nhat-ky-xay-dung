@@ -45,7 +45,6 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
       context: context,
       builder: (_) => LuongCoBanFormDialog(
         luong: luong,
-        nhanViens: _viewModel.luongNhanViens.map((e) => e.nhanVien).toList(),
         onSave: (newLuong) async {
           try {
             if (luong == null) {
@@ -118,7 +117,7 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, // canh trái
                   children: [
-                    Text('Mức lương hiện tại: ' + currencyFormat.format(nvModel.mucLuongHienTai ?? 0)),
+                    Text('Mức lương hiện tại: ' + currencyFormat.format(nvModel.mucLuongHienTai ?? 0) + ' đ'),
                     Text('Số lần tăng lương: ' + nvModel.soLanTangLuong.toString()),
                   ],
                 ),
@@ -185,7 +184,7 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
                         ),
                         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: ListTile(
-                          title: Text("Mức lương: ${currencyFormat.format(luong.mucLuong ?? 0)}"),
+                          title: Text("Mức lương: ${currencyFormat.format(luong.mucLuong ?? 0)} đ"),
                           subtitle: Text(
                             "Ngày áp dụng: ${luong.ngayApDung != null ? DateFormat("dd/MM/yyyy").format(luong.ngayApDung!) : "Chưa có"}\n"
                                 "Ghi chú: ${luong.ghiChu ?? ""}",

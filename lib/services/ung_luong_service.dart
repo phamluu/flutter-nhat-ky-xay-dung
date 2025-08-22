@@ -2,19 +2,22 @@ import 'package:sqflite/sqflite.dart';
 
 import '../data/db_helper.dart';
 import '../data/models/UngLuong.dart';
+import 'nhan_vien_service.dart';
 
 class UngLuongService {
   final _dbHelper = DBHelper.instance;
 
-  // Lấy danh sách tất cả ứng lương
   Future<List<Ungluong>> getAllUngLuong() async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'ung_luong',
       orderBy: 'ngayUng DESC',
     );
+    // load nhân viên ở đây
+    final nhanVienService = NhanVienService();
+    final nhanViens = await nhanVienService.getAllNhanVien();
 
-    return result.map((e) => Ungluong.fromMap(e)).toList();
+    return result.map((e) => Ungluong.fromMap(e, nhanViens: nhanViens)).toList();
   }
 
   // Thêm ứng lương
