@@ -42,6 +42,16 @@ class MyApp extends StatelessWidget {
           secondary: const Color(0xFFE67E22), // cam nổi bật
           surface: const Color(0xFFF4F6F7), // nền xám nhạt
         ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue.shade100,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          titleTextStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         textTheme: const TextTheme(
           titleLarge: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
           titleMedium: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),

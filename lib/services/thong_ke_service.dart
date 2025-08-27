@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-
+import 'package:intl/intl.dart';
 import '../data/db_helper.dart';
 
 class ThongKeService {
@@ -56,4 +56,23 @@ class ThongKeService {
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM ung_luong');
     return Sqflite.firstIntValue(result) ?? 0;
   }
+  // Số lượng có mặt ngày hôm nay của 1 công trình
+  Future<int> getSoLuongCoMat(int? idCongTrinh) async {
+    final db = await _dbHelper.database;
+
+    // Lấy ngày hiện tại theo định dạng yyyy-MM-dd
+    final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
+
+    final result = await db.rawQuery('''
+    SELECT COUNT(DISTINCT cc.id_nhan_vien_cong_trinh) as count
+    FROM cham_cong cc
+    JOIN nhan_vien_cong_trinh nvct ON cc.id_nhan_vien_cong_trinh = nvct.id
+    WHERE nvct.idCongTrinh = ?
+      AND cc.ngay = ?
+      AND (cc.trang_thai_sang = 1 OR cc.trang_thai_chieu = 1)
+  ''', [idCongTrinh, today]);
+
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
 }

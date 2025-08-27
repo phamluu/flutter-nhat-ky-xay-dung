@@ -6,6 +6,7 @@ import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_scree
 import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/screens/thu_chi_screen.dart';
 
+import '../../../core/utils/update_helper.dart';
 import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
@@ -31,6 +32,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {}); // rebuild UI khi count thay đổi
     });
     controller.loadCounts(); // load count lần đầu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateHelper.checkForUpdate(context);
+    });
   }
 
   @override
@@ -178,7 +182,7 @@ class _HomePageState extends State<HomePage> {
         onCheckInTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) =>  ChamCongScreen(idCongTrinh: 0, nhanViens: [],)),
+            MaterialPageRoute(builder: (context) =>  ChamCongScreen(idCongTrinh: 0)),
           );
         },
         onProfileTap: () {

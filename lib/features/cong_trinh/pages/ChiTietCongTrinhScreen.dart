@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/cham_cong/cham_cong_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../controllers/thong_ke_controller.dart';
@@ -23,8 +24,6 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
         builder: (context, controller, _) => Scaffold(
           appBar: AppBar(
             title: Text('${congTrinh.ten}'),
-            backgroundColor: Colors.blue.shade100,
-            foregroundColor: Colors.black,
             elevation: 0,
           ),
           body: Padding(
@@ -55,6 +54,12 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) =>  NhanVienCongTrinhListScreen(idCongTrinh: congTrinh.id, tenCongTrinh: congTrinh.ten)),
+                    ).then((_) => controller.loadCounts());
+                  },
+                  onChamCongTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) =>  ChamCongScreen(idCongTrinh: congTrinh.id, tenCongTrinh: congTrinh.ten,)),
                     ).then((_) => controller.loadCounts());
                   },
                 ),
