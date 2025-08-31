@@ -7,57 +7,68 @@ class ThongKeGrid extends StatelessWidget {
   final void Function()? onDiaryTap;
   final void Function()? onEmployeesTap;
   final void Function()? onChamCongTap;
+  final void Function()? onThucChiTap;
+  final void Function()? onUngLuongTap;
   const ThongKeGrid({
     Key? key,
     required this.controller,
     this.onDiaryTap,
     this.onEmployeesTap,
     this.onChamCongTap,
+    this.onThucChiTap,
+    this.onUngLuongTap
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GridView.count(
+      crossAxisCount: 2, // 2 cột
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.9,
+      padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.note_alt_outlined,
-                label: 'Nhật ký',
-                value: controller.soLuongNhatKy.toString(),
-                color: const Color(0xFFE67E22),
-                onTap: onDiaryTap,
-              ),
-            ),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.people,
-                label: 'Nhân viên',
-                value: controller.soLuongNhanVienCongTrinh.toString(), // hoặc controller.soLuongNhanVien
-                color: const Color(0xFF27AE60),
-                onTap: onEmployeesTap,
-              ),
-            ),
-          ],
+        _StatCard(
+          icon: Icons.note_alt_outlined,
+          label: 'Nhật ký',
+          value: controller.soLuongNhatKy.toString(),
+          color: const Color(0xFFE67E22),
+          onTap: onDiaryTap,
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.people,
-                label: 'Chấm công',
-                value: controller.soLuongCoMat.toString(), // hoặc controller.soLuongNhanVien
-                color: const Color(0xFF27AE60),
-                onTap: onChamCongTap,
-              ),
-            )
-          ],
-        )
+        _StatCard(
+          icon: Icons.people,
+          label: 'Nhân viên',
+          value: controller.soLuongNhanVienCongTrinh.toString(),
+          color: const Color(0xFF27AE60),
+          onTap: onEmployeesTap,
+        ),
+        _StatCard(
+          icon: Icons.people,
+          label: 'Chấm công',
+          value: controller.soLuongCoMat.toString(),
+          color: const Color(0xFF2980B9),
+          onTap: onChamCongTap,
+        ),
+        _StatCard(
+          icon: Icons.attach_money,
+          label: 'Thu chi',
+          value: controller.soLanThuChi.toString(),
+          color: const Color(0xFF8E44AD),
+          onTap: onThucChiTap,
+        ),
+        _StatCard(
+          icon: Icons.attach_money,
+          label: 'Ứng lương',
+          value: controller.soLanUngLuong.toString(),
+          color: const Color(0xFF8E44AD),
+          onTap: onUngLuongTap,
+        ),
       ],
     );
   }
+
 }
 
 class _StatCard extends StatelessWidget {

@@ -12,6 +12,8 @@ class ThongKeController extends ChangeNotifier {
   int soLuongCoBan = 0;
   int soLuongUngLuong = 0;
   int soLuongCoMat = 0;
+  int soLanThuChi = 0;
+  int soLanUngLuong = 0;
   final _service = ThongKeService();
 
   // Load count lần đầu hoặc sau khi thay đổi dữ liệu
@@ -24,6 +26,8 @@ class ThongKeController extends ChangeNotifier {
     soLuongCoBan = await _service.getSoLuongCoBan();
     soLuongUngLuong = await _service.getSoLuongUngLuong();
     soLuongCoMat = await _service.getSoLuongCoMat(idCongTrinh);
+    soLanThuChi = await _service.getSoLanThuChi(idCongTrinh);
+    soLanUngLuong = await _service.getSoLuongUngLuong(idCongTrinh);
     notifyListeners(); // thông báo cho UI
   }
 
@@ -53,6 +57,14 @@ class ThongKeController extends ChangeNotifier {
   }
   Future<void> updateSoLuongCoMat() async {
     soLuongNhatKy = await _service.getSoLuongCoMat(idCongTrinh);
+    notifyListeners();
+  }
+  Future<void> updateSoLanThuChi() async {
+    soLuongNhatKy = await _service.getSoLanThuChi(idCongTrinh);
+    notifyListeners();
+  }
+  Future<void> updateSoLanUngLuong() async {
+    soLuongNhatKy = await _service.getSoLuongUngLuong(idCongTrinh);
     notifyListeners();
   }
 }

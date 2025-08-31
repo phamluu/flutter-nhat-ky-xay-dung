@@ -45,9 +45,42 @@ class NhanVienCongTrinhService {
 
   Future<List<NhanVienCongTrinh>> getAll() async {
     final db = await _dbHelper.database;
-    final maps = await db.query('nhan_vien_cong_trinh', orderBy: 'id DESC');
-    return maps.map((e) => NhanVienCongTrinh.fromMap(e)).toList();
+
+    final maps = await db.rawQuery('''
+    SELECT nvct.*,
+           nv.id AS nv_id, nv.ho_ten AS nv_ten, nv.so_dien_thoai AS nv_sdt,
+           ct.id AS ct_id, ct.ten AS ct_ten, ct.dia_chi AS ct_diaChi
+    FROM nhan_vien_cong_trinh nvct
+    LEFT JOIN nhan_vien nv ON nvct.idNhanVien = nv.id
+    LEFT JOIN cong_trinh ct ON nvct.idCongTrinh = ct.id
+    ORDER BY nvct.id DESC
+  ''');
+
+    return maps.map((e) {
+      final nhanVien = e['nv_id'] != null
+          ? NhanVien(
+        id: e['nv_id'] as int,
+        hoTen: e['nv_ten'] as String,
+        soDienThoai: e['nv_sdt'] as String?,
+      )
+          : null;
+
+      final congTrinh = e['ct_id'] != null
+          ? CongTrinh(
+        id: e['ct_id'] as int,
+        ten: e['ct_ten'] as String,
+        diaChi: e['ct_diaChi'] as String?,
+      )
+          : null;
+
+      return NhanVienCongTrinh.fromMap(
+        e,
+        nhanVien: nhanVien,
+        congTrinh: congTrinh,
+      );
+    }).toList();
   }
+
 
   Future<List<NhanVienCongTrinh>> getByNhanVien(int idNhanVien) async {
     final db = await _dbHelper.database;

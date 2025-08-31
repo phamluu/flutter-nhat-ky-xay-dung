@@ -12,13 +12,16 @@ import '../widgets/thu_chi_button.dart';
 import 'them_thu_chi_screen.dart';
 
 class ThuChiScreen extends StatefulWidget {
-  const ThuChiScreen({super.key});
+  final int? idCongTrinh;
+  final String? tenCongTrinh;
+  const ThuChiScreen({super.key, this.idCongTrinh, this.tenCongTrinh});
 
   @override
   State<ThuChiScreen> createState() => _ThuChiScreenState();
 }
 
 class _ThuChiScreenState extends State<ThuChiScreen> {
+  int? _selectedCongTrinhId;
   final _thuChiService = ThuChiService();
   late Future<ThuChiViewModel> _futureThuChi;
   final _currencyFormat =
@@ -27,21 +30,33 @@ class _ThuChiScreenState extends State<ThuChiScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCongTrinhId = widget.idCongTrinh;
     _load();
   }
 
   void _load() {
-    _futureThuChi = _thuChiService.loadThuChiViewModel();
+    _futureThuChi = _thuChiService.loadThuChiViewModel(_selectedCongTrinhId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Danh sách thu chi"),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
-        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Quản lý thu chi",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (_selectedCongTrinhId != null)
+              Text(
+                widget.tenCongTrinh ?? "",
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
+        ),
       ),
       body: FutureBuilder<ThuChiViewModel>(
         future: _futureThuChi,
@@ -96,6 +111,7 @@ class _ThuChiScreenState extends State<ThuChiScreen> {
                 ),
               ),
 
+              if (_selectedCongTrinhId == null)
               CongTySection(
                 congTyVM: vm.thuChiCongTy,
                 currencyFormat: _currencyFormat,

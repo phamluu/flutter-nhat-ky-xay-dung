@@ -20,15 +20,18 @@ class ThuChiService {
     return maps.map((e) => ThuChi.fromMap(e)).toList();
   }
 
-  Future<List<ThuChi>> getAllWithDetails() async {
+  Future<List<ThuChi>> getAllWithDetails([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
     final res = await db.rawQuery('''
-        SELECT tc.*, ct.id as ct_id, ct.ten as ct_ten, dm.id as dm_id, dm.ten as dm_ten
-        FROM thu_chi tc
-        LEFT JOIN cong_trinh ct ON tc.id_cong_trinh = ct.id
-        LEFT JOIN danh_muc_thu_chi dm ON tc.id_danh_muc_thu_chi = dm.id
-        ORDER BY tc.ngay DESC
-      ''');
+      SELECT tc.*, ct.id as ct_id, ct.ten as ct_ten, dm.id as dm_id, dm.ten as dm_ten
+      FROM thu_chi tc
+      LEFT JOIN cong_trinh ct ON tc.id_cong_trinh = ct.id
+      LEFT JOIN danh_muc_thu_chi dm ON tc.id_danh_muc_thu_chi = dm.id
+      ${idCongTrinh != null ? 'WHERE tc.id_cong_trinh = ?' : ''}
+      ORDER BY tc.ngay DESC
+    ''',
+      idCongTrinh != null ? [idCongTrinh] : [], // truyền tham số vào nếu có
+    );
     return res.map((row) {
       final congTrinh = row['ct_id'] != null
           ? CongTrinh(id: row['ct_id'] as int, ten: row['ct_ten'] as String)
@@ -45,8 +48,8 @@ class ThuChiService {
    final _danhMucRepo = DanhMucThuChiService();
    final _congTrinhRepo = CongTrinhService();
 
-  Future<ThuChiViewModel> loadThuChiViewModel() async {
-    final allThuChis = await getAllWithDetails();
+  Future<ThuChiViewModel> loadThuChiViewModel([int? idCongTrinh]) async {
+    final allThuChis = await getAllWithDetails(idCongTrinh);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinhs = await _congTrinhRepo.getDanhSachCongTrinh();
 
@@ -118,6 +121,41 @@ class ThuChiService {
     return ThuChiViewModel()
       ..thuChiCongTy = congTyVM
       ..thuChiCongTrinhs = congTrinhVMs;
+  }
+
+  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh) async {
+    final allThuChis = await getAllWithDetails(idCongTrinh);
+    final danhMucs = await _danhMucRepo.getAll();
+    final congTrinh = await _congTrinhRepo.getCongTrinh(idCongTrinh);
+    final thuChiCtList = allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();
+
+    final List<ThuChiDanhMucViewModel> ctDanhMucs = [];
+    final List<ThuChi> ctKhac = [];
+
+    for (var tc in thuChiCtList) {
+      final dm = danhMucs.firstWhere(
+            (d) => d.id == tc.idDanhMucThuChi,
+        orElse: () => DanhMucThuChi(id: 0, ten: "Khác"),
+      );
+
+      if (dm.id == 0) {
+        ctKhac.add(tc);
+      } else {
+        var existing = ctDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
+        if (existing.isNotEmpty) {
+          existing.first.thuchis?.add(tc);
+        } else {
+          ctDanhMucs.add(ThuChiDanhMucViewModel()
+            ..danhMucThuChi = dm
+            ..thuchis = [tc]);
+        }
+      }
+    }
+
+    return ThuChiCongTrinhViewModel()
+      ..congTrinh = congTrinh!
+      ..thuChiDanhMucs = ctDanhMucs
+      ..thuChiKhacs = (ThuChiKhacViewModel()..thuchis = ctKhac);
   }
 
   Future<int> update(ThuChi tc) async {

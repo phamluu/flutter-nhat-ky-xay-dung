@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
 
 import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/NhanVien.dart';
@@ -8,12 +9,14 @@ import '../../../data/models/UngLuong.dart';
 class UngLuongFormDialog extends StatefulWidget {
   final Ungluong? ungLuong;
   final List<NhanVien> nhanViens;
+  final List<NhanVienCongTrinh>? nhanVienCongTrinhs;
   final Function(Ungluong) onSave;
 
   const UngLuongFormDialog({
     super.key,
     this.ungLuong,
     required this.nhanViens,
+    this.nhanVienCongTrinhs,
     required this.onSave,
   });
 
@@ -23,6 +26,7 @@ class UngLuongFormDialog extends StatefulWidget {
 
 class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
   NhanVien? selectedNhanVien;
+  NhanVienCongTrinh? selectedNhanVienCongTrinh;
   late TextEditingController soTienController;
   final TextEditingController ngayUngController = TextEditingController();
   final TextEditingController lyDoController = TextEditingController();
@@ -32,6 +36,7 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
   void initState() {
     super.initState();
     selectedNhanVien = widget.ungLuong?.nhanVien;
+    selectedNhanVienCongTrinh = widget.ungLuong?.nhanVienCongTrinh;
     soTienController = TextEditingController(
       text: widget.ungLuong?.soTien != null
           ? currencyFormat.format(widget.ungLuong!.soTien!)
@@ -70,6 +75,17 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
               ))
                   .toList(),
               onChanged: (nv) => setState(() => selectedNhanVien = nv),
+            ),
+            DropdownButtonFormField<NhanVienCongTrinh>(
+              value: selectedNhanVienCongTrinh,
+              decoration: const InputDecoration(labelText: 'Công trình '),
+              items: widget.nhanVienCongTrinhs
+                  ?.map((nvct) => DropdownMenuItem(
+                value: nvct,
+                child: Text(nvct.congTrinh?.ten ?? 'Không tên'),
+              ))
+                  .toList(),
+               onChanged: (nvct) => setState(() => selectedNhanVienCongTrinh = nvct),
             ),
             TextField(
               controller: soTienController,

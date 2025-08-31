@@ -3,6 +3,17 @@ import '../data/models/CongTrinh.dart';
 
 class CongTrinhService {
   final _dbHelper = DBHelper.instance;
+
+  Future<CongTrinh?> getCongTrinh(idCongTrinh) async{
+    final db = await _dbHelper.database;
+    final maps = await db.query('cong_trinh',where: 'id = ?',
+        whereArgs: [idCongTrinh], orderBy: 'ngay_bat_dau DESC');
+    if (maps.isNotEmpty) {
+      return CongTrinh.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
   Future<List<CongTrinh>> getDanhSachCongTrinh() async {
     final db = await _dbHelper.database;
     final maps = await db.query('cong_trinh', orderBy: 'ngay_bat_dau DESC');

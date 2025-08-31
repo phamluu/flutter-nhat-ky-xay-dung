@@ -1,6 +1,4 @@
-
 import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
-
 import 'NhanVien.dart';
 
 class Ungluong {
@@ -25,52 +23,72 @@ class Ungluong {
   });
 
   Map<String, dynamic> toMap() {
-    final map = {
+    final map = <String, dynamic>{
       'id': id,
       'idNhanVien': idNhanVien,
       'idNhanVienCongTrinh': idNhanVienCongTrinh,
       'soTien': soTien,
       'ngayUng': ngayUng?.toIso8601String(),
-      'lyDo': lyDo
+      'lyDo': lyDo,
     };
-    // if (nhanVien != null) {
-    //   map['nhan_vien'] = nhanVien!.toMap();
-    // }
-    // if (nhanVienCongTrinh != null) {
-    //   map['nhan_vien_cong_trinh'] = nhanVienCongTrinh!.toMap();
-    // }
     return map;
   }
 
-
-  factory Ungluong.fromMap(Map<String, dynamic> map, {List<NhanVien>? nhanViens, NhanVienCongTrinh? nhanVienCongTrinh}) {
+  factory Ungluong.fromMap(
+      Map<String, dynamic> map, {
+        List<NhanVien>? nhanViens,
+        List<NhanVienCongTrinh>? nhanVienCongTrinhs,
+        NhanVienCongTrinh? nvct,
+      }) {
+    // lấy nhân viên
     NhanVien? nv;
     if (nhanViens != null) {
       nv = nhanViens.firstWhere(
-            (e) => e.id == map['idNhanVien'],
-        orElse: () => NhanVien(id: map['idNhanVien'], hoTen: "Không tên"),
+            (e) => e.id == (map['idNhanVien'] as int?),
+        orElse: () => NhanVien(
+          id: map['idNhanVien'] as int?,
+          hoTen: "Không tên",
+        ),
       );
     }
+
+    // lấy nhân viên công trình
+    if (nhanVienCongTrinhs != null) {
+      nvct = nhanVienCongTrinhs.firstWhere(
+            (e) => e.id == (map['idNhanVienCongTrinh'] as int?),
+        orElse: () => NhanVienCongTrinh(
+          id: map['idNhanVienCongTrinh'] as int?,
+          idNhanVien: map['idNhanVien'] as int,
+          idCongTrinh: map['idCongTrinh'] as int?, // cần có cột này khi query
+        ),
+      );
+    }
+
     return Ungluong(
-        id: map['id'],
-        idNhanVien: map['idNhanVien'],
-        soTien: map['soTien'],
-        lyDo: map['lyDo'],
-        ngayUng: map['ngayUng'] != null ? DateTime.parse(map['ngayUng']) : null,
-        idNhanVienCongTrinh: map['idNhanVienCongTrinh'],
-        nhanVien: nv,
+      id: map['id'] as int?,
+      idNhanVien: map['idNhanVien'] as int,
+      idNhanVienCongTrinh: map['idNhanVienCongTrinh'] as int?,
+      soTien: (map['soTien'] is int)
+          ? (map['soTien'] as int).toDouble()
+          : map['soTien'] as double?,
+      ngayUng: map['ngayUng'] != null
+          ? DateTime.tryParse(map['ngayUng'].toString())
+          : null,
+      lyDo: map['lyDo'] as String?,
+      nhanVien: nv,
+      nhanVienCongTrinh: nvct,
     );
   }
 
   Ungluong copyWith({
     int? id,
-    required int idNhanVien,
+    int? idNhanVien,
     int? idNhanVienCongTrinh,
     double? soTien,
     DateTime? ngayUng,
     NhanVien? nhanVien,
     NhanVienCongTrinh? nhanVienCongTrinh,
-    String? lyDo
+    String? lyDo,
   }) {
     return Ungluong(
       id: id ?? this.id,
@@ -78,7 +96,7 @@ class Ungluong {
       idNhanVienCongTrinh: idNhanVienCongTrinh ?? this.idNhanVienCongTrinh,
       soTien: soTien ?? this.soTien,
       ngayUng: ngayUng ?? this.ngayUng,
-      nhanVien: nhanVien ?? this.nhanVien, // gán
+      nhanVien: nhanVien ?? this.nhanVien,
       nhanVienCongTrinh: nhanVienCongTrinh ?? this.nhanVienCongTrinh,
       lyDo: lyDo ?? this.lyDo,
     );

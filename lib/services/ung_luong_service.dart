@@ -7,6 +7,30 @@ import 'nhan_vien_service.dart';
 class UngLuongService {
   final _dbHelper = DBHelper.instance;
 
+  Future<List<Ungluong>> getUngLuongCongTrinh([int? idCongTrinh]) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery(
+      '''
+    SELECT ul.*, nvct.id AS nvct_id, nvct.idNhanVien, nvct.idCongTrinh
+    FROM ung_luong ul 
+    LEFT JOIN nhan_vien_cong_trinh nvct ON ul.idNhanVienCongTrinh = nvct.id
+    ${idCongTrinh != null ? "WHERE nvct.idCongTrinh = ?" : ""}
+    ORDER BY ul.ngayUng DESC
+    ''',
+      idCongTrinh != null ? [idCongTrinh] : [],
+    );
+
+    // load nhân viên ở đây
+    final nhanVienService = NhanVienService();
+    final nhanViens = await nhanVienService.getAllNhanVien();
+
+    return result
+        .map((e) => Ungluong.fromMap(e, nhanViens: nhanViens))
+        .toList();
+  }
+
+
+
   Future<List<Ungluong>> getAllUngLuong() async {
     final db = await _dbHelper.database;
     final result = await db.query(

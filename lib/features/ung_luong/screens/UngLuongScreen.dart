@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
+import 'package:nhat_ky_xay_dung/services/nhan_vien_cong_trinh_service.dart';
 import 'package:nhat_ky_xay_dung/services/nhan_vien_service.dart';
 import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/NhanVien.dart';
@@ -8,7 +10,9 @@ import '../../../services/ung_luong_service.dart';
 import 'UngLuongFormDialog.dart';
 import 'package:intl/intl.dart';
 class UngLuongScreen extends StatefulWidget {
-  const UngLuongScreen({Key? key}) : super(key: key);
+  final int? idCongTrinh;
+  final String? tenCongTrinh;
+  const UngLuongScreen({Key? key, this.idCongTrinh, this.tenCongTrinh}) : super(key: key);
 
   @override
   State<UngLuongScreen> createState() => _UngLuongScreenState();
@@ -17,26 +21,42 @@ class UngLuongScreen extends StatefulWidget {
 class _UngLuongScreenState extends State<UngLuongScreen> {
   List<Ungluong> _list = [];
   List<NhanVien> nhanViens = [];
+  List<NhanVienCongTrinh> nhanVienCongTrinhs = [];
   late final UngLuongService service;
   late final NhanVienService _nhanVienService;
-
+  late final NhanVienCongTrinhService _nhanVienCongTrinhService;
   bool _isLoadingNhanViens = true;
   @override
   void initState() {
     super.initState();
     service = UngLuongService();
     _nhanVienService = NhanVienService();
+    _nhanVienCongTrinhService = NhanVienCongTrinhService();
+
     _loadData();
     _loadNhanViens();
+    _loadNhanVienCongTrinhs();
   }
   Future<void> _loadNhanViens() async {
     nhanViens = await _nhanVienService.getAllNhanVien();
     setState(() => _isLoadingNhanViens = false);
   }
+  Future<void> _loadNhanVienCongTrinhs() async {
+    nhanVienCongTrinhs = await _nhanVienCongTrinhService.getAll();
+    setState(() => _isLoadingNhanViens = false);
+  }
   Future<void> _loadData() async {
-    final data = await service.getAllUngLuong();
+    List<Ungluong> data;
+
+    if (widget.idCongTrinh != null) {
+      data = await service.getUngLuongCongTrinh(widget.idCongTrinh);
+    } else {
+      data = await service.getAllUngLuong();
+    }
+
     setState(() => _list = data);
   }
+
 
   void _showForm({Ungluong? ungLuong}) {
     showDialog(
@@ -44,6 +64,7 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
       builder: (_) => UngLuongFormDialog(
         ungLuong: ungLuong,
         nhanViens: nhanViens,
+        nhanVienCongTrinhs: nhanVienCongTrinhs,
         onSave: (u) async {
           try{
             if (u.id == null) {
@@ -119,7 +140,21 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản lý ứng lương')),
+      appBar: AppBar(backgroundColor: Colors.blue,title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Quản lý ứng lương",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (widget.idCongTrinh != null)
+            Text(
+              widget.tenCongTrinh ?? "",
+              style: const TextStyle(fontSize: 13, color: Colors.white70),
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),),
       body: ListView.builder(
         itemCount: _list.length,
         itemBuilder: (_, index) {
@@ -162,7 +197,10 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
               child: ListTile(
                 title: Text(u.nhanVien?.hoTen ?? 'Không tên'),
                 subtitle: Text(
-                    'Số tiền: ${currencyFormat.format(u.soTien ?? 0) }\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}\nLý do: ${u.lyDo ?? ""}'),
+                    'Số tiền: ${currencyFormat.format(u.soTien ?? 0) }'
+                        '\nCông trình: ${u.nhanVienCongTrinh?.congTrinh?.ten}'
+                        '\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}'
+                        '\nLý do: ${u.lyDo ?? ""}'),
 
               ),
             ),)

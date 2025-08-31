@@ -51,11 +51,20 @@ class ThongKeService {
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM danh_muc_thu_chi');
     return Sqflite.firstIntValue(result) ?? 0;
   }
-  Future<int> getSoLuongUngLuong() async {
+  Future<int> getSoLuongUngLuong([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM ung_luong');
+    final result = await db.rawQuery(
+      '''
+      SELECT COUNT(*) as count 
+      FROM ung_luong ul
+      JOIN nhan_vien_cong_trinh nvct ON ul.idNhanVienCongTrinh = nvct.id
+      ${idCongTrinh != null ? "WHERE nvct.idCongTrinh = ?" : ""}
+    ''',
+      idCongTrinh != null ? [idCongTrinh] : [], // truyền whereArgs nếu có
+    );
     return Sqflite.firstIntValue(result) ?? 0;
   }
+
   // Số lượng có mặt ngày hôm nay của 1 công trình
   Future<int> getSoLuongCoMat(int? idCongTrinh) async {
     final db = await _dbHelper.database;
@@ -71,6 +80,17 @@ class ThongKeService {
       AND cc.ngay = ?
       AND (cc.trang_thai_sang = 1 OR cc.trang_thai_chieu = 1)
   ''', [idCongTrinh, today]);
+
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+  Future<int> getSoLanThuChi([int? IdCongTrinh]) async {
+    final db = await _dbHelper.database;
+
+    // Nếu IdCongTrinh == null thì đếm tất cả, nếu có thì đếm theo id_cong_trinh
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM thu_chi ${IdCongTrinh != null ? "WHERE id_cong_trinh = ?" : ""}',
+      IdCongTrinh != null ? [IdCongTrinh] : [],
+    );
 
     return Sqflite.firstIntValue(result) ?? 0;
   }
