@@ -59,6 +59,24 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // lọc công trình theo nhân viên được chọn
+    final filteredCongTrinhs = widget.nhanVienCongTrinhs
+        ?.where((nvct) => nvct.idNhanVien == selectedNhanVien?.id)
+        .toList() ??
+        [];
+
+    final congTrinhItems = [
+      const DropdownMenuItem<NhanVienCongTrinh?>(
+        value: null,
+        child: Text('Chưa chọn'),
+      ),
+      ...filteredCongTrinhs.map(
+            (nvct) => DropdownMenuItem<NhanVienCongTrinh?>(
+          value: nvct,
+          child: Text(nvct.congTrinh?.ten ?? 'Không tên'),
+        ),
+      ),
+    ];
     return AlertDialog(
       title: Text(widget.ungLuong == null ? "Thêm ứng lương" : "Sửa ứng lương"),
       content: SingleChildScrollView(
@@ -74,18 +92,21 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
                 child: Text(nv.hoTen ?? 'Không tên'),
               ))
                   .toList(),
-              onChanged: (nv) => setState(() => selectedNhanVien = nv),
+              onChanged: (nv) {
+                setState(() {
+                  selectedNhanVien = nv;
+                  // reset công trình khi đổi nhân viên
+                  selectedNhanVienCongTrinh = null;
+                });
+              },
             ),
-            DropdownButtonFormField<NhanVienCongTrinh>(
-              value: selectedNhanVienCongTrinh,
-              decoration: const InputDecoration(labelText: 'Công trình '),
-              items: widget.nhanVienCongTrinhs
-                  ?.map((nvct) => DropdownMenuItem(
-                value: nvct,
-                child: Text(nvct.congTrinh?.ten ?? 'Không tên'),
-              ))
-                  .toList(),
-               onChanged: (nvct) => setState(() => selectedNhanVienCongTrinh = nvct),
+            DropdownButtonFormField<NhanVienCongTrinh?>(
+              value: congTrinhItems.any((item) => item.value == selectedNhanVienCongTrinh)
+                  ? selectedNhanVienCongTrinh
+                  : null,
+              decoration: const InputDecoration(labelText: 'Công trình'),
+              items: congTrinhItems,
+              onChanged: (nvct) => setState(() => selectedNhanVienCongTrinh = nvct),
             ),
             TextField(
               controller: soTienController,
@@ -151,6 +172,7 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
             final newUngLuong = Ungluong(
               id: widget.ungLuong?.id,
               idNhanVien: selectedNhanVien!.id!,
+              idNhanVienCongTrinh: selectedNhanVienCongTrinh?.id,
               soTien: soTien,
               ngayUng: ngayUng,
               lyDo: lyDoController.text,

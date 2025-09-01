@@ -53,17 +53,19 @@ class ThongKeService {
   }
   Future<int> getSoLuongUngLuong([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-      '''
-      SELECT COUNT(*) as count 
-      FROM ung_luong ul
-      JOIN nhan_vien_cong_trinh nvct ON ul.idNhanVienCongTrinh = nvct.id
-      ${idCongTrinh != null ? "WHERE nvct.idCongTrinh = ?" : ""}
-    ''',
-      idCongTrinh != null ? [idCongTrinh] : [], // truyền whereArgs nếu có
-    );
-    return Sqflite.firstIntValue(result) ?? 0;
+
+    final sql = '''
+    SELECT COUNT(ul.id) AS count
+    FROM ung_luong ul
+    LEFT JOIN nhan_vien_cong_trinh nvct ON nvct.id = ul.idNhanVienCongTrinh
+    ${idCongTrinh != null ? 'WHERE nvct.idCongTrinh = ?' : ''}
+  ''';
+
+    final args = idCongTrinh != null ? [idCongTrinh] : [];
+    final r = await db.rawQuery(sql, args);
+    return Sqflite.firstIntValue(r) ?? 0;
   }
+
 
   // Số lượng có mặt ngày hôm nay của 1 công trình
   Future<int> getSoLuongCoMat(int? idCongTrinh) async {

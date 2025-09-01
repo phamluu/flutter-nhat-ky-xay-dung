@@ -38,6 +38,8 @@ dependencies:
   http: ^1.2.0
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
+  pdf: ^3.10.7
+  printing: ^5.11.1
   #end
 
   # The following adds the Cupertino Icons font to your application.

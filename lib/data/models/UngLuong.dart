@@ -1,3 +1,4 @@
+import 'package:nhat_ky_xay_dung/data/models/CongTrinh.dart';
 import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
 import 'NhanVien.dart';
 
@@ -38,6 +39,7 @@ class Ungluong {
       Map<String, dynamic> map, {
         List<NhanVien>? nhanViens,
         List<NhanVienCongTrinh>? nhanVienCongTrinhs,
+        List<CongTrinh>? congTrinhs,
         NhanVienCongTrinh? nvct,
       }) {
     // lấy nhân viên
@@ -61,6 +63,23 @@ class Ungluong {
           idNhanVien: map['idNhanVien'] as int,
           idCongTrinh: map['idCongTrinh'] as int?, // cần có cột này khi query
         ),
+      );
+    }
+
+    // nếu có danh sách công trình thì map tiếp
+    if (nvct != null && congTrinhs != null) {
+      final congTrinh = congTrinhs.firstWhere(
+            (c) => c.id == nvct!.idCongTrinh,
+        orElse: () => CongTrinh(id: nvct!.idCongTrinh, ten: "Không rõ"),
+      );
+      nvct = NhanVienCongTrinh(
+        id: nvct.id,
+        idNhanVien: nvct.idNhanVien,
+        idCongTrinh: nvct.idCongTrinh,
+        ngayBatDau: nvct.ngayBatDau,
+        ngayKetThuc: nvct.ngayKetThuc,
+        vaiTro: nvct.vaiTro,
+        congTrinh: congTrinh,
       );
     }
 
@@ -102,3 +121,4 @@ class Ungluong {
     );
   }
 }
+

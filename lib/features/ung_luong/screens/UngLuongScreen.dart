@@ -7,8 +7,12 @@ import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../data/models/UngLuong.dart';
 import '../../../services/ung_luong_service.dart';
+import '../widgets/ung_luong_helper.dart';
 import 'UngLuongFormDialog.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
 class UngLuongScreen extends StatefulWidget {
   final int? idCongTrinh;
   final String? tenCongTrinh;
@@ -57,161 +61,165 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
     setState(() => _list = data);
   }
 
+  Map<String, List<Ungluong>> _groupByMonthYear(List<Ungluong> list) {
+    final Map<String, List<Ungluong>> grouped = {};
+    final dateFormat = DateFormat('MM/yyyy');
 
-  void _showForm({Ungluong? ungLuong}) {
-    showDialog(
-      context: context,
-      builder: (_) => UngLuongFormDialog(
-        ungLuong: ungLuong,
-        nhanViens: nhanViens,
-        nhanVienCongTrinhs: nhanVienCongTrinhs,
-        onSave: (u) async {
-          try{
-            if (u.id == null) {
-              await service.addUngLuong(u);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Thêm chi lương thành công", style: TextStyle(color: Colors.white)),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            } else {
-              await service.updateUngLuong(u);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Cập nhật chi lương thành công", style: TextStyle(color: Colors.white)),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          }catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Lỗi: ${e.toString()}")),
-            );
-          }
-          _loadData();
-        },
-      ),
-    );
-  }
-
-  void _delete(Ungluong u) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Xác nhận'),
-        content: const Text('Bạn có chắc muốn xóa ứng lương này không?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Xóa')),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        await service.deleteUngLuong(u.id!);
-        setState(() {
-          _list.removeWhere((item) => item.id == u.id);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Xóa ứng lương thành công", style: TextStyle(color: Colors.white)),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Xóa thất bại: ${e.toString()}",
-                style: const TextStyle(color: Colors.white)),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    for (var u in list) {
+      final key = u.ngayUng != null ? dateFormat.format(u.ngayUng!) : "Chưa có ngày";
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(u);
     }
-  }
 
+    return grouped;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final groupedData = _groupByMonthYear(_list);
+
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.blue,title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Quản lý ứng lương",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          if (widget.idCongTrinh != null)
-            Text(
-              widget.tenCongTrinh ?? "",
-              style: const TextStyle(fontSize: 13, color: Colors.white70),
-              overflow: TextOverflow.ellipsis,
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Quản lý ứng lương",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-        ],
-      ),),
-      body: ListView.builder(
-        itemCount: _list.length,
-        itemBuilder: (_, index) {
-          final u = _list[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child:Slidable(key: ValueKey(u.id),
-              endActionPane: ActionPane(
-                motion: const DrawerMotion(), // hiệu ứng trượt
-                extentRatio: 0.4, // chiếm 40% chiều rộng
-                children: [
-                  SlidableAction(
-                    onPressed: (_) async {
-                      _showForm(ungLuong: u);
-                    },
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    icon: Icons.edit,
-                    label: 'Sửa',
-                  ),
-                  SlidableAction(
-                    onPressed: (_) => _delete(u),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete,
-                    label: 'Xóa',
-                  ),
-                ],
+            if (widget.idCongTrinh != null)
+              Text(
+                widget.tenCongTrinh ?? "",
+                style: const TextStyle(fontSize: 13, color: Colors.white70),
+                overflow: TextOverflow.ellipsis,
               ),
-              child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50, // nền nhẹ, dịu mắt
-                borderRadius: BorderRadius.circular(12), // bo góc mềm
-                border: Border.all(
-                  color: Colors.grey.shade50, // border nhẹ nhàng
-                  width: 1,
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: "Xuất PDF",
+            onPressed: () => UngLuongHelper.export(_list),
+          ),
+        ],
+
+      ),
+      body: ListView(
+        children: groupedData.entries.map((entry) {
+          final monthYear = entry.key;
+          final items = entry.value;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header nhóm (Tháng/Năm)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                color: Colors.grey.shade300,
+                child: Text('Chi lương tháng ' + monthYear,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: ListTile(
-                title: Text(u.nhanVien?.hoTen ?? 'Không tên'),
-                subtitle: Text(
-                    'Số tiền: ${currencyFormat.format(u.soTien ?? 0) }'
-                        '\nCông trình: ${u.nhanVienCongTrinh?.congTrinh?.ten}'
-                        '\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}'
-                        '\nLý do: ${u.lyDo ?? ""}'),
 
-              ),
-            ),)
+              // Danh sách ứng lương trong tháng
+              ...items.asMap().entries.map((e) {
+                final index = e.key;
+                final u = e.value;
 
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Slidable(
+                    key: ValueKey(u.id),
+                    endActionPane: ActionPane(
+                      motion: const DrawerMotion(),
+                      extentRatio: 0.4,
+                      children: [
+                        SlidableAction(
+                          onPressed: (_) async {
+                            UngLuongHelper.showFormDialog(
+                              context: context,
+                              ungLuong: u,
+                              nhanViens: nhanViens,
+                              nhanVienCongTrinhs: nhanVienCongTrinhs,
+                              service: service,
+                              onSuccess: _loadData,
+                            );
+                          },
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          icon: Icons.edit,
+                          label: 'Sửa',
+                        ),
+                        SlidableAction(
+                          onPressed: (_) => UngLuongHelper.deleteUngLuong(
+                            context: context,
+                            ungLuong: u,
+                            service: service,
+                            onSuccess: () {
+                              setState(() {
+                                _list.removeWhere((item) => item.id == u.id);
+                              });
+                            },
+                          ),
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          icon: Icons.delete,
+                          label: 'Xóa',
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        '${u.nhanVien?.hoTen ?? 'Không tên'}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(color: Colors.black87, fontSize: 14),
+                          children: [
+                            const TextSpan(text: 'Số tiền: '),
+                            TextSpan(
+                              text: currencyFormat.format(u.soTien ?? 0),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                                fontSize: 15,
+                              ),
+                            ),
+                            TextSpan(
+                              text:
+                              '\nCông trình: ${u.nhanVienCongTrinh?.congTrinh?.ten ?? "Không có"}'
+                                  '\nNgày ứng: ${u.ngayUng != null ? DateFormat('dd/MM/yyyy').format(u.ngayUng!) : "Chưa có"}'
+                                  '\nLý do: ${u.lyDo ?? ""}',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
           );
-        },
+        }).toList(),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(),
+        onPressed: () => UngLuongHelper.showFormDialog(
+          context: context,
+          nhanViens: nhanViens,
+          nhanVienCongTrinhs: nhanVienCongTrinhs,
+          service: service,
+          onSuccess: _loadData,
+        ),
         child: const Icon(Icons.add),
       ),
     );
   }
+
 }

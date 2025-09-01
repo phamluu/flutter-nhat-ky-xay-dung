@@ -54,4 +54,15 @@ class NhanVienCongTrinh {
     if (id != null) map['id'] = id;
     return map;
   }
+
+  // 👉 Đặt đoạn này ở cuối class
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is NhanVienCongTrinh &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
