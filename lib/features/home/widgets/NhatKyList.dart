@@ -13,7 +13,7 @@ class NhatKyList extends StatefulWidget {
 }
 
 class _NhatKyListState extends State<NhatKyList> {
-  List<NhatKy> logs = [];
+  List<NhatKyViewModel> logs = [];
   bool isLoading = true;
   final _service = NhatKyService(); // Giả sử service load nhật ký
 
@@ -61,13 +61,13 @@ class _NhatKyListState extends State<NhatKyList> {
             child: ListTile(
               leading: Icon(Icons.calendar_month,
                   color: Theme.of(context).colorScheme.primary),
-              title: Text('${l.ngayTrienKhai.toString() ?? ''}  ${l.tenNhatKy}'),
-              subtitle: Text(l.congTrinh?.ten ?? ''),
+              title: Text('${l.nhatKy.ngayTrienKhai.toString() ?? ''}  ${l.nhatKy.tenNhatKy}'),
+              subtitle: Text(l.nhatKy.congTrinh?.ten ?? ''),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => XemChiTietNhatKyScreen(nhatKy: l),
+                    builder: (_) => XemChiTietNhatKyScreen(nhatKy: l.nhatKy),
                   ),
                 );
               },

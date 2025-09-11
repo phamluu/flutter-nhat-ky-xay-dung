@@ -1,3 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/models/NhanVien.dart';
+import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
+
 class ChamCong {
   int? id;
   int idNhanVienCongTrinh;
@@ -5,7 +8,7 @@ class ChamCong {
   int? trangThaiSang;   // 0: vắng, 1: có mặt
   int? trangThaiChieu;
   String? ghiChu;
-
+  NhanVienCongTrinh? nhanVienCongTrinh;
   ChamCong({
     this.id,
     required this.idNhanVienCongTrinh,
@@ -13,6 +16,7 @@ class ChamCong {
     this.trangThaiSang,
     this.trangThaiChieu,
     this.ghiChu,
+    this.nhanVienCongTrinh,
   });
 
   factory ChamCong.fromMap(Map<String, dynamic> map) => ChamCong(

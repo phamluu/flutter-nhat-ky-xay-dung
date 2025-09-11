@@ -12,7 +12,7 @@ import 'UngLuongFormDialog.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 class UngLuongScreen extends StatefulWidget {
   final int? idCongTrinh;
   final String? tenCongTrinh;
@@ -96,14 +96,6 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
               ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            tooltip: "Xuất PDF",
-            onPressed: () => UngLuongHelper.export(_list),
-          ),
-        ],
-
       ),
       body: ListView(
         children: groupedData.entries.map((entry) {
@@ -148,6 +140,7 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
                               nhanViens: nhanViens,
                               nhanVienCongTrinhs: nhanVienCongTrinhs,
                               service: service,
+                              idCongTrinh: widget.idCongTrinh,
                               onSuccess: _loadData,
                             );
                           },
@@ -209,15 +202,34 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
           );
         }).toList(),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => UngLuongHelper.showFormDialog(
-          context: context,
-          nhanViens: nhanViens,
-          nhanVienCongTrinhs: nhanVienCongTrinhs,
-          service: service,
-          onSuccess: _loadData,
-        ),
-        child: const Icon(Icons.add),
+      floatingActionButton: SpeedDial(
+        icon: Icons.add,
+        activeIcon: Icons.close,
+        backgroundColor: Colors.blue,
+        overlayOpacity: 0.4,
+        spacing: 12,
+        spaceBetweenChildren: 8,
+        children: [
+          SpeedDialChild(
+            child: const Icon(Icons.attach_money, color: Colors.white),
+            backgroundColor: Colors.green,
+            label: 'Ứng lương',
+            onTap: () => UngLuongHelper.showFormDialog(
+              context: context,
+              nhanViens: nhanViens,
+              nhanVienCongTrinhs: nhanVienCongTrinhs,
+              service: service,
+              onSuccess: _loadData,
+              idCongTrinh: widget.idCongTrinh
+            ),
+          ),
+          SpeedDialChild(
+            child: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            backgroundColor: Colors.red,
+            label: 'Xuất PDF',
+            onTap: () => UngLuongHelper.export(_list),
+          ),
+        ],
       ),
     );
   }

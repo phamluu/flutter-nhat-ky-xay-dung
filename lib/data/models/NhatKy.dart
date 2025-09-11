@@ -85,3 +85,26 @@ class NhatKy {
     );
   }
 }
+
+class NhatKyViewModel {
+  final NhatKy nhatKy;
+  final int? soLuongCongNhan;
+
+  NhatKyViewModel({
+    required this.nhatKy,
+    this.soLuongCongNhan,
+  });
+
+  factory NhatKyViewModel.fromMap(Map<String, dynamic> map) {
+    return NhatKyViewModel(
+      nhatKy: NhatKy.fromMap(map),
+      soLuongCongNhan: map['so_luong_cong_nhan'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    final base = nhatKy.toMap();
+    base['so_luong_cong_nhan'] = soLuongCongNhan;
+    return base;
+  }
+}

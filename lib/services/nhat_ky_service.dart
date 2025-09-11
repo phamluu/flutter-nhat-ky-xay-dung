@@ -10,7 +10,7 @@ class NhatKyService {
     return await db.insert('nhat_ky', nk.toMap());
   }
 
-  Future<List<NhatKy>> getAllNhatKy([int? idCongTrinh]) async {
+  Future<List<NhatKyViewModel>> getAllNhatKy([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
 
     // 1. Lấy tất cả công trình
@@ -33,12 +33,38 @@ class NhatKyService {
         orderBy: 'ngay_tao DESC',
       );
     }
-
-    // 3. Map idCongTrinh sang CongTrinh
-    return maps.map((e) {
+    // 3. Map sang ViewModel (có query đếm công nhân)
+    List<NhatKyViewModel> result = [];
+    for (final e in maps) {
       final ct = congTrinhMap[e['id_cong_trinh']];
-      return NhatKy.fromMap(e, congTrinh: ct);
-    }).toList();
+      final nhatKy = NhatKy.fromMap(e, congTrinh: ct);
+
+      if (nhatKy.ngayTrienKhai == null) {
+        result.add(NhatKyViewModel(nhatKy: nhatKy, soLuongCongNhan: 0));
+        continue;
+      }
+
+      final countRes = await db.rawQuery(
+        '''
+    SELECT COUNT(DISTINCT nvct.id) AS cnt
+    FROM cham_cong cnt
+    JOIN nhan_vien_cong_trinh nvct
+      ON cnt.id_nhan_vien_cong_trinh = nvct.id
+    WHERE cnt.ngay = ? AND nvct.idCongTrinh = ?
+    ''',
+        [nhatKy.ngayTrienKhai, nhatKy.idCongTrinh],
+      );
+
+      final soLuongCongNhan = Sqflite.firstIntValue(countRes) ?? 0;
+
+      result.add(NhatKyViewModel(
+        nhatKy: nhatKy,
+        soLuongCongNhan: soLuongCongNhan,
+      ));
+    }
+
+
+    return result;
   }
 
 

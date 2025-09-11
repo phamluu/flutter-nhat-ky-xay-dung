@@ -3,18 +3,18 @@ import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
 import 'NhanVien.dart';
 
 class Ungluong {
-  final int? id;
-  final int idNhanVien;
-  final int? idNhanVienCongTrinh;
-  final double? soTien;
-  final DateTime? ngayUng;
-  final NhanVien? nhanVien;
-  final NhanVienCongTrinh? nhanVienCongTrinh;
-  final String? lyDo;
+    int? id;
+    int? idNhanVien;
+    int? idNhanVienCongTrinh;
+    double? soTien;
+    DateTime? ngayUng;
+   NhanVien? nhanVien;
+   NhanVienCongTrinh? nhanVienCongTrinh;
+    String? lyDo;
 
   Ungluong({
     this.id,
-    required this.idNhanVien,
+    this.idNhanVien,
     this.idNhanVienCongTrinh,
     this.soTien,
     this.ngayUng,

@@ -99,27 +99,27 @@ class ThongKeGrid extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        Row(
-          children: const [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.trending_up,
-                label: 'Tiến độ TB',
-                value: '72%',
-                color: Color(0xFF27AE60),
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.schedule,
-                label: 'Chậm tiến độ',
-                value: '3',
-                color: Color(0xFFF1C40F),
-              ),
-            ),
-          ],
-        ),
+        // Row(
+        //   children: const [
+        //     Expanded(
+        //       child: _StatCard(
+        //         icon: Icons.trending_up,
+        //         label: 'Tiến độ TB',
+        //         value: '72%',
+        //         color: Color(0xFF27AE60),
+        //       ),
+        //     ),
+        //     SizedBox(width: 12),
+        //     Expanded(
+        //       child: _StatCard(
+        //         icon: Icons.schedule,
+        //         label: 'Chậm tiến độ',
+        //         value: '3',
+        //         color: Color(0xFFF1C40F),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }

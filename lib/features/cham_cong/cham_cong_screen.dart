@@ -5,6 +5,7 @@ import '../../data/models/ChamCong.dart';
 import '../../data/models/NhanVienCongTrinh.dart';
 import '../../core/utils/trang_thai_cham_cong.dart';
 import 'cham_cong_controller.dart';
+import 'screens/ChamCongResultScreen.dart';
 import 'widgets/halfDaySelector.dart';
 
 class ChamCongScreen extends StatefulWidget {
@@ -99,12 +100,6 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
         backgroundColor: Colors.blue.shade100,
         foregroundColor: Colors.black,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _save,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -216,6 +211,44 @@ class _ChamCongScreenState extends State<ChamCongScreen> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            TextButton.icon(
+              icon: const Icon(Icons.save, color: Colors.blue),
+              label: const Text("Lưu"),
+              onPressed: _save,
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.list_alt, color: Colors.green),
+              label: const Text("Kết quả"),
+              onPressed: () {
+                if (_selectedCongTrinhId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Vui lòng chọn công trình trước"),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChamCongResultScreen(
+                      congTrinhId: _selectedCongTrinhId!,
+                      tenCongTrinh: widget.tenCongTrinh,
+                      ngay: _selectedDate,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

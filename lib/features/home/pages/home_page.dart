@@ -5,6 +5,7 @@ import 'package:nhat_ky_xay_dung/features/home/widgets/NhatKyList.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
 import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/screens/thu_chi_screen.dart';
+import 'package:nhat_ky_xay_dung/features/tool/screens/list.dart';
 
 import '../../../core/utils/update_helper.dart';
 import '../../../services/thong_ke_service.dart';
@@ -150,6 +151,8 @@ class _HomePageState extends State<HomePage> {
 
             // Nhật ký gần đây
             NhatKyList(),
+            const SizedBox(height: 20),
+            ToolList(),
           ],
         ),
       ),

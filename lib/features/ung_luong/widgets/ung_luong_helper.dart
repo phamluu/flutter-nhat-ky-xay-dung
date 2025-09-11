@@ -9,7 +9,11 @@ import 'package:printing/printing.dart';
 import '../../../core/utils/currencyFormat.dart';
 import '../screens/UngLuongFormDialog.dart';
 import 'package:intl/intl.dart';
+
+import '../screens/UngLuongFormDialogForCongTrinh.dart';
+import '../screens/UngLuongFormDialogGeneral.dart';
 class UngLuongHelper {
+
   static Future<void> showFormDialog({
     required BuildContext context,
     Ungluong? ungLuong,
@@ -17,44 +21,35 @@ class UngLuongHelper {
     required List<NhanVienCongTrinh> nhanVienCongTrinhs,
     required UngLuongService service,
     required VoidCallback onSuccess,
+    int? idCongTrinh,
   }) async {
     showDialog(
       context: context,
-      builder: (_) => UngLuongFormDialog(
+      builder: (_) => idCongTrinh != null
+          ? UngLuongFormDialogForCongTrinh(
+                ungLuong: ungLuong,
+                nhanVienCongTrinhs: nhanVienCongTrinhs,
+                idCongTrinh: idCongTrinh,
+                onSave: (u) async {
+                  if (u.id == null) {
+                    await service.addUngLuong(u);
+                  } else {
+                    await service.updateUngLuong(u);
+                  }
+                  onSuccess();
+                },
+              )
+          : UngLuongFormDialogGeneral(
         ungLuong: ungLuong,
         nhanViens: nhanViens,
         nhanVienCongTrinhs: nhanVienCongTrinhs,
         onSave: (u) async {
-          try {
-            if (u.id == null) {
-              await service.addUngLuong(u);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Thêm chi lương thành công",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            } else {
-              await service.updateUngLuong(u);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Cập nhật chi lương thành công",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-            onSuccess(); // gọi lại để load danh sách
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Lỗi: ${e.toString()}")),
-            );
+          if (u.id == null) {
+            await service.addUngLuong(u);
+          } else {
+            await service.updateUngLuong(u);
           }
+          onSuccess();
         },
       ),
     );

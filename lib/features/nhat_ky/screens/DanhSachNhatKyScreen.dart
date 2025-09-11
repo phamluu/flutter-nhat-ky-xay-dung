@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../data/models/NhatKy.dart';
 import '../../../services/nhat_ky_service.dart';
+import '../widgets/weather_dropdown.dart';
 import 'ThemSuaNhatKyScreen.dart';
 import 'XemChiTietNhatKyScreen.dart';
 
@@ -16,7 +17,7 @@ class DanhSachNhatKyScreen extends StatefulWidget {
 
 class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
   late final NhatKyService _service;
-  late Future<List<NhatKy>> _future;
+  late Future<List<NhatKyViewModel>> _future;
   @override
   void initState() {
     super.initState();
@@ -73,7 +74,7 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
             ),
           ],
         ),
-      body: FutureBuilder<List<NhatKy>>(
+      body: FutureBuilder<List<NhatKyViewModel>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -92,12 +93,12 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
             itemBuilder: (context, index) {
               final nk = data[index];
               return Slidable(
-                key: ValueKey(nk.id),
+                key: ValueKey(nk.nhatKy.id),
                 endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
                     SlidableAction(
-                      onPressed: (context) => _openForm(nhatKy: nk),
+                      onPressed: (context) => _openForm(nhatKy: nk.nhatKy),
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       icon: Icons.edit,
@@ -109,7 +110,7 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text("Xác nhận"),
-                            content: Text("Bạn có chắc muốn xóa nhật ký '${nk.tenNhatKy}'?"),
+                            content: Text("Bạn có chắc muốn xóa nhật ký '${nk.nhatKy.tenNhatKy}'?"),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
@@ -124,7 +125,7 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
                         );
 
                         if (confirm == true) {
-                          await _service.deleteNhatKy(nk.id!);
+                          await _service.deleteNhatKy(nk.nhatKy.id!);
                           setState(() => _reload());
                         }
                       },
@@ -137,15 +138,28 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
                 ),
                 child: ListTile(
                   title: Text(
-                    "${index + 1}. ${nk.tenNhatKy ?? "Chưa đặt tên"}",
+                    "${index + 1}. ${nk.nhatKy.tenNhatKy ?? "Chưa đặt tên"}",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text((nk.ngayTrienKhai ?? ""), style: const TextStyle(color: Colors.redAccent)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          'Ngày triển khai: ${(nk.nhatKy.ngayTrienKhai ?? "")}',
+                          style: const TextStyle(color: Colors.redAccent)
+                      ),
+                      buildWeatherInfo("Sáng", nk.nhatKy.thoiTietSang),
+                      buildWeatherInfo("Chiều", nk.nhatKy.thoiTietChieu),
+                      Text(
+                          'Số lượng công nhân: ${nk.soLuongCongNhan}',
+                      ),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => XemChiTietNhatKyScreen(nhatKy: nk),
+                        builder: (_) => XemChiTietNhatKyScreen(nhatKy: nk.nhatKy),
                       ),
                     );
                   },

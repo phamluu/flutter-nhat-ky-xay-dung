@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import '../../../data/models/NhatKy.dart';
 import '../../../services/nhat_ky_service.dart';
 import '../../../services/cong_trinh_service.dart';
@@ -27,6 +28,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
   int? _selectedCongTrinhId;
   int? _thoiTietSang;
   int? _thoiTietChieu;
+
 
   @override
   void initState() {
@@ -117,11 +119,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
                   validator: (val) =>
                   val == null || val.isEmpty ? "Không được để trống" : null,
                 ),
-                TextFormField(
-                  controller: _noiDungController,
-                  decoration: const InputDecoration(labelText: "Nội dung"),
-                  maxLines: 3,
-                ),
+
                 const SizedBox(height: 10),
                 DropdownButtonFormField<int>(
                   value: _selectedCongTrinhId,
@@ -165,7 +163,11 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
                     ),
                   ],
                 ),
-
+                TextFormField(
+                  controller: _noiDungController,
+                  decoration: const InputDecoration(labelText: "Nội dung"),
+                  maxLines: 3,
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _save,

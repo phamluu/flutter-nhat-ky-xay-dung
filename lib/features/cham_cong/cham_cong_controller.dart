@@ -24,6 +24,14 @@ class ChamCongController {
     return await _nhanVienCongTrinhService.getByCongTrinh(congTrinhId);
   }
 
+  Future<List<ChamCong>> loadChamCongKetQua(
+      int idCongTrinh) async {
+
+    final data = await _repo.getChamCong(idCongTrinh);
+
+    return data.toList();
+  }
+
   /// Lấy dữ liệu chấm công
   Future<Map<int, ChamCong>> loadChamCong(
       int congTrinhId, DateTime ngay, List<NhanVienCongTrinh> nhanViens) async {
