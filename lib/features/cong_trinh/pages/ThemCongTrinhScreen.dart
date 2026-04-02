@@ -1,7 +1,10 @@
 
 // Màn hình thêm công trình
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
@@ -21,7 +24,8 @@ class _ThemCongTrinhScreenState extends State<ThemCongTrinhScreen> {
   final _ngayBatDauController = TextEditingController();
   final _ngayKetThucController = TextEditingController();
   final _service = CongTrinhService();
-
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
   @override
   void dispose() {
     _tenController.dispose();
@@ -40,12 +44,21 @@ class _ThemCongTrinhScreenState extends State<ThemCongTrinhScreen> {
         moTa: _moTaController.text,
         ngayBatDau: _ngayBatDauController.text,
         ngayKetThuc: _ngayKetThucController.text,
+        hinhAnh: _imageFile?.path,
       );
       await _service.themCongTrinh(congTrinh);
       Navigator.pop(context, true);
     }
   }
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
 
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +90,23 @@ class _ThemCongTrinhScreenState extends State<ThemCongTrinhScreen> {
               TextFormField(
                 controller: _ngayKetThucController,
                 decoration: const InputDecoration(labelText: 'Ngày kết thúc (yyyy-MM-dd)'),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: _pickImage,
+                child: _imageFile != null
+                    ? Image.file(_imageFile!, height: 150)
+                    : Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.add_a_photo, size: 40),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text('Chọn hình'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

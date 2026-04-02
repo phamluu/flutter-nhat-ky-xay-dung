@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final VoidCallback onProjectsTap;  // Công trình
-  final VoidCallback onDiaryTap;     // Nhật ký
+  final VoidCallback onEmployeesTap;     // Nhật ký
   final VoidCallback onFinanceTap;   // Thu chi
   final VoidCallback onCheckInTap;   // Chấm công
   final VoidCallback onProfileTap;   // Tôi
@@ -10,7 +10,7 @@ class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({
     Key? key,
     required this.onProjectsTap,
-    required this.onDiaryTap,
+    required this.onEmployeesTap,
     required this.onFinanceTap,
     required this.onCheckInTap,
     required this.onProfileTap,
@@ -48,22 +48,28 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context,
-                  icon: Icons.menu_book, // Nhật ký
-                  label: 'Nhật ký',
+                  icon: Icons.person, // Nhân viên
+                  label: 'Nhân viên',
                   color: Theme.of(context).colorScheme.secondary,
-                  onTap: onDiaryTap,
+                  onTap: onEmployeesTap,
                 ),
 
-                const SizedBox(width: 75), // Chừa khoảng trống cho nút giữa
-
-                // Nhóm phải
+                //const SizedBox(width: 75), // Chừa khoảng trống cho nút giữa
                 _buildNavItem(
                   context,
-                  icon: Icons.account_balance_wallet, // Thu chi
-                  label: 'Thu chi',
+                  icon: Icons.money, // Thu chi
+                  label: 'Lương',
                   color: Theme.of(context).colorScheme.secondary,
                   onTap: onFinanceTap,
                 ),
+                // Nhóm phải
+                // _buildNavItem(
+                //   context,
+                //   icon: Icons.account_balance_wallet, // Thu chi
+                //   label: 'Thu chi',
+                //   color: Theme.of(context).colorScheme.secondary,
+                //   onTap: onFinanceTap,
+                // ),
                 _buildNavItem(
                   context,
                   icon: Icons.person, // Tôi
@@ -76,7 +82,7 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
 
           // Nút giữa
-          _buildCenterButton(context, onCheckInTap),
+          // _buildCenterButton(context, onCheckInTap),
         ],
       ),
     );

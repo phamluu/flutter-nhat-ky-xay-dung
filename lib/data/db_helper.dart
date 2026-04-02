@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -31,9 +31,11 @@ class DBHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ten TEXT NOT NULL,
         dia_chi TEXT,
+        hinh_anh TEXT,
         mo_ta TEXT,
         ngay_bat_dau TEXT NOT NULL,
-        ngay_ket_thuc TEXT
+        ngay_ket_thuc TEXT,
+        ngay_tao TEXT NOT NULL
       )
     ''');
 
@@ -79,14 +81,14 @@ class DBHelper {
     await db.execute('''
       CREATE TABLE thu_chi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_danh_muc_thu_chi INTEGER NOT NULL,
+        id_danh_muc_thu_chi INTEGER,
         loai INTEGER NOT NULL, -- 0: chi, 1: thu
         so_tien REAL NOT NULL,
         ghi_chu TEXT,
         ngay TEXT NOT NULL,
         id_cong_trinh INTEGER,
         ngay_tao TEXT NOT NULL,
-        FOREIGN KEY (id_danh_muc_thu_chi) REFERENCES danh_muc_thu_chi(id)
+        FOREIGN KEY (id_danh_muc_thu_chi) REFERENCES danh_muc_thu_chi(id) ON DELETE SET NULL
       )
     ''');
 
@@ -145,8 +147,76 @@ class DBHelper {
                 FOREIGN KEY (idNhanVienCongTrinh) REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
             );
     ''');
+    await db.execute('''
+          CREATE TABLE nhat_ky_hinh_anh (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              id_nhat_ky INTEGER NOT NULL,
+              url TEXT NOT NULL,
+              FOREIGN KEY (id_nhat_ky) REFERENCES nhat_ky(id) ON DELETE CASCADE
+            )
+    ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+      CREATE TABLE nhat_ky_hinh_anh (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_nhat_ky INTEGER NOT NULL,
+        url TEXT NOT NULL,
+        FOREIGN KEY (id_nhat_ky) REFERENCES nhat_ky(id) ON DELETE CASCADE
+      )
+    ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute('''
+      ALTER TABLE cong_trinh ADD COLUMN hinh_anh TEXT
+    ''');
+    }
+    if (oldVersion < 4) {
+      // 1. Add column
+      await db.execute('''
+        ALTER TABLE cong_trinh ADD COLUMN ngay_tao TEXT
+      ''');
 
+// 2. Update dữ liệu cũ
+      await db.execute('''
+          UPDATE cong_trinh 
+          SET ngay_tao = datetime('now') 
+          WHERE ngay_tao IS NULL
+        ''');
+    }
+    if (oldVersion < 5) {
+      // 1. Tạo bảng mới (đã bỏ NOT NULL)
+      await db.execute('''
+        CREATE TABLE thu_chi_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_danh_muc_thu_chi INTEGER,
+          loai INTEGER NOT NULL,
+          so_tien REAL NOT NULL,
+          ghi_chu TEXT,
+          ngay TEXT NOT NULL,
+          id_cong_trinh INTEGER,
+          ngay_tao TEXT NOT NULL,
+          FOREIGN KEY (id_danh_muc_thu_chi) 
+            REFERENCES danh_muc_thu_chi(id) ON DELETE SET NULL
+        )
+      ''');
+
+      // 2. Copy dữ liệu cũ
+      await db.execute('''
+          INSERT INTO thu_chi_new (
+            id, id_danh_muc_thu_chi, loai, so_tien, ghi_chu, ngay, id_cong_trinh, ngay_tao
+          )
+          SELECT 
+            id, id_danh_muc_thu_chi, loai, so_tien, ghi_chu, ngay, id_cong_trinh, ngay_tao
+          FROM thu_chi
+        ''');
+
+      // 3. Xóa bảng cũ
+      await db.execute('DROP TABLE thu_chi');
+
+      // 4. Đổi tên
+      await db.execute('ALTER TABLE thu_chi_new RENAME TO thu_chi');
+    }
   }
 }

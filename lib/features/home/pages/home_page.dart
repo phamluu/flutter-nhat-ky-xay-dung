@@ -8,6 +8,8 @@ import 'package:nhat_ky_xay_dung/features/thu_chi/screens/thu_chi_screen.dart';
 import 'package:nhat_ky_xay_dung/features/tool/screens/list.dart';
 
 import '../../../core/utils/update_helper.dart';
+import '../../../data/models/CongTrinh.dart';
+import '../../../services/cong_trinh_service.dart';
 import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
@@ -43,13 +45,21 @@ class _HomePageState extends State<HomePage> {
     controller.dispose(); // giải phóng bộ nhớ
     super.dispose();
   }
+  @override
 
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nhật ký xây dựng'),
+        title: const Text(
+          'Hello Nhật ký xây dựng',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: const [
@@ -64,95 +74,69 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Tìm kiếm + Bộ lọc
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: 'Tìm dự án hoặc nhật ký...',
-                      hintStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w100,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {},
-                  icon: const Icon(Icons.filter_list),
-                  label: const Text('Bộ lọc'),
-                ),
-              ],
-            ),
+            const Text('Chào mừng đến với nhật ký công trình!'),
             const SizedBox(height: 16),
 
-            ThongKeGrid(
-              controller: controller,
-              onProjectsTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DanhSachCongTrinhScreen()),
-                ).then((_) => controller.loadCounts());
-              },
-              onDiaryTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DanhSachNhatKyScreen()),
-                ).then((_) => controller.loadCounts());
-              },
-              onEmployeesTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DanhSachNhanVienScreen()),
-                ).then((_) => controller.loadCounts());
-              },
-              onFinanceTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DanhSachDanhMucThuChiScreen()),
-                ).then((_) => controller.loadCounts());
-              },
-              onLuongCoBanTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LuongCoBanScreen()),
-                ).then((_) => controller.loadCounts());
-              },
-              onUngLuongTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UngLuongScreen()),
-                ).then((_) => controller.loadCounts());
-              },
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AspectRatio(
+                aspectRatio: 2 / 1,
+                child: Image.asset(
+                  'assets/banner.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
+            const SizedBox(height: 12),
 
+            const SizedBox(height: 12),
 
             // Danh sách dự án
             ProjectList(),
-
             const SizedBox(height: 20),
+          // ThongKeGrid(
+          //     controller: controller,
+          //     onProjectsTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const DanhSachCongTrinhScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //     onDiaryTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const DanhSachNhatKyScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //     onEmployeesTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const DanhSachNhanVienScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //     onFinanceTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const DanhSachDanhMucThuChiScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //     onLuongCoBanTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const LuongCoBanScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //     onUngLuongTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => const UngLuongScreen()),
+          //       ).then((_) => controller.loadCounts());
+          //     },
+          //   ),
 
             // Nhật ký gần đây
-            NhatKyList(),
-            const SizedBox(height: 20),
-            ToolList(),
+            // NhatKyList(),
+            // ToolList(),
           ],
         ),
       ),
@@ -167,15 +151,21 @@ class _HomePageState extends State<HomePage> {
             controller.loadCounts();
           });
         },
-        onDiaryTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DanhSachNhatKyScreen()),
-          ).then((value) {
-            // Khi quay về Home, load lại số liệu
-            controller.loadCounts();
-          });
-        },
+          onEmployeesTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DanhSachNhanVienScreen()),
+                  ).then((_) => controller.loadCounts());
+                },
+        // onDiaryTap: () {
+        //   Navigator.push(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => const DanhSachNhatKyScreen()),
+        //   ).then((value) {
+        //     // Khi quay về Home, load lại số liệu
+        //     controller.loadCounts();
+        //   });
+        // },
         onFinanceTap: () {
           Navigator.push(
             context,
@@ -197,4 +187,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 }

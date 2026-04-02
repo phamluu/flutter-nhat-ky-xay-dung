@@ -10,6 +10,7 @@ class NhatKyService {
     return await db.insert('nhat_ky', nk.toMap());
   }
 
+  // -----Nhật ký ---------
   Future<List<NhatKyViewModel>> getAllNhatKy([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
 
@@ -62,8 +63,6 @@ class NhatKyService {
         soLuongCongNhan: soLuongCongNhan,
       ));
     }
-
-
     return result;
   }
 
@@ -84,6 +83,40 @@ class NhatKyService {
       'nhat_ky',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  // ----- Hình ảnh -------
+  Future<void> insertImages(int nhatKyId, List<String> paths) async {
+    final db = await DBHelper.instance.database;
+
+    for (var path in paths) {
+      await db.insert('nhat_ky_hinh_anh', {
+        'id_nhat_ky': nhatKyId,
+        'url': path,
+      });
+    }
+  }
+
+  Future<List<String>> getImages(int nhatKyId) async {
+    final db = await DBHelper.instance.database;
+
+    final result = await db.query(
+      'nhat_ky_hinh_anh',
+      where: 'id_nhat_ky = ?',
+      whereArgs: [nhatKyId],
+    );
+
+    return result.map((e) => e['url'] as String).toList();
+  }
+
+  Future<void> deleteImages(int nhatKyId) async {
+    final db = await DBHelper.instance.database;
+
+    await db.delete(
+      'nhat_ky_hinh_anh',
+      where: 'id_nhat_ky = ?',
+      whereArgs: [nhatKyId],
     );
   }
 }

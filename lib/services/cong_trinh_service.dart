@@ -16,19 +16,19 @@ class CongTrinhService {
   }
   Future<List<CongTrinh>> getDanhSachCongTrinh() async {
     final db = await _dbHelper.database;
-    final maps = await db.query('cong_trinh', orderBy: 'ngay_bat_dau DESC');
+    final maps = await db.query('cong_trinh', orderBy: 'datetime(ngay_tao) DESC',);
     return maps.map((map) => CongTrinh.fromMap(map)).toList();
   }
 
   Future<int> themCongTrinh(CongTrinh congTrinh) async {
     final db = await _dbHelper.database;
-    return await db.insert('cong_trinh', congTrinh.toMap());
+    return await db.insert('cong_trinh', congTrinh.toMapInsert());
   }
   Future<void> updateCongTrinh(CongTrinh ct) async {
     final db = await _dbHelper.database;
     await db.update(
       'cong_trinh',
-      ct.toMap(),
+      ct.toMapUpdate(),
       where: 'id = ?',
       whereArgs: [ct.id],
     );

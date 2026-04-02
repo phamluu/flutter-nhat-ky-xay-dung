@@ -35,7 +35,7 @@ class _NhanVienCongTrinhListScreenState extends State<NhanVienCongTrinhListScree
   void _openForm({NhanVienCongTrinh? nhanVienCongTrinh}) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => NhanVienCongTrinhFormScreen(item: nhanVienCongTrinh)),
+      MaterialPageRoute(builder: (_) => NhanVienCongTrinhFormScreen(item: nhanVienCongTrinh, idCongTrinh: widget.idCongTrinh)),
     );
     if (result == true) {
       setState(() => _reload());

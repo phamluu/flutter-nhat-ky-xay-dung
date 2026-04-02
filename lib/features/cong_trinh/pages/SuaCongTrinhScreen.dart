@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
-
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 class SuaCongTrinhScreen extends StatefulWidget {
   final CongTrinh congTrinh;
 
@@ -14,7 +15,8 @@ class SuaCongTrinhScreen extends StatefulWidget {
 class _SuaCongTrinhScreenState extends State<SuaCongTrinhScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = CongTrinhService();
-
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
   late TextEditingController _tenController;
   late TextEditingController _diaChiController;
   late TextEditingController _moTaController;
@@ -52,6 +54,7 @@ class _SuaCongTrinhScreenState extends State<SuaCongTrinhScreen> {
       moTa: _moTaController.text,
       ngayBatDau: _ngayBatDauController.text,
       ngayKetThuc: _ngayKetThucController.text,
+      hinhAnh: _imageFile?.path ?? widget.congTrinh.hinhAnh,
     );
 
     try {
@@ -96,7 +99,36 @@ class _SuaCongTrinhScreenState extends State<SuaCongTrinhScreen> {
                 controller: _ngayKetThucController,
                 decoration: const InputDecoration(labelText: 'Ngày kết thúc'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+
+              // Hình ảnh
+              const SizedBox(height: 12),
+
+// Hiển thị ảnh
+              GestureDetector(
+                onTap: _pickImage,
+                child: _imageFile != null
+                    ? Image.file(_imageFile!, height: 150)
+                    : (widget.congTrinh.hinhAnh != null &&
+                    widget.congTrinh.hinhAnh!.isNotEmpty)
+                    ? Image.file(
+                  File(widget.congTrinh.hinhAnh!),
+                  height: 150,
+                )
+                    : Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.add_a_photo, size: 40),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text('Chọn hình'),
+              ),
               ElevatedButton(
                 onPressed: _save,
                 child: const Text('Lưu'),
@@ -106,5 +138,15 @@ class _SuaCongTrinhScreenState extends State<SuaCongTrinhScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
   }
 }

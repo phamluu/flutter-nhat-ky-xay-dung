@@ -25,7 +25,7 @@ class ThongKeGrid extends StatelessWidget {
       crossAxisCount: 2, // 2 cột
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.9,
+      childAspectRatio: 1.2,
       padding: const EdgeInsets.all(16),
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
@@ -88,52 +88,65 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: color.withOpacity(0.15),
-              ),
-              child: Icon(icon, color: color, size: 20),
+    final card = Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 🔹 Icon nhỏ + có nền
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.grey[700],
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+
+          const SizedBox(height: 8),
+
+          // 🔥 SỐ (trung tâm)
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 4),
+
+          // Label
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
 
     return onTap != null
-        ? InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: card)
+        ? InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: card,
+    )
         : card;
   }
 }

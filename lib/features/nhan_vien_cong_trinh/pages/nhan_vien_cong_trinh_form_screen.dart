@@ -10,7 +10,8 @@ import '../../../services/nhan_vien_cong_trinh_service.dart';
 
 class NhanVienCongTrinhFormScreen extends StatefulWidget {
   final NhanVienCongTrinh? item;
-  const NhanVienCongTrinhFormScreen({super.key, this.item});
+  final int? idCongTrinh;
+  const NhanVienCongTrinhFormScreen({super.key, this.item, this.idCongTrinh});
 
   @override
   State<NhanVienCongTrinhFormScreen> createState() => _NhanVienCongTrinhFormScreenState();
@@ -53,6 +54,7 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
         _ngayBatDauController.text = widget.item!.ngayBatDau ?? '';
         _ngayKetThucController.text = widget.item!.ngayKetThuc ?? '';
       } else {
+        _selectedCongTrinhId = widget.idCongTrinh;
         if (_nhanViens.isNotEmpty) _selectedNhanVienId = _nhanViens.first.id;
       }
     });
@@ -96,12 +98,16 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
         elevation: 0,
       ),
       body: _nhanViens.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Chưa có nhân viên, hãy thêm nhân viên trước'),
+            )
           : Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: 
+          ListView(
             children: [
               // Dropdown nhân viên
               DropdownButtonFormField<int>(
@@ -112,7 +118,8 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
                   child: Text(nv.hoTen ?? "Không tên"),
                 ))
                     .toList(),
-                onChanged: (v) => setState(() => _selectedNhanVienId = v),
+                onChanged: (v) => setState(() =>
+                _selectedNhanVienId = v),
                 decoration: const InputDecoration(labelText: 'Nhân viên'),
                 validator: (v) => v == null ? 'Chọn nhân viên' : null,
               ),
@@ -126,7 +133,9 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
                   ..._conTrinhs.map((ct) =>
                       DropdownMenuItem<int?>(value: ct.id, child: Text(ct.ten ?? "Không tên")))
                 ],
-                onChanged: (v) => setState(() => _selectedCongTrinhId = v),
+                onChanged: widget.idCongTrinh != null
+                    ? null
+                    : (v) => setState(() => _selectedCongTrinhId = v),
                 decoration: const InputDecoration(labelText: 'Công trình (tùy chọn)'),
               ),
               const SizedBox(height: 8),

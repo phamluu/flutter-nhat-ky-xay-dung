@@ -4,7 +4,7 @@ import 'CongTrinh.dart';
 
 class ThuChi {
   final int? id;
-  final int idDanhMucThuChi;
+  final int? idDanhMucThuChi;
   final DanhMucThuChi? danhMucThuChi;
   final int loai; // 0: chi, 1: thu
   final double soTien;
@@ -16,7 +16,7 @@ class ThuChi {
 
   ThuChi({
     this.id,
-    required this.idDanhMucThuChi,
+    this.idDanhMucThuChi,
     this.danhMucThuChi,
     required this.loai,
     required this.soTien,
@@ -39,7 +39,7 @@ class ThuChi {
       'ngay_tao': ngayTao,
     };
     if (congTrinh != null) {
-      map['cong_trinh'] = congTrinh!.toMap();
+      map['cong_trinh'] = congTrinh!.toMapUpdate();
     }
     if (danhMucThuChi != null) {
       map['danh_muc_thu_chi'] = danhMucThuChi!.toMap();

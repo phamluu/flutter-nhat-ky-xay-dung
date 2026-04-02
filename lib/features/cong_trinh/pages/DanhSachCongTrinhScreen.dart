@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
@@ -140,40 +142,86 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                     ),
                   ],
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50, // nền nhẹ, dịu mắt
-                    borderRadius: BorderRadius.circular(12), // bo góc mềm
-                    border: Border.all(
-                      color: Colors.grey.shade50, // border nhẹ nhàng
-                      width: 1,
-                    ),
-                  ),
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    title: Text('${index + 1}. ${ct.ten}'),
-                    subtitle: Text(ct.diaChi ?? 'Không có địa chỉ'),
-                    trailing: Text(ct.ngayBatDau ?? ''),
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChiTietCongTrinhScreen(congTrinh: ct),
-                        ),
-                      );
-
-                      if (result == true) {
-                        setState(() {
-                          _loadData();
-                        });
-                      }
-                    },
-                  ),
-                ),
+                child: conTrinh(ct),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget conTrinh(CongTrinh ct) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChiTietCongTrinhScreen(congTrinh: ct),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              /// PHẦN THÔNG TIN (2/3)
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ct.ten,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ct.diaChi!,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    LinearProgressIndicator(
+                      value: 50 / 100,
+                      color: Colors.orange,
+                      backgroundColor: Colors.grey.shade300,
+                    ),
+                    const SizedBox(height: 4),
+                    Text("Tiến độ: 50%"),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              /// PHẦN HÌNH (1/3)
+              Expanded(
+                flex: 1,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: ct.hinhAnh != null? Image.file(File(ct.hinhAnh!),fit: BoxFit.cover,): Image.asset(
+                      'assets/noimage.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

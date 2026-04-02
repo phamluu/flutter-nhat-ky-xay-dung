@@ -3,24 +3,29 @@ plugins {
     id 'kotlin-android'
     id 'dev.flutter.flutter-gradle-plugin'
 }
+//def keystoreProperties = new Properties()
+//def keystorePropertiesFile = rootProject.file("key.properties")
+//if (keystorePropertiesFile.exists()) {
+//    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+//}
 android {
     namespace = "dhlc.art.nhat_ky_xay_dung"
-    compileSdkVersion 34
+    compileSdk = 36
 //    compileSdk = flutter.compileSdkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     defaultConfig {
         applicationId = "dhlc.art.nhat_ky_xay_dung"
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdkVersion flutter.minSdkVersion
+        targetSdk = 36
         versionCode 1
         versionName "1.0"
 //        minSdk = flutter.minSdkVersion
@@ -28,10 +33,22 @@ android {
 //        versionCode = flutter.versionCode
 //        versionName = flutter.versionName
     }
+//    signingConfigs {
+//        release {
+//            keyAlias keystoreProperties['keyAlias']
+//            keyPassword keystoreProperties['keyPassword']
+//            storeFile file("app/${keystoreProperties['storeFile']}")
+//            storePassword keystoreProperties['storePassword']
+//        }
+//    }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
+        }
+
+        debug {
+            signingConfig signingConfigs.debug   // 👈 QUAN TRỌNG
         }
     }
 }

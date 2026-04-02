@@ -46,7 +46,7 @@ class NhanVienCongTrinh {
       'vaiTro': vaiTro,
     };
     if (congTrinh != null) {
-      map['cong_trinh'] = congTrinh!.toMap();
+      map['cong_trinh'] = congTrinh!.toMapUpdate();
     }
     if (nhanVien != null) {
       map['nhan_vien'] = nhanVien!.toMap();

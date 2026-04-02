@@ -10,7 +10,9 @@ class HomeSectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        Text(title, style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold)),
         TextButton(onPressed: onViewAll, child: const Text('Xem tất cả')),
       ],
     );

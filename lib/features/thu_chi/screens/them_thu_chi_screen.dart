@@ -10,7 +10,8 @@ import '../../../services/thu_chi_service.dart';
 
 class ThemThuChiScreen extends StatefulWidget {
   final ThuChi? thuChi;
-  const ThemThuChiScreen({super.key, this.thuChi});
+  final int? idCongTrinh;
+  const ThemThuChiScreen({super.key, this.thuChi, this.idCongTrinh});
 
   @override
   State<ThemThuChiScreen> createState() => _ThemThuChiScreenState();
@@ -57,6 +58,7 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
         _selectedDanhMucId = widget.thuChi!.idDanhMucThuChi;
         _selectedCongTrinhId = widget.thuChi!.idCongTrinh;
       } else {
+        _selectedCongTrinhId = widget.idCongTrinh;
         _ngayController.text = _dateFormat.format(DateTime.now());
         if (_danhMucs.isNotEmpty) _selectedDanhMucId = _danhMucs.first.id;
 
@@ -90,19 +92,19 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedDanhMucId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn danh mục')),
-      );
-      return;
-    }
+    // if (_selectedDanhMucId == null) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Vui lòng chọn danh mục')),
+    //   );
+    //   return;
+    // }
 
     final dateParts = _ngayController.text.split('/');
     final tcDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
 
     final tc = ThuChi(
       id: widget.thuChi?.id,
-      idDanhMucThuChi: _selectedDanhMucId!,
+      idDanhMucThuChi: _selectedDanhMucId,
       loai: _loai,
       soTien: double.parse(_soTienController.text),
       ghiChu: _ghiChuController.text.isEmpty ? null : _ghiChuController.text,
@@ -169,19 +171,22 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
                 decoration: const InputDecoration(labelText: "Loại"),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<int>(
+              DropdownButtonFormField<int?>(
                 value: _danhMucs.any((dm) => dm.id == _selectedDanhMucId)
                     ? _selectedDanhMucId
                     : null,
-                items: _danhMucs
-                    .map((dm) => DropdownMenuItem(
-                  value: dm.id,
-                  child: Text(dm.ten),
-                ))
-                    .toList(),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text("Không chọn danh mục"),
+                  ),
+                  ..._danhMucs.map((dm) => DropdownMenuItem<int?>(
+                    value: dm.id,
+                    child: Text(dm.ten),
+                  ))
+                ],
                 onChanged: (v) => setState(() => _selectedDanhMucId = v),
                 decoration: const InputDecoration(labelText: "Danh mục"),
-                validator: (v) => v == null ? 'Chọn danh mục' : null,
               ),
 
               const SizedBox(height: 8),
@@ -199,7 +204,9 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
                     child: Text(ct.ten),
                   ))
                 ],
-                onChanged: (v) => setState(() => _selectedCongTrinhId = v),
+                onChanged: widget.idCongTrinh != null
+                    ? null
+                    : (val) => setState(() => _selectedCongTrinhId = val),
                 decoration: const InputDecoration(labelText: "Công Trình"),
               ),
 

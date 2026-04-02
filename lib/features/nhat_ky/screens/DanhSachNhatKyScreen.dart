@@ -26,13 +26,16 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
   }
 
   void _reload() {
-    _future = _service.getAllNhatKy(widget.idCongTrinh);
+    setState(() {
+      _future = _service.getAllNhatKy(widget.idCongTrinh);
+    });
   }
 
   void _openForm({NhatKy? nhatKy}) async {
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ThemSuaNhatKyScreen(nhatKy: nhatKy)),
+      MaterialPageRoute(builder: (_) => ThemSuaNhatKyScreen(nhatKy: nhatKy, idCongTrinh: widget.idCongTrinh,)),
     );
     if (result == true) {
       setState(() => _reload());

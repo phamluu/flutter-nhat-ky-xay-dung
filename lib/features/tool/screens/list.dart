@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../settings/screens/settings.dart';
 import 'may_tinh.dart';
 import 'website.dart';
 
@@ -14,6 +15,7 @@ class _ToolListState extends State<ToolList> {
   final List<Map<String, dynamic>> tools = [
     {"icon": Icons.language_outlined, "label": "Website"},
     {"icon": Icons.calculate_outlined, "label": "Máy tính"},
+    {"icon": Icons.settings, "label": "Cài đặt"},
   ];
 
   void _navigateToTool(BuildContext context, String label) {
@@ -26,6 +28,12 @@ class _ToolListState extends State<ToolList> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const CalculatorScreen()),
+      );
+    }
+    else if (label == "Cài đặt") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsScreen()),
       );
     }
   }
@@ -44,7 +52,7 @@ class _ToolListState extends State<ToolList> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+            crossAxisCount: 3,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             childAspectRatio: 1,

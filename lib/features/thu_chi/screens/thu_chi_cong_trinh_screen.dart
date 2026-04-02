@@ -225,7 +225,7 @@ class _ThuChiCongTrinhScreenState extends State<ThuChiCongTrinhScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ThemThuChiScreen()),
+            MaterialPageRoute(builder: (_) =>  ThemThuChiScreen(idCongTrinh:_selectedCongTrinhId)),
           );
           if (result == true) {
             setState(_load); // refresh danh sách khi thêm mới

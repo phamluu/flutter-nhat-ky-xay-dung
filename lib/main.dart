@@ -39,12 +39,12 @@ class MyApp extends StatelessWidget {
           seedColor: const Color(0xFF2E86C1),
           brightness: Brightness.light,
         ).copyWith(
-          primary: const Color(0xFF2E86C1), // xanh công trình
+          primary: const Color(0xFFFFA500), // xanh công trình
           secondary: const Color(0xFFE67E22), // cam nổi bật
           surface: const Color(0xFFF4F6F7), // nền xám nhạt
         ),
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.blue.shade100,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.black,
           elevation: 0,
           titleTextStyle: const TextStyle(

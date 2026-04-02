@@ -11,7 +11,7 @@ class NhatKy {
   final int? trangThai;
   final int? thoiTietSang;
   final int? thoiTietChieu;
-
+  // final List<String>? hinhAnhList;
   NhatKy({
     this.id,
     this.tenNhatKy,
@@ -23,6 +23,7 @@ class NhatKy {
     this.trangThai,
     this.thoiTietSang,
     this.thoiTietChieu,
+    // this.hinhAnhList
   });
 
   Map<String, dynamic> toMap() {
@@ -36,9 +37,10 @@ class NhatKy {
       'trang_thai': trangThai,
       'thoi_tiet_sang': thoiTietSang,
       'thoi_tiet_chieu': thoiTietChieu,
+      // 'hinhAnhList': hinhAnhList
     };
     if (congTrinh != null) {
-      map['cong_trinh'] = congTrinh!.toMap();
+      map['cong_trinh'] = congTrinh!.toMapUpdate();
     }
     return map;
   }
@@ -56,6 +58,7 @@ class NhatKy {
       trangThai: map['trang_thai'],
       thoiTietSang: map['thoi_tiet_sang'],
       thoiTietChieu: map['thoi_tiet_chieu'],
+      // hinhAnhList: map['hinhAnhList']
     );
   }
 
