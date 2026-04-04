@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../../data/models/CongTrinh.dart';
 import '../../../controllers/thong_ke_controller.dart';
+import '../../chamcong2/screens/ChamCong2Screen.dart';
+import '../../luong/LuongScreen.dart';
 import '../../nhan_vien_cong_trinh/pages/nhan_vien_cong_trinh_list_screen.dart';
 import '../../nhat_ky/screens/DanhSachNhatKyScreen.dart';
 import '../../cham_cong/cham_cong_screen.dart';
@@ -26,108 +28,146 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
         return controller;
       },
       child: Consumer<ThongKeController>(
-        builder: (context, controller, _) => Scaffold(
-          appBar: AppBar(
-            title: Text(congTrinh.ten),
-            centerTitle: true,
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🔹 HÌNH ẢNH CÔNG TRÌNH
-                _buildHeaderImage(),
-
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoCard(),
-                      const SizedBox(height: 16),
-
-                      // 🔹 TIẾN ĐỘ
-                      _buildProgressSection(),
-                      const SizedBox(height: 16),
-
-                      // 🔹 THỐNG KÊ
-                      ThongKeGrid(
-                        controller: controller,
-                        onDiaryTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DanhSachNhatKyScreen(
-                                idCongTrinh: congTrinh.id,
-                                tenCongTrinh: congTrinh.ten,
-                              ),
-                            ),
-                          ).then((_) => controller.loadCounts());
-                        },
-                        onEmployeesTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => NhanVienCongTrinhListScreen(
-                                idCongTrinh: congTrinh.id,
-                                tenCongTrinh: congTrinh.ten,
-                              ),
-                            ),
-                          ).then((_) => controller.loadCounts());
-                        },
-                        onChamCongTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChamCongScreen(
-                                idCongTrinh: congTrinh.id,
-                                tenCongTrinh: congTrinh.ten,
-                              ),
-                            ),
-                          ).then((_) => controller.loadCounts());
-                        },
-                        onThucChiTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ThuChiCongTrinhScreen(
-                                idCongTrinh: congTrinh.id,
-                                tenCongTrinh: congTrinh.ten,
-                              ),
-                            ),
-                          ).then((_) => controller.loadCounts());
-                        },
-                        onUngLuongTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => UngLuongScreen(
-                                idCongTrinh: congTrinh.id,
-                                tenCongTrinh: congTrinh.ten,
-                              ),
-                            ),
-                          ).then((_) => controller.loadCounts());
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // 🔹 MÔ TẢ
-                      Text(
-                        congTrinh.moTa ?? "Chưa có mô tả",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
-                  ),
+        builder: (context, controller, _) {
+          final List<Item> items = [
+            Item(
+                icon: Icons.people,
+                label: 'Nhân viên',
+                page: NhanVienCongTrinhListScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
                 ),
-              ],
+                value: controller.soLuongNhanVienCongTrinh.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
             ),
-          ),
-        ),
+            Item(
+                icon: Icons.list,
+                label: 'Nhật ký',
+                page: DanhSachNhatKyScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongNhatKy.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.people,
+                label: 'Chấm công',
+                page: ChamCongScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongCoMat.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.people,
+                label: 'Bảng chấm công',
+                page: ChamCong2Screen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongCoMat.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.attach_money,
+                label: 'Thu chi',
+                page: ThuChiCongTrinhScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLanThuChi.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.money,
+                label: 'Ứng lương',
+                page: UngLuongScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongUngLuong.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.money,
+                label: 'Bảng lương',
+                page: LuongNhanVienScreen(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongUngLuong.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+          ];
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(congTrinh.ten),
+              centerTitle: true,
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 🔹 HÌNH ẢNH CÔNG TRÌNH
+                  _buildHeaderImage(),
+
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoCard(),
+                        const SizedBox(height: 16),
+
+                        // 🔹 TIẾN ĐỘ
+                        _buildProgressSection(),
+                        const SizedBox(height: 16),
+
+                        // 🔹 THỐNG KÊ
+                        ThongKeGrid(
+                          items: items,
+                          onTap: (item) => _navigate(context, item),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 🔹 MÔ TẢ
+                        Text(
+                          congTrinh.moTa ?? "Chưa có mô tả",
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
+  void _navigate(BuildContext context, Item item) {
+    final controller = ThongKeController(idCongTrinh: congTrinh.id);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => item.page),
+    ).then((_) {
+      if (item.reloadAfterPop) {
+        controller.loadCounts();
+      }
+    });
+  }
   // ================= UI COMPONENTS =================
 
   Widget _buildHeaderImage() {

@@ -45,11 +45,38 @@ class _HomePageState extends State<HomePage> {
     controller.dispose(); // giải phóng bộ nhớ
     super.dispose();
   }
-  @override
 
   @override
   Widget build(BuildContext context) {
-
+    final List<NavItem> items = [
+      NavItem(
+        icon: Icons.apartment,
+        label: 'Công trình',
+        page: const DanhSachCongTrinhScreen(),
+        color: Colors.blue,
+        reloadAfterPop: true,
+      ),
+      NavItem(
+        icon: Icons.person,
+        label: 'Nhân viên',
+        page: const DanhSachNhanVienScreen(),
+        color: Theme.of(context).colorScheme.secondary,
+        reloadAfterPop: true,
+      ),
+      NavItem(
+        icon: Icons.money,
+        label: 'Lương',
+        page: const LuongCoBanScreen(),
+        color: Theme.of(context).colorScheme.secondary,
+        reloadAfterPop: true,
+      ),
+      NavItem(
+        icon: Icons.person,
+        label: 'Tôi',
+        page: const HomePage(),
+        color: Colors.grey,
+      ),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -95,35 +122,10 @@ class _HomePageState extends State<HomePage> {
             ProjectList(),
             const SizedBox(height: 20),
           // ThongKeGrid(
-          //     controller: controller,
-          //     onProjectsTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const DanhSachCongTrinhScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
-          //     onDiaryTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const DanhSachNhatKyScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
-          //     onEmployeesTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const DanhSachNhanVienScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
           //     onFinanceTap: () {
           //       Navigator.push(
           //         context,
           //         MaterialPageRoute(builder: (_) => const DanhSachDanhMucThuChiScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
-          //     onLuongCoBanTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const LuongCoBanScreen()),
           //       ).then((_) => controller.loadCounts());
           //     },
           //     onUngLuongTap: () {
@@ -133,59 +135,25 @@ class _HomePageState extends State<HomePage> {
           //       ).then((_) => controller.loadCounts());
           //     },
           //   ),
-
-            // Nhật ký gần đây
-            // NhatKyList(),
-            // ToolList(),
           ],
         ),
       ),
       bottomNavigationBar: CustomBottomNavBar(
-        onProjectsTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DanhSachCongTrinhScreen()),
-          ).then((value) {
-            // Khi quay về Home, load lại số liệu
-            controller.loadCounts();
-          });
-        },
-          onEmployeesTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const DanhSachNhanVienScreen()),
-                  ).then((_) => controller.loadCounts());
-                },
-        // onDiaryTap: () {
-        //   Navigator.push(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => const DanhSachNhatKyScreen()),
-        //   ).then((value) {
-        //     // Khi quay về Home, load lại số liệu
-        //     controller.loadCounts();
-        //   });
-        // },
-        onFinanceTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ThuChiScreen()),
-          );
-        },
-        onCheckInTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) =>  ChamCongScreen(idCongTrinh: 0)),
-          );
-        },
-        onProfileTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) =>  HomePage()),
-          );
-        },
+        items: items,
+        onTap: (item) => _navigate(context, item),
       ),
     );
   }
 
+  void _navigate(BuildContext context, NavItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => item.page),
+    ).then((_) {
+      if (item.reloadAfterPop) {
+        controller.loadCounts();
+      }
+    });
+  }
 }
+

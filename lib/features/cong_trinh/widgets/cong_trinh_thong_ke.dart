@@ -2,75 +2,52 @@ import 'package:flutter/material.dart';
 
 import '../../../controllers/thong_ke_controller.dart';
 
+class Item{
+  final IconData icon;
+  final String label;
+  final Widget page;
+  final String value;
+  final Color color;
+  final bool reloadAfterPop;
+  Item({
+    required this.icon,
+    required this.label,
+    required this.page,
+    required this.value,
+    required this.color,
+    this.reloadAfterPop = false,
+  });
+}
 class ThongKeGrid extends StatelessWidget {
-  final ThongKeController controller;
-  final void Function()? onDiaryTap;
-  final void Function()? onEmployeesTap;
-  final void Function()? onChamCongTap;
-  final void Function()? onThucChiTap;
-  final void Function()? onUngLuongTap;
+  final List<Item> items;
+  final Function(Item) onTap;
   const ThongKeGrid({
     Key? key,
-    required this.controller,
-    this.onDiaryTap,
-    this.onEmployeesTap,
-    this.onChamCongTap,
-    this.onThucChiTap,
-    this.onUngLuongTap
+    required this.items,
+    required this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-      crossAxisCount: 2, // 2 cột
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.2,
-      padding: const EdgeInsets.all(16),
+      crossAxisCount: 3, // 2 cột
+      crossAxisSpacing: 2,
+      mainAxisSpacing: 2,
+      childAspectRatio: 1,
+      padding: const EdgeInsets.all(8),
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      children: [
-        _StatCard(
-          icon: Icons.note_alt_outlined,
-          label: 'Nhật ký',
-          value: controller.soLuongNhatKy.toString(),
-          color: const Color(0xFFE67E22),
-          onTap: onDiaryTap,
-        ),
-        _StatCard(
-          icon: Icons.people,
-          label: 'Nhân viên',
-          value: controller.soLuongNhanVienCongTrinh.toString(),
-          color: const Color(0xFF27AE60),
-          onTap: onEmployeesTap,
-        ),
-        _StatCard(
-          icon: Icons.people,
-          label: 'Chấm công',
-          value: controller.soLuongCoMat.toString(),
-          color: const Color(0xFF2980B9),
-          onTap: onChamCongTap,
-        ),
-        _StatCard(
-          icon: Icons.attach_money,
-          label: 'Thu chi',
-          value: controller.soLanThuChi.toString(),
-          color: const Color(0xFF8E44AD),
-          onTap: onThucChiTap,
-        ),
-        _StatCard(
-          icon: Icons.attach_money,
-          label: 'Ứng lương',
-          value: controller.soLanUngLuong.toString(),
-          color: const Color(0xFF8E44AD),
-          onTap: onUngLuongTap,
-        ),
-      ],
+      children: items.map((item){
+        return _StatCard(
+          icon: item.icon,
+          label: item.label,
+          value: item.value,
+          color: item.color,
+          onTap: () => onTap(item));
+      }).toList(),
     );
   }
-
 }
-
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -114,7 +91,7 @@ class _StatCard extends StatelessWidget {
             child: Icon(icon, size: 16, color: color),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
 
           // 🔥 SỐ (trung tâm)
           Text(
@@ -126,13 +103,13 @@ class _StatCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
 
           // Label
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 10,
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,
@@ -150,3 +127,72 @@ class _StatCard extends StatelessWidget {
         : card;
   }
 }
+// class ThongKeGrid extends StatelessWidget {
+//   final ThongKeController controller;
+//   final void Function()? onDiaryTap;
+//   final void Function()? onEmployeesTap;
+//   final void Function()? onChamCongTap;
+//   final void Function()? onThucChiTap;
+//   final void Function()? onUngLuongTap;
+//   const ThongKeGrid({
+//     Key? key,
+//     required this.controller,
+//     this.onDiaryTap,
+//     this.onEmployeesTap,
+//     this.onChamCongTap,
+//     this.onThucChiTap,
+//     this.onUngLuongTap
+//   }) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return GridView.count(
+//       crossAxisCount: 2, // 2 cột
+//       crossAxisSpacing: 12,
+//       mainAxisSpacing: 12,
+//       childAspectRatio: 1.2,
+//       padding: const EdgeInsets.all(16),
+//       physics: const NeverScrollableScrollPhysics(),
+//       shrinkWrap: true,
+//       children: [
+//         _StatCard(
+//           icon: Icons.note_alt_outlined,
+//           label: 'Nhật ký',
+//           value: controller.soLuongNhatKy.toString(),
+//           color: const Color(0xFFE67E22),
+//           onTap: onDiaryTap,
+//         ),
+//         _StatCard(
+//           icon: Icons.people,
+//           label: 'Nhân viên',
+//           value: controller.soLuongNhanVienCongTrinh.toString(),
+//           color: const Color(0xFF27AE60),
+//           onTap: onEmployeesTap,
+//         ),
+//         _StatCard(
+//           icon: Icons.people,
+//           label: 'Chấm công',
+//           value: controller.soLuongCoMat.toString(),
+//           color: const Color(0xFF2980B9),
+//           onTap: onChamCongTap,
+//         ),
+//         _StatCard(
+//           icon: Icons.attach_money,
+//           label: 'Thu chi',
+//           value: controller.soLanThuChi.toString(),
+//           color: const Color(0xFF8E44AD),
+//           onTap: onThucChiTap,
+//         ),
+//         _StatCard(
+//           icon: Icons.attach_money,
+//           label: 'Ứng lương',
+//           value: controller.soLanUngLuong.toString(),
+//           color: const Color(0xFF8E44AD),
+//           onTap: onUngLuongTap,
+//         ),
+//       ],
+//     );
+//   }
+//
+// }
+
