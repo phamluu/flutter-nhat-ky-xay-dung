@@ -65,9 +65,6 @@ class UngLuongService {
 
   }
 
-
-
-
   Future<List<Ungluong>> getAllUngLuong() async {
     final db = await _dbHelper.database;
 
@@ -122,5 +119,18 @@ class UngLuongService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  //************* ỨNG LƯƠNG TỪNG NHÂN VIÊN **************
+
+  Future<List<Ungluong>> getUngLuongNhanVien(int idNhanVienCongTrinh) async {
+    final db = await _dbHelper.database;
+    final result = await db.query(
+      'ung_luong',
+      where: 'idNhanVienCongTrinh = ?',
+      whereArgs: [idNhanVienCongTrinh],
+      orderBy: 'ngayUng DESC',
+    );
+    return result.map((e) => Ungluong.fromMap(e)).toList();
   }
 }

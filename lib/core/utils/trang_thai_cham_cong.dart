@@ -1,7 +1,8 @@
 enum TrangThaiChamCong {
   vang(0, "Vắng"),
   coMat(1, "Có mặt"),
-  khongXacDinh(-1, "-"); // null hoặc -1
+  khongXacDinh(-1, "Không xác định")
+  ; // null hoặc -1
 
   final int value;
   final String label;

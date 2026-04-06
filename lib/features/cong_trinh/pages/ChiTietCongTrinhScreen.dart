@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../data/models/CongTrinh.dart';
 import '../../../controllers/thong_ke_controller.dart';
-import '../../chamcong2/screens/ChamCong2Screen.dart';
+import '../../bang_cham_cong/screens/BangChamCongScreen.dart';
 import '../../luong/LuongScreen.dart';
 import '../../nhan_vien_cong_trinh/pages/nhan_vien_cong_trinh_list_screen.dart';
 import '../../nhat_ky/screens/DanhSachNhatKyScreen.dart';

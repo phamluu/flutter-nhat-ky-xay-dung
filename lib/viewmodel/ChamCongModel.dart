@@ -1,30 +1,45 @@
 import '../core/utils/trang_thai_cham_cong.dart';
 
+// Bảng chấm công tháng
 class ChamCongModel {
+  int? idNhanVienCongTrinh;
   final String ten;
   final String chucVu;
-  final Map<String, ChamCongNgay> data;
-  final double? tongSoCong;
-  final double? luongCoBan;
-  final double daUng;
+  final Map<String, ChamCongNgayLuong> data;
+  final List<DaUng>? daUng;
   final int trangThai;
+
   ChamCongModel({
+    this.idNhanVienCongTrinh,
     required this.ten,
     required this.chucVu,
     required this.data,
-    this.tongSoCong,
-    this.luongCoBan,
-    required this.daUng,
+    this.daUng,
     required this.trangThai,
   });
-  double get tongLuong{
-    if(luongCoBan == null || tongSoCong == null){
-      return 0;
-    }
-    return luongCoBan! * tongSoCong!;
+  // Tổng số công
+  double get tongSoCong {
+    return data.values.fold(
+      0,
+          (sum, item) => sum + item.chamCong.soCong,
+    );
+  }
+  /// Tổng lương (tính từ data)
+  /// Tổng công cả tháng
+  double get tongTienCong {
+    return data.values.fold(
+      0,
+          (sum, item) => sum + item.tienCongNgay,
+    );
+  }
+  double get tongUng {
+    return daUng?.fold(
+      0.0,
+          (sum, item) => sum! + item.tienUng,
+    ) ?? 0.0;
   }
   double get thucNhan{
-    return tongLuong - daUng;
+    return tongTienCong - tongUng;
   }
 }
 
@@ -64,4 +79,24 @@ class ChamCongNgay {
 
     return "0";
   }
+}
+
+class ChamCongNgayLuong {
+  final ChamCongNgay chamCong;
+  final double luongNgay;
+
+  ChamCongNgayLuong({
+    required this.chamCong,
+    required this.luongNgay,
+  });
+
+  double get tienCongNgay => chamCong.soCong * luongNgay;
+}
+
+// danh sách Ứng tiền trong tháng
+class DaUng{
+  final double tienUng;
+  DaUng({
+    required this.tienUng
+  });
 }

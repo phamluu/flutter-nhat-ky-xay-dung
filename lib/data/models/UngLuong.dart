@@ -41,7 +41,8 @@ class Ungluong {
         List<NhanVienCongTrinh>? nhanVienCongTrinhs,
         List<CongTrinh>? congTrinhs,
         NhanVienCongTrinh? nvct,
-      }) {
+      })
+  {
     // lấy nhân viên
     NhanVien? nv;
     if (nhanViens != null) {
