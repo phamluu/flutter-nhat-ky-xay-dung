@@ -49,7 +49,9 @@ class _ProjectListState extends State<ProjectList> {
             MaterialPageRoute(
               builder: (_) => DanhSachCongTrinhScreen(),
             ),
-          );
+          ).then((_) {
+            _loadProjects();
+          });
         }),
         const SizedBox(height: 8),
         if (isLoading)

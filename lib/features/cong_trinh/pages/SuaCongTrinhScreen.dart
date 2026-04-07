@@ -59,10 +59,21 @@ class _SuaCongTrinhScreenState extends State<SuaCongTrinhScreen> {
 
     try {
       await _service.updateCongTrinh(updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Lưu công trình thành công", style: TextStyle(color: Colors.white),),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi cập nhật: $e')),
+        SnackBar(
+          content: Text('Lỗi khi cập nhật: $e', style: const TextStyle(color: Colors.white),),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }

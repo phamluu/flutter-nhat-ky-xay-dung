@@ -4,7 +4,6 @@ import 'NhanVien.dart';
 
 class Ungluong {
     int? id;
-    int? idNhanVien;
     int? idNhanVienCongTrinh;
     double? soTien;
     DateTime? ngayUng;
@@ -14,7 +13,6 @@ class Ungluong {
 
   Ungluong({
     this.id,
-    this.idNhanVien,
     this.idNhanVienCongTrinh,
     this.soTien,
     this.ngayUng,
@@ -26,7 +24,6 @@ class Ungluong {
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
       'id': id,
-      'idNhanVien': idNhanVien,
       'idNhanVienCongTrinh': idNhanVienCongTrinh,
       'soTien': soTien,
       'ngayUng': ngayUng?.toIso8601String(),
@@ -37,24 +34,11 @@ class Ungluong {
 
   factory Ungluong.fromMap(
       Map<String, dynamic> map, {
-        List<NhanVien>? nhanViens,
         List<NhanVienCongTrinh>? nhanVienCongTrinhs,
         List<CongTrinh>? congTrinhs,
         NhanVienCongTrinh? nvct,
       })
   {
-    // lấy nhân viên
-    NhanVien? nv;
-    if (nhanViens != null) {
-      nv = nhanViens.firstWhere(
-            (e) => e.id == (map['idNhanVien'] as int?),
-        orElse: () => NhanVien(
-          id: map['idNhanVien'] as int?,
-          hoTen: "Không tên",
-        ),
-      );
-    }
-
     // lấy nhân viên công trình
     if (nhanVienCongTrinhs != null) {
       nvct = nhanVienCongTrinhs.firstWhere(
@@ -86,7 +70,6 @@ class Ungluong {
 
     return Ungluong(
       id: map['id'] as int?,
-      idNhanVien: map['idNhanVien'] as int,
       idNhanVienCongTrinh: map['idNhanVienCongTrinh'] as int?,
       soTien: (map['soTien'] is int)
           ? (map['soTien'] as int).toDouble()
@@ -95,14 +78,12 @@ class Ungluong {
           ? DateTime.tryParse(map['ngayUng'].toString())
           : null,
       lyDo: map['lyDo'] as String?,
-      nhanVien: nv,
       nhanVienCongTrinh: nvct,
     );
   }
 
   Ungluong copyWith({
     int? id,
-    int? idNhanVien,
     int? idNhanVienCongTrinh,
     double? soTien,
     DateTime? ngayUng,
@@ -112,7 +93,6 @@ class Ungluong {
   }) {
     return Ungluong(
       id: id ?? this.id,
-      idNhanVien: idNhanVien ?? this.idNhanVien,
       idNhanVienCongTrinh: idNhanVienCongTrinh ?? this.idNhanVienCongTrinh,
       soTien: soTien ?? this.soTien,
       ngayUng: ngayUng ?? this.ngayUng,

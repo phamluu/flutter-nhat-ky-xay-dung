@@ -22,7 +22,7 @@ class ChamCong {
   factory ChamCong.fromMap(Map<String, dynamic> map) => ChamCong(
     id: map['id'] as int?,
     idNhanVienCongTrinh: map['id_nhan_vien_cong_trinh'] as int,
-    ngay: map['ngay'] as String,
+    ngay: map['ngay'] ?? '',
     trangThaiSang: map['trang_thai_sang'] as int?,
     trangThaiChieu: map['trang_thai_chieu'] as int?,
     ghiChu: map['ghi_chu'] as String?,

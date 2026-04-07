@@ -92,7 +92,6 @@ class _UngLuongFormDialogForCongTrinhState
             if (selectedNvct == null) return;
             final u = widget.ungLuong ??  Ungluong();
             u.idNhanVienCongTrinh  = selectedNvct!.id;
-            u.idNhanVien = selectedNvct!.idNhanVien;
             u.soTien = double.tryParse(soTienCtrl.text) ?? 0;
             u.lyDo = lyDoCtrl.text;
             u.ngayUng = selectedDate;

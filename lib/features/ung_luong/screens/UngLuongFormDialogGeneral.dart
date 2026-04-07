@@ -131,7 +131,6 @@ class _UngLuongFormDialogGeneralState
             try{
               final u = widget.ungLuong ?? Ungluong();
               u.idNhanVienCongTrinh = selectedNhanVienCongTrinh?.id;
-              u.idNhanVien = selectedNhanVien!.id;
               u.soTien = double.tryParse(soTienCtrl.text) ?? 0;
               u.lyDo = lyDoCtrl.text;
               u.ngayUng = selectedDate;

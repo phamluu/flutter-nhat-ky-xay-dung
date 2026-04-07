@@ -52,17 +52,17 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
                 color: const Color(0xFF27AE60),
                 reloadAfterPop: true
             ),
-            Item(
-                icon: Icons.people,
-                label: 'Chấm công',
-                page: ChamCongScreen(
-                  idCongTrinh: congTrinh.id,
-                  tenCongTrinh: congTrinh.ten,
-                ),
-                value: controller.soLuongCoMat.toString(),
-                color: const Color(0xFF27AE60),
-                reloadAfterPop: true
-            ),
+            // Item(
+            //     icon: Icons.people,
+            //     label: 'Chấm công',
+            //     page: ChamCongScreen(
+            //       idCongTrinh: congTrinh.id,
+            //       tenCongTrinh: congTrinh.ten,
+            //     ),
+            //     value: controller.soLuongCoMat.toString(),
+            //     color: const Color(0xFF27AE60),
+            //     reloadAfterPop: true
+            // ),
             Item(
                 icon: Icons.people,
                 label: 'Bảng chấm công',

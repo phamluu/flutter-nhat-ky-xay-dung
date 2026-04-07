@@ -171,7 +171,6 @@ class _UngLuongFormDialogState extends State<UngLuongFormDialog> {
 
             final newUngLuong = Ungluong(
               id: widget.ungLuong?.id,
-              idNhanVien: selectedNhanVien!.id!,
               idNhanVienCongTrinh: selectedNhanVienCongTrinh?.id,
               soTien: soTien,
               ngayUng: ngayUng,

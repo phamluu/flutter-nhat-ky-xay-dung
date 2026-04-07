@@ -5,6 +5,8 @@ import '../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
 import 'package:intl/intl.dart';
 
+import '🚀 📱 UngLuongFormScreen.dart';
+
 class UngLuongScreen extends StatefulWidget {
   final int? idNhanVienCongTrinh;
   final String? hoTen;
@@ -53,6 +55,22 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
             ],
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => UngLuongFormScreen(
+                idNhanVienCongTrinh: widget.idNhanVienCongTrinh,
+                hoTen: widget.hoTen,
+                tenCongTrinh: widget.congTrinh,
+              ),
+            ),
+          ).then((_) {
+            _reload();
+          }),
+          backgroundColor: Colors.blue,
+          child: const Icon(Icons.add),
+        ),
         body: FutureBuilder<List<Ungluong>>(
           future: _future,
           builder: (context, snapshot) {
@@ -63,12 +81,10 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
               return Center(child: Text("Lỗi: ${snapshot.error}"));
             }
             final data = snapshot.data ?? [];
-            if (data.isEmpty) {
-              return const Center(child: Text("Tháng này bạn chưa ứng lương"));
-            }
             return Column(
               children: [
                 _cardThongTin(),
+                Text(data.isEmpty ? 'Tháng này bạn chưa ứng lương' : ''),
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.all(8),
@@ -76,14 +92,23 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final ul = data[index];
-
                       return Slidable(
                         key: ValueKey(ul.id),
                         endActionPane: ActionPane(
                           motion: const ScrollMotion(),
                           children: [
                             SlidableAction(
-                              onPressed: (context) => _openForm(ul),
+                              onPressed: (context) => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => UngLuongFormScreen(
+                                    ul: ul,
+                                    idNhanVienCongTrinh: widget.idNhanVienCongTrinh,
+                                  ),
+                                ),
+                              ).then((_) {
+                                _reload();
+                              }),
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                               icon: Icons.edit,
@@ -248,11 +273,12 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
     final soTienCtrl = TextEditingController(
       text: ul?.soTien?.toString() ?? "",
     );
-
     final ngayCtrl = TextEditingController(
       text: ul?.ngayUng?.toString() ?? "",
     );
-
+    final lyDoCtrl = TextEditingController(
+      text: ul?.lyDo,
+    );
     final result = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -267,7 +293,31 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
             ),
             TextField(
               controller: ngayCtrl,
-              decoration: const InputDecoration(labelText: "Ngày (yyyy-MM-dd)"),
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: "Chọn ngày",
+                suffixIcon: Icon(Icons.calendar_today),
+              ),
+              onTap: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: ul?.ngayUng ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2100),
+                );
+
+                if (pickedDate != null) {
+                  selectedDate = pickedDate;
+
+                  ngayCtrl.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+                }
+              },
+            ),
+            TextFormField(
+              controller: lyDoCtrl,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(labelText: "Lý do"),
+              maxLines: 3,
             ),
           ],
         ),
@@ -283,6 +333,7 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
                 idNhanVienCongTrinh: widget.idNhanVienCongTrinh,
                 soTien: double.tryParse(soTienCtrl.text) ?? 0,
                 ngayUng: selectedDate,
+                lyDo: lyDoCtrl.text,
               );
 
               if (ul == null) {
@@ -290,8 +341,14 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
               } else {
                 await _service.updateUngLuong(model);
               }
-
               Navigator.pop(context, true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Ứng lương thành công", style: TextStyle(color: Colors.white),),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
             },
             child: const Text("Lưu"),
           ),

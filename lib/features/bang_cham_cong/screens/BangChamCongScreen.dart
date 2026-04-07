@@ -231,6 +231,7 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                       idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
                       ngay: ngay,
                       hoTen: nv.ten,
+                      tenCongTrinh: widget.tenCongTrinh,
                     ),
                   ),
                 ).then((_) {

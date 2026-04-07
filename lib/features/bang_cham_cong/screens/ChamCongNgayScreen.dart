@@ -9,11 +9,13 @@ class ChamCongNgayScreen extends StatefulWidget {
   final int? idNhanVienCongTrinh;
   final String? ngay;
   final String? hoTen;
+  final String? tenCongTrinh;
   const ChamCongNgayScreen({
     super.key,
     this.idNhanVienCongTrinh,
     this.ngay,
-    this.hoTen
+    this.hoTen,
+    this.tenCongTrinh
   });
 
   @override
@@ -64,7 +66,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -108,7 +110,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               ],
             ),
             const Divider(height: 20),
-
+            _row("Công trình", widget.tenCongTrinh ?? "---"),
             _row("Họ tên", widget.hoTen ?? "---"),
             _row("Ngày", widget.ngay ?? "---"),
           ],
@@ -274,17 +276,21 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  if (_sang == null || _chieu == null) {
+                  if (_sang == null && _chieu == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Chọn đủ sáng và chiều")),
+                      SnackBar(
+                        content: Text('Bạn chưa chấm công', style: const TextStyle(color: Colors.white),),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 2),
+                      ),
                     );
                     return;
                   }
                   await _service.updateChamCong(
                     idNhanVienCongTrinh: widget.idNhanVienCongTrinh!,
                     ngay: widget.ngay!,
-                    sang: _sang!,
-                    chieu: _chieu!,
+                    sang: _sang,
+                    chieu: _chieu,
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

@@ -1,7 +1,7 @@
 enum TrangThaiChamCong {
   vang(0, "Vắng"),
   coMat(1, "Có mặt"),
-  khongXacDinh(-1, "Không xác định")
+  khongXacDinh(-1, "KXĐ")
   ; // null hoặc -1
 
   final int value;

@@ -33,7 +33,7 @@ class ThongKeGrid extends StatelessWidget {
       crossAxisCount: 3, // 2 cột
       crossAxisSpacing: 2,
       mainAxisSpacing: 2,
-      childAspectRatio: 1,
+      childAspectRatio: 0.9,
       padding: const EdgeInsets.all(8),
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
@@ -79,6 +79,7 @@ class _StatCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 🔹 Icon nhỏ + có nền

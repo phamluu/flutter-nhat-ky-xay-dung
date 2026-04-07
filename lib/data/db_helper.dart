@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -138,12 +138,10 @@ class DBHelper {
     await db.execute(''' 
           CREATE TABLE ung_luong (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                idNhanVien INTEGER NOT NULL,
                 idNhanVienCongTrinh INTEGER,
                 soTien REAL,
                 ngayUng TEXT,     -- lưu dạng ISO8601 (yyyy-MM-dd) hoặc timestamp
                 lyDo TEXT,
-                FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE,
                 FOREIGN KEY (idNhanVienCongTrinh) REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
             );
     ''');
@@ -217,6 +215,36 @@ class DBHelper {
 
       // 4. Đổi tên
       await db.execute('ALTER TABLE thu_chi_new RENAME TO thu_chi');
+    }
+    if (oldVersion < 6) {
+      // 1. Tạo bảng mới KHÔNG có idNhanVien
+      await db.execute('''
+    CREATE TABLE ung_luong_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      idNhanVienCongTrinh INTEGER,
+      soTien REAL,
+      ngayUng TEXT,
+      lyDo TEXT,
+      FOREIGN KEY (idNhanVienCongTrinh) 
+        REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
+    )
+  ''');
+
+      // 2. Copy dữ liệu (bỏ cột idNhanVien)
+      await db.execute('''
+    INSERT INTO ung_luong_new (
+      id, idNhanVienCongTrinh, soTien, ngayUng, lyDo
+    )
+    SELECT 
+      id, idNhanVienCongTrinh, soTien, ngayUng, lyDo
+    FROM ung_luong
+  ''');
+
+      // 3. Xóa bảng cũ
+      await db.execute('DROP TABLE ung_luong');
+
+      // 4. Đổi tên
+      await db.execute('ALTER TABLE ung_luong_new RENAME TO ung_luong');
     }
   }
 }

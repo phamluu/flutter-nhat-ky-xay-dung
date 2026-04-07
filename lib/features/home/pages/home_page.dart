@@ -121,20 +121,6 @@ class _HomePageState extends State<HomePage> {
             // Danh sách dự án
             ProjectList(),
             const SizedBox(height: 20),
-          // ThongKeGrid(
-          //     onFinanceTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const DanhSachDanhMucThuChiScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
-          //     onUngLuongTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (_) => const UngLuongScreen()),
-          //       ).then((_) => controller.loadCounts());
-          //     },
-          //   ),
           ],
         ),
       ),

@@ -57,7 +57,6 @@ class UngLuongService {
 
       return Ungluong.fromMap(
         e,
-        nhanViens: nhanViens,
         nhanVienCongTrinhs: nvct != null ? [nvct] : [],
         congTrinhs: congTrinh != null ? [congTrinh] : [],
       );
@@ -87,7 +86,6 @@ class UngLuongService {
 
     return result.map((e) => Ungluong.fromMap(
       e,
-      nhanViens: nhanViens,
       nhanVienCongTrinhs: nhanVienCongTrinhs,
       congTrinhs: congTrinhs,
     )).toList();

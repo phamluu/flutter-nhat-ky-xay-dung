@@ -78,8 +78,8 @@ class ChamCongService {
       final id = (row['id_nvct'] as num).toInt();
       if (!map.containsKey(id)) {
         map[id] = ChamCongModel(
-          ten: row['ho_ten'],
-          chucVu: row['vaiTro'],
+          ten: row['ho_ten'] ?? '',
+          chucVu: row['vaiTro'] ?? '',
           idNhanVienCongTrinh: row['id_nvct'],
           daUng: daUngMap[id] ?? [],
           data: {},
@@ -98,7 +98,8 @@ class ChamCongService {
           chieu: chieu,
         );
         final luongNgay = (row['luongNgay'] as num?)?.toDouble() ?? 0.0;
-        final ngay = row['ngay'] as String;
+        final ngay = row['ngay'] as String?;
+        if (ngay == null) continue;
         map[id]!.data[ngay] = ChamCongNgayLuong(
           chamCong: chamCongNgay,
           luongNgay: luongNgay,
@@ -156,8 +157,8 @@ class ChamCongService {
   Future<void> updateChamCong({
     required int idNhanVienCongTrinh,
     required String ngay,
-    required TrangThaiChamCong sang,
-    required TrangThaiChamCong chieu,
+    TrangThaiChamCong? sang,
+    TrangThaiChamCong? chieu,
   }) async {
     final db = await _dbHelper.database;
     final existing = await db.query(
@@ -170,8 +171,8 @@ class ChamCongService {
       await db.update(
         'cham_cong',
         {
-          'trang_thai_sang': sang.value,
-          'trang_thai_chieu': chieu.value,
+          'trang_thai_sang': sang?.value,
+          'trang_thai_chieu': chieu?.value,
         },
         where: 'id_nhan_vien_cong_trinh = ? AND ngay = ?',
         whereArgs: [idNhanVienCongTrinh, ngay],
@@ -182,8 +183,8 @@ class ChamCongService {
         {
           'id_nhan_vien_cong_trinh': idNhanVienCongTrinh,
           'ngay': ngay,
-          'trang_thai_sang': sang.value,
-          'trang_thai_chieu': chieu.value,
+          'trang_thai_sang': sang?.value,
+          'trang_thai_chieu': chieu?.value,
           'ngay_tao': DateTime.now().toIso8601String(),
         },
       );

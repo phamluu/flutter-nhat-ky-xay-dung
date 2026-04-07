@@ -130,6 +130,13 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
 
                         if (confirm == true) {
                           await _service.deleteCongTrinh(ct.id!);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Xóa công trình thành công", style: TextStyle(color: Colors.white),),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
                           setState(() {
                             _loadData();
                           });
