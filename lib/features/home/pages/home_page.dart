@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/features/cham_cong/cham_cong_screen.dart';
-import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/screens/danh_sach_danh_muc_thu_chi_screen.dart';
-import 'package:nhat_ky_xay_dung/features/home/widgets/NhatKyList.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
-import 'package:nhat_ky_xay_dung/features/nhat_ky/screens/DanhSachNhatKyScreen.dart';
-import 'package:nhat_ky_xay_dung/features/thu_chi/screens/thu_chi_screen.dart';
-import 'package:nhat_ky_xay_dung/features/tool/screens/list.dart';
 
 import '../../../core/utils/update_helper.dart';
-import '../../../data/models/CongTrinh.dart';
-import '../../../services/cong_trinh_service.dart';
-import '../../../services/thong_ke_service.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
 import '../../../controllers/thong_ke_controller.dart';
-import '../../ung_luong/screens/UngLuongScreen.dart';
 import '../widgets/ProjectList.dart';
 import '../widgets/bottomNavigation.dart';
-import '../widgets/thong_ke.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -87,7 +76,6 @@ class _HomePageState extends State<HomePage> {
             fontSize: 18,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: const [
           Icon(Icons.notifications_none),

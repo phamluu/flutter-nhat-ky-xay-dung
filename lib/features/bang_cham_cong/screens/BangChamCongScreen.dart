@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/features/bang_cham_cong/screens/UngLuongScreen.dart';
-import 'package:sqflite/sqflite.dart';
-
+import 'package:nhat_ky_xay_dung/features/ung_luong/screens/UngLuongScreen.dart';
 import '../../../core/utils/currencyFormat.dart';
-import '../../../core/utils/trang_thai_cham_cong.dart';
+import '../../../core/utils/trang_thai_luong.dart';
+import '../../../data/repositories/ChamCongRepository.dart';
+import '../../../data/repositories/ChotChiLuongRepository.dart';
+import '../../../services/BangLuongService.dart';
+import '../../../services/ChotChiLuongService.dart';
 import '../../../services/cham_cong_service.dart';
 import '../../../viewmodel/ChamCongModel.dart';
+import '../../chi_luong/ChiLuongScreen.dart';
 import 'ChamCongNgayScreen.dart';
 
 class ChamCong2Screen extends StatefulWidget {
@@ -20,27 +23,35 @@ class ChamCong2Screen extends StatefulWidget {
 
 class _ChamCong2ScreenState extends State<ChamCong2Screen> {
   bool _showTen = true;
+  bool _showChucVu = true;
+  bool _show10Dau = true;
+  bool _show10Giua = true;
+  bool _show10Cuoi = true;
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
 
   List<ChamCongModel> data = [];
-
-  final ChamCongService _service = ChamCongService(); // bạn gán db của bạn vào đây
-
-  int get soNgay =>
-      DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
+  late final BangLuongService _service;
+  late final Chotchiluongservice _chotService;
+  int get soNgay => DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
   final ScrollController _verticalController = ScrollController();
   @override
   void initState() {
     super.initState();
+    // _service = ChamCongService(ChamCongRepository());
+    _service = BangLuongService(
+      chamCongService: ChamCongService(ChamCongRepository()),
+      chotRepo: ChotChiLuongRepository(),
+    );
+    _chotService = Chotchiluongservice(ChotChiLuongRepository());
     _load();
   }
 
   Future<void> _load() async {
     if (widget.idCongTrinh == null) return;
 
-    final result = await _service.loadChamCong(
-         widget.idCongTrinh!, _selectedMonth, _selectedYear);
+    final result = await _service.loadLuong(
+        widget.idCongTrinh!, _selectedMonth, _selectedYear);
 
     setState(() {
       data = result;
@@ -63,28 +74,87 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
       body: Column(
         children: [
           _buildFilter(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// HÀNG 1: HỌ TÊN + CHỨC VỤ
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showTen = !_showTen;
+                        });
+                      },
+                      icon: Icon(
+                        _showTen ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.blue,
+                      ),
+                      label: Text(_showTen ? "Ẩn họ tên" : "Hiện họ tên"),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showChucVu = !_showChucVu;
+                        });
+                      },
+                      icon: Icon(
+                        _showChucVu ? Icons.badge_outlined : Icons.badge,
+                        color: Colors.orange,
+                      ),
+                      label: Text(_showChucVu ? "Ẩn chức vụ" : "Hiện chức vụ"),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 1),
+
+                /// HÀNG 2: FILTER NGÀY
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildToggle("1-10", _show10Dau, (v) {
+                        setState(() => _show10Dau = v);
+                      }),
+                      const SizedBox(width: 10),
+                      _buildToggle("11-20", _show10Giua, (v) {
+                        setState(() => _show10Giua = v);
+                      }),
+                      const SizedBox(width: 10),
+                      _buildToggle("21+", _show10Cuoi, (v) {
+                        setState(() => _show10Cuoi = v);
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
-
               if (_showTen)
                 DataTable(
                   columnSpacing: 10,
                   border: TableBorder.all(color: Colors.grey),
                   headingRowColor:
-                  MaterialStateProperty.all(Colors.green.shade300),
-                  columns: const [
+                      MaterialStateProperty.all(Colors.green.shade300),
+                  columns: [
                     DataColumn(label: Text("Họ tên")),
                   ],
                   rows: List.generate(data.length, (index) {
                     final nv = data[index];
                     return DataRow(
                       cells: [
-                        DataCell(Text(nv.ten)),
+                        DataCell(Text(nv.ten ?? "")),
                       ],
                     );
                   }),
                 ),
-
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -92,7 +162,8 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                     child: DataTable(
                       columnSpacing: 10,
                       border: TableBorder.all(color: Colors.grey),
-                      headingRowColor: MaterialStateProperty.all(Colors.green.shade300),
+                      headingRowColor:
+                          MaterialStateProperty.all(Colors.green.shade300),
                       columns: _buildColumns(),
                       rows: _buildRows(),
                     ),
@@ -101,7 +172,6 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
               ),
             ],
           )
-
         ],
       ),
     );
@@ -157,37 +227,157 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
     );
   }
 
+  Widget _buildToggle(String text, bool value, Function(bool) onChanged) {
+    return FilterChip(
+      label: Text(text),
+      selected: value,
+      onSelected: onChanged,
+      selectedColor: Colors.blue.shade100,
+    );
+  }
+
+  bool _isShowNgay(int day) {
+    if (day <= 10 && !_show10Dau) return false;
+    if (day >= 11 && day <= 20 && !_show10Giua) return false;
+    if (day >= 21 && !_show10Cuoi) return false;
+    return true;
+  }
+
+  Color getColor(String? value) {
+    if (value != null && value.trim().isNotEmpty) {
+      return Colors.red.shade300;
+    }
+    return Colors.transparent;
+  }
+
+  Future<void> _showConfirmChot(ChamCongModel nv) async {
+    final ok = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Xác nhận"),
+        content: Text("Chốt lương cho ${nv.ten}?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Huỷ"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Chốt"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      await _chotService.chotLuong(
+        nv: nv,
+        thang: _selectedMonth,
+        nam: _selectedYear,
+      );
+
+      setState(() {
+        _load();
+      });
+    }
+  }
+
+  Future<void> _showConfirmHuyChot(int idBangLuong) async {
+    final ok = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Xác nhận"),
+        content: Text("Hủy chốt lương"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Huỷ"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hủy chốt"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      await _chotService.huyChot(
+        idBangLuong: idBangLuong
+      );
+      setState(() {
+        _load();
+      });
+    }
+  }
+  Widget _huyChotbtn(ChamCongModel nv) {
+    return ElevatedButton(
+      onPressed: () async {
+        await _showConfirmHuyChot(nv.idBangLuong!);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4), // 👈 nhỏ lại
+        minimumSize: const Size(0, 30), // 👈 chiều cao
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 👈 giảm vùng click
+      ),
+      child: const Text(
+        "Hủy chốt",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+  Widget _chiLuongbtn(ChamCongModel nv) {
+    return ElevatedButton(
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChiLuongScreen(
+              idBangLuong: nv.idBangLuong!,
+              tenNhanVien: nv.ten,
+              tongPhaiTra: nv.thucNhanHienThi ?? 0,
+            ),
+          ),
+        );
+
+        if (result == true) {
+          setState(() {
+            _load(); // reload lại data
+          });
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4), // 👈 nhỏ lại
+        minimumSize: const Size(0, 30), // 👈 chiều cao
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 👈 giảm vùng click
+      ),
+      child: const Text(
+        "Chi lương",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+
+
   // ===== COLUMNS =====
   List<DataColumn> _buildColumns() {
     List<DataColumn> columns = [
-      DataColumn(
-          label: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showTen = !_showTen;
-                  });
-                },
-                child: Container(
-                  width: 20,
-                  height: 50,
-                  alignment: Alignment.center,
-                  // color: Colors.grey.shade200,
-                  child: Icon(
-                    _showTen ? Icons.chevron_left : Icons.chevron_right,
-                    size: 25,
-                  ),
-                ),
-              ),
-              const Text("Chức vụ")
-            ],
-          )
-
-      ),
+      if (_showChucVu)
+        DataColumn(
+            label: Row(
+          children: [const Text("Chức vụ")],
+        ))
     ];
     for (int i = 1; i <= soNgay; i++) {
-      columns.add(DataColumn(label: Text("$i")));
+      if (_isShowNgay(i)) {
+        columns.add(DataColumn(label: Text("$i")));
+      }
+      // columns.add(DataColumn(label: Text("$i")));
     }
     columns.add(const DataColumn(label: Text("Tổng công")));
     columns.add(const DataColumn(label: Text("Tổng lương")));
@@ -202,9 +392,10 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
   List<DataRow> _buildRows() {
     return List.generate(data.length, (index) {
       final nv = data[index];
+      final trangthai = TrangThaiLuong.fromValue(nv.trangThai);
       return DataRow(
         color: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
+          (Set<MaterialState> states) {
             if (index % 2 == 0) {
               return Colors.grey.shade200; // dòng chẵn
             }
@@ -212,34 +403,50 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
           },
         ),
         cells: [
-          DataCell(Text(nv.chucVu)),
-          ...List.generate(soNgay, (index) {
-            final ngay =
-                "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}-${(index + 1).toString().padLeft(2, '0')}";
-            final cc = nv.data[ngay];
-            return DataCell(
-              SizedBox(width: 35, height: 30,
-                child: Center(
-                  child: Text(cc?.chamCong.hienThi ?? ""),
-                ),
-              ),
-              onTap: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChamCongNgayScreen(
-                      idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
-                      ngay: ngay,
-                      hoTen: nv.ten,
-                      tenCongTrinh: widget.tenCongTrinh,
+          if (_showChucVu) DataCell(Text(nv.chucVu)),
+          ...[
+            for (int i = 1; i <= soNgay; i++)
+              if (_isShowNgay(i))
+                DataCell(
+                  Container(
+                    width: 35,
+                    height: 30,
+                    child: Builder(
+                      builder: (_) {
+                        final ngay =
+                            "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}-${i.toString().padLeft(2, '0')}";
+                        final cc = nv.data[ngay];
+                        return Tooltip(
+                          message: cc?.chamCong.ghiChu ?? "",
+                          child: Center(
+                            child: Text(cc?.chamCong.hienThi ?? ""),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ).then((_) {
-                  _load();
-                });
-              },
-            );
-          }),
+
+                  /// 👇 ĐÚNG CHỖ
+                  onTap: () async {
+                    final ngay =
+                        "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}-${i.toString().padLeft(2, '0')}";
+
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChamCongNgayScreen(
+                          idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
+                          ngay: ngay,
+                          hoTen: nv.ten,
+                          tenCongTrinh: widget.tenCongTrinh,
+                        ),
+                      ),
+                    );
+
+                    _load();
+                  },
+                )
+          ],
           DataCell(
             Text(
               (nv.tongSoCong ?? 0).toString(),
@@ -248,11 +455,11 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
           ),
           DataCell(Text(formatCurrency(nv.tongTienCong))),
           DataCell(
-              SizedBox(
-                child: Center(
-                  child: Text(formatCurrency(nv.tongUng )),
-                ),
+            SizedBox(
+              child: Center(
+                child: Text(formatCurrency(nv.tongUng)),
               ),
+            ),
             onTap: () async {
               Navigator.push(
                 context,
@@ -261,7 +468,8 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                     idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
                     hoTen: nv.ten,
                     congTrinh: widget.tenCongTrinh,
-                    thang: _selectedMonth
+                    thang: _selectedMonth,
+                    nam: _selectedYear,
                   ),
                 ),
               ).then((_) {
@@ -269,41 +477,44 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
               });
             },
           ),
-          DataCell(Text(formatCurrency(nv.thucNhan ))),
-          DataCell(Text('Đã chốt')),
+          DataCell(Text(formatCurrency(nv.thucNhan))),
           DataCell(
-            GestureDetector(
-              onTap: () {
-                // xử lý chi lương
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.green),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.payments, size: 12, color: Colors.green),
-                    SizedBox(width: 3),
-                    Text(
-                      "Chi",
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
+            Text(
+              trangthai == TrangThaiLuong.dachot ? "Đã chốt" : "Chưa chốt",
+              style: TextStyle(
+                color: trangthai == TrangThaiLuong.dachot
+                    ? Colors.green
+                    : Colors.red,
               ),
             ),
+          ),
+          DataCell(
+            trangthai == TrangThaiLuong.dachot
+                ? (nv.tongDaChi == 0
+                    ? Row(
+                        children: [_huyChotbtn(nv), _chiLuongbtn(nv)],
+                      )
+                    : _chiLuongbtn(nv))
+                : ElevatedButton(
+                    onPressed: () async {
+                      await _showConfirmChot(nv);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4), // 👈 nhỏ lại
+                      minimumSize: const Size(0, 30), // 👈 chiều cao
+                      tapTargetSize: MaterialTapTargetSize
+                          .shrinkWrap, // 👈 giảm vùng click
+                    ),
+                    child: const Text(
+                      "Chốt",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
           ),
         ],
       );
     }).toList();
   }
-
 }

@@ -9,9 +9,8 @@ import '../../bang_cham_cong/screens/BangChamCongScreen.dart';
 import '../../luong/LuongScreen.dart';
 import '../../nhan_vien_cong_trinh/pages/nhan_vien_cong_trinh_list_screen.dart';
 import '../../nhat_ky/screens/DanhSachNhatKyScreen.dart';
-import '../../cham_cong/cham_cong_screen.dart';
 import '../../thu_chi/screens/thu_chi_cong_trinh_screen.dart';
-import '../../ung_luong/screens/UngLuongScreen.dart';
+import '../../ung_luong/screens/UngLuongListScreen.dart';
 import '../widgets/cong_trinh_thong_ke.dart';
 
 class ChiTietCongTrinhScreen extends StatelessWidget {
@@ -88,8 +87,8 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
             Item(
                 icon: Icons.money,
                 label: 'Ứng lương',
-                page: UngLuongScreen(
-                  idCongTrinh: congTrinh.id,
+                page: UngLuongListScreen(
+                  idCongTrinh: congTrinh.id!,
                   tenCongTrinh: congTrinh.ten,
                 ),
                 value: controller.soLuongUngLuong.toString(),

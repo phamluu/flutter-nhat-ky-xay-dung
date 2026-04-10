@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/viewmodel/BangLuong.dart';
+import 'package:nhat_ky_xay_dung/data/repositories/ChotChiLuongRepository.dart';
+import 'package:nhat_ky_xay_dung/services/BangLuongService.dart';
+import 'package:nhat_ky_xay_dung/viewmodel/ChamCongModel.dart';
 
 import '../../core/utils/currencyFormat.dart';
-import '../../data/models/NhanVienCongTrinh.dart';
-import '../../services/nhan_vien_cong_trinh_service.dart';
+import '../../core/utils/trang_thai_luong.dart';
+import '../../data/repositories/ChamCongRepository.dart';
+import '../../services/ChotChiLuongService.dart';
+import '../../services/cham_cong_service.dart';
+import '../chi_luong/ChiLuongScreen.dart';
 
 class LuongNhanVienScreen extends StatefulWidget {
   final int? idCongTrinh;
@@ -15,52 +22,37 @@ class LuongNhanVienScreen extends StatefulWidget {
 }
 
 class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
-  late final NhanVienCongTrinhService _service;
-  late Future<List<BangLuong>> _future;
+  late final BangLuongService _service;
+  late final Chotchiluongservice _chotService;
+  List<ChamCongModel> data = [];
+  late Future<List<ChamCongModel>> _future;
+
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
     super.initState();
-    _service = NhanVienCongTrinhService();
-    _reload();
+    _service = BangLuongService(
+      chamCongService: ChamCongService(ChamCongRepository()),
+      chotRepo: ChotChiLuongRepository(),
+    );
+    _chotService = Chotchiluongservice(ChotChiLuongRepository());
+    _future = _load();
   }
-  void _reload() {
-    _future = Future.value([
-      BangLuong(
-        idCongTrinh: 1,
-        idNhanVienCongTrinh: 1,
-        hoTen: "Nguyễn Văn A",
-        tongSoCong: 25,
-        tongLuong: 5000000 ,
-        ungLuong: 2000000,
-        thucNhan: 3000000,
-        trangThai: 0,
-        thang: 4,
-        nam: 2026
-      ),
-      BangLuong(
-        idCongTrinh: 1,
-        idNhanVienCongTrinh: 2,
-        hoTen: "Trần Văn B",
-        tongSoCong: 22,
-        tongLuong: 4500000,
-        ungLuong: 1000000,
-        thucNhan: 3500000,
-        trangThai: 0,
-        thang: 3,
-        nam:2026
-      ),
-    ]);
+  Future<List<ChamCongModel>> _load() async {
+    return await _service.loadLuong(
+      widget.idCongTrinh!,
+      _selectedMonth,
+      _selectedYear,
+    );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
-        // foregroundColor: Colors.black,
-        // elevation: 0,
+        //backgroundColor: Colors.blue,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -79,19 +71,16 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
       ),
       body: Column(
         children: [
-          _buildFilterBar(), // 👈 thêm ở đây
-
+          _buildFilterBar(),
           Expanded(
-            child: FutureBuilder<List<BangLuong>>(
+            child: FutureBuilder<List<ChamCongModel>>(
               future: _future,
               builder: (context, snapshot) {
-                final data = snapshot.data ?? [];
-
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
-                if (data.isEmpty) {
+                final data = snapshot.data ?? [];
+                if (snapshot == null || data.isEmpty) {
                   return const Center(child: Text("Không có dữ liệu"));
                 }
 
@@ -109,7 +98,7 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
     );
   }
 
-  Widget _buildTable(List<BangLuong> data) {
+  Widget _buildTable(List<ChamCongModel> data) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
@@ -124,11 +113,12 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
           DataColumn(label: Text("")),
         ],
         rows: data.map((item) {
+          final trangthai = TrangThaiLuong.fromValue(item.trangThai);
           return DataRow(cells: [
-            DataCell(Text(item.hoTen ?? "")),
+            DataCell(Text(item.ten ?? "")),
             DataCell(Text("${item.tongSoCong ?? 0}")),
-            DataCell(Text("${item.ungLuong ?? 0} đ")),
-            DataCell(Text("${item.tongLuong ?? 0} đ")),
+            DataCell(Text("${item.tongUng ?? 0} đ")),
+            DataCell(Text("${item.tongTienCong ?? 0} đ")),
             DataCell(
               Text(
                 "${item.thucNhan ?? 0} đ",
@@ -137,19 +127,27 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
             ),
             DataCell(
               Text(
-                item.trangThai == 1 ? "Đã chốt" : "Chưa chốt",
+                trangthai == TrangThaiLuong.dachot? "Đã chốt" : "Chưa chốt",
                 style: TextStyle(
-                  color: item.trangThai == 1 ? Colors.green : Colors.red,
+                  color: trangthai == TrangThaiLuong.dachot ? Colors.green : Colors.red,
                 ),
               ),
             ),
             DataCell(
               ElevatedButton(
-                onPressed: () {},
+                onPressed: trangthai == TrangThaiLuong.dachot
+                    ? null
+                    : () async {
+                  await _showConfirmChot(item);
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor:
+                  trangthai == TrangThaiLuong.dachot ? Colors.grey : Colors.green,
                 ),
-                child: const Text("Chốt"),
+                child: const Text(
+                  "Chốt",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ]);
@@ -158,12 +156,15 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
     );
   }
 
-  Widget _buildCardList(List<BangLuong> data) {
+  Widget _buildCardList(List<ChamCongModel> data) {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
         final item = data[index];
-
+        final trangthai = TrangThaiLuong.fromValue(item.trangThai);
+        final daChi = item.tongDaChi ?? 0;
+        final phaiTra = item.thucNhanChot ?? 0;
+        final daChiDu = daChi >= phaiTra;
         return Card(
           margin: const EdgeInsets.all(8),
           shape: RoundedRectangleBorder(
@@ -175,7 +176,7 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${index + 1}. ${item.hoTen ?? ""}",
+                  "${index + 1}. ${item.ten ?? ""}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -185,13 +186,13 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
                 const SizedBox(height: 8),
 
                 Text("Tổng công: ${item.tongSoCong}"),
-                Text("Đã ứng: ${formatCurrency(item.ungLuong ?? 0)}"),
-                Text("Tổng lương: ${formatCurrency(item.tongLuong ?? 0)}"),
+                Text("Đã ứng: ${formatCurrency(item.tongUngHienThi ?? 0)}"),
+                Text("Tổng lương: ${formatCurrency(item.tongLuongHienThi ?? 0)}"),
 
                 const SizedBox(height: 6),
 
                 Text(
-                  "Thực nhận: ${formatCurrency(item.thucNhan ?? 0)}",
+                  "Thực nhận: ${formatCurrency(item.thucNhanHienThi ?? 0)}",
                   style: const TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -204,17 +205,29 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      item.trangThai == 1 ? "Đã chốt" : "Chưa chốt",
+                      trangthai == TrangThaiLuong.dachot ? "Đã chốt" : "Chưa chốt",
                       style: TextStyle(
-                        color: item.trangThai == 1
-                            ? Colors.green
-                            : Colors.red,
+                        color: trangthai == TrangThaiLuong.dachot ? Colors.green : Colors.orange,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text("Chốt"),
+                    Text(
+                      (trangthai == TrangThaiLuong.dachot && daChiDu)
+                          ? "Đã chi đủ"
+                          : "",
+                      style: TextStyle(
+                          color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
+                    // 👇 NÚT THAY ĐỔI THEO TRẠNG THÁI
+                    trangthai == TrangThaiLuong.dachot
+                        ? (item.tongDaChi == 0 ? Row(children: [
+                          _huyChotbtn(item),
+                          SizedBox(width: 5,),
+                          _chiLuongbtn(item)
+                    ],) : _chiLuongbtn(item))
+                        : _chotbtn(item),
                   ],
                 )
               ],
@@ -224,7 +237,103 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
       },
     );
   }
+  Future<void> _showConfirmHuyChot(int idBangLuong) async {
+    final ok = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Xác nhận"),
+        content: Text("Hủy chốt lương"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Huỷ"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hủy chốt"),
+          ),
+        ],
+      ),
+    );
 
+    if (ok == true) {
+      await _chotService.huyChot(
+          idBangLuong: idBangLuong
+      );
+      setState(() {
+        _load();
+      });
+    }
+  }
+  Widget _huyChotbtn(ChamCongModel nv) {
+    return ElevatedButton(
+      onPressed: () async {
+        await _showConfirmHuyChot(nv.idBangLuong!);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4), // 👈 nhỏ lại
+        minimumSize: const Size(0, 30), // 👈 chiều cao
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 👈 giảm vùng click
+      ),
+      child: const Text(
+        "Hủy chốt",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+  Widget _chiLuongbtn(ChamCongModel item){
+    return ElevatedButton(
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChiLuongScreen(
+              idBangLuong: item.idBangLuong!,
+              tenNhanVien: item.ten,
+              tongPhaiTra: item.thucNhanHienThi ?? 0,
+            ),
+          ),
+        );
+
+        if (result == true) {
+          setState(() {
+            _future = _load(); // reload lại data
+          });
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4),
+        minimumSize: const Size(0, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: const Text(
+        "Chi lương",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+  Widget _chotbtn(ChamCongModel item){
+    return ElevatedButton(
+      onPressed: () async {
+        await _showConfirmChot(item);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 4),
+        minimumSize: const Size(0, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: const Text(
+        "Chốt",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
   Widget _buildFilterBar() {
     return Padding(
       padding: const EdgeInsets.all(8),
@@ -248,6 +357,7 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedMonth = value!;
+                  _future = _load();
                 });
               },
             ),
@@ -273,24 +383,10 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedYear = value!;
+                  _future = _load();
                 });
               },
             ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // NÚT TÍNH LƯƠNG
-          ElevatedButton(
-            onPressed: _tinhLuong,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 18,
-              ),
-              backgroundColor: Colors.blue,
-            ),
-            child: const Text("Tính lương"),
           ),
         ],
       ),
@@ -304,7 +400,39 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
     // _future = _service.tinhLuong(_selectedMonth, _selectedYear);
 
     setState(() {
-      _reload(); // demo lại data
+      _future = _load(); // demo lại data
     });
+  }
+
+  Future<void> _showConfirmChot(ChamCongModel nv) async {
+    final ok = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Xác nhận"),
+        content: Text("Chốt lương cho ${nv.ten}?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Huỷ"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Chốt"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      await _chotService.chotLuong(
+        nv: nv,
+        thang: _selectedMonth,
+        nam: _selectedYear,
+      );
+
+      setState(() {
+        _future = _load();
+      });
+    }
   }
 }

@@ -69,14 +69,11 @@ class _DanhSachNhanVienScreenState extends State<DanhSachNhanVienScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Danh sách nhân viên"),
-        backgroundColor: Colors.blue.shade100,
         foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () =>_openForm(),
       ),
       body: FutureBuilder<List<NhanVien>>(
         future: _future,

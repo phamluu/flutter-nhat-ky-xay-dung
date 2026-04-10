@@ -35,22 +35,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Nhật ký xây dựng',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E86C1),
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: const Color(0xFFFFA500), // xanh công trình
-          secondary: const Color(0xFFE67E22), // cam nổi bật
-          surface: const Color(0xFFF4F6F7), // nền xám nhạt
-        ),
+
         appBarTheme: AppBarTheme(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.black,
+          backgroundColor:  Colors.orange,
+          foregroundColor: Colors.white,
           elevation: 0,
           titleTextStyle: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
         textTheme: const TextTheme(

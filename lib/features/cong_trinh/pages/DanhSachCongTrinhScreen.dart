@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/CongTrinhFormScreen.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../services/cong_trinh_service.dart';
-import '../../../controllers/thong_ke_controller.dart';
-import 'SuaCongTrinhScreen.dart';
-import 'ThemCongTrinhScreen.dart';
 
 class DanhSachCongTrinhScreen extends StatefulWidget {
   const DanhSachCongTrinhScreen({super.key});
@@ -36,7 +34,7 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ThemCongTrinhScreen(),
+        builder: (_) => const CongTrinhFormScreen(),
       ),
     );
 
@@ -53,15 +51,11 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Danh sách công trình'),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _openThemCongTrinh,
-          )
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: _openThemCongTrinh,
       ),
       body: FutureBuilder<List<CongTrinh>>(
         future: _futureCongTrinh,
@@ -93,10 +87,9 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => SuaCongTrinhScreen(congTrinh: ct),
+                            builder: (_) => CongTrinhFormScreen(congTrinh: ct),
                           ),
                         );
-
                         if (result == true) {
                           setState(() {
                             _loadData();

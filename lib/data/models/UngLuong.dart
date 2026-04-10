@@ -103,3 +103,37 @@ class Ungluong {
   }
 }
 
+// Theo danh sách nhân viên
+
+
+class UngLuongItem{
+  double soTien;
+  DateTime? ngayUng;
+  String? lyDo;
+  UngLuongItem({
+    required this.soTien,
+    this.ngayUng,
+    this.lyDo
+});
+}
+
+class UngLuongViewModel{
+  int idNhanVienCongTrinh;
+  int thang;
+  int nam;
+  final String? hoTen;
+  final List<UngLuongItem> daUngs;
+  UngLuongViewModel({
+    required this.idNhanVienCongTrinh,
+    this.hoTen,
+    required this.thang,
+    required this.nam,
+    required this.daUngs,
+  });
+  double get tongUng {
+    return daUngs.fold(
+      0.0,
+          (sum, item) => sum! + item.soTien,
+    ) ?? 0.0;
+  }
+}

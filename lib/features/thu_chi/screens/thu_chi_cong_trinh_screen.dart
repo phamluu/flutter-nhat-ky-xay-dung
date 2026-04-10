@@ -48,7 +48,6 @@ class _ThuChiCongTrinhScreenState extends State<ThuChiCongTrinhScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

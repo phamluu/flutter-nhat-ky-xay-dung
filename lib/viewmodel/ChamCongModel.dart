@@ -7,8 +7,12 @@ class ChamCongModel {
   final String chucVu;
   final Map<String, ChamCongNgayLuong> data;
   final List<DaUng>? daUng;
-  final int trangThai;
-
+   int trangThai;
+   int? idBangLuong;
+  double? tongLuongChot;
+  double? tongUngChot;
+  double? thucNhanChot;
+  double tongDaChi;
   ChamCongModel({
     this.idNhanVienCongTrinh,
     required this.ten,
@@ -16,6 +20,11 @@ class ChamCongModel {
     required this.data,
     this.daUng,
     required this.trangThai,
+    this.idBangLuong,
+    this.tongLuongChot,
+    this.thucNhanChot,
+    this.tongUngChot,
+    required this.tongDaChi
   });
   // Tổng số công
   double get tongSoCong {
@@ -41,15 +50,38 @@ class ChamCongModel {
   double get thucNhan{
     return tongTienCong - tongUng;
   }
+
+  double get tongLuongHienThi {
+    if (trangThai == 1 && tongLuongChot != null) {
+      return tongLuongChot!;
+    }
+    return tongTienCong;
+  }
+
+  double get tongUngHienThi {
+    if (trangThai == 1 && tongUngChot != null) {
+      return tongUngChot!;
+    }
+    return tongUng;
+  }
+
+  double get thucNhanHienThi {
+    if (trangThai == 1 && thucNhanChot != null) {
+      return thucNhanChot!;
+    }
+    return thucNhan;
+  }
 }
 
 class ChamCongNgay {
   final TrangThaiChamCong sang;
   final TrangThaiChamCong chieu;
+  final String? ghiChu;
 
   ChamCongNgay({
     required this.sang,
     required this.chieu,
+    this.ghiChu
   });
 
   /// 👉 Tính công

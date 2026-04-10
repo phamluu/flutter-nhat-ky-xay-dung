@@ -51,8 +51,6 @@ class Luongcoban {
     );
   }
 
-
-
   Luongcoban copyWith({
     int? id,
     required int idNhanVien,

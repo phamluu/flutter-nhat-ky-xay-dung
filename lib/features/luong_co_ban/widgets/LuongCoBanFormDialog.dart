@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/services/luong_co_ban_service.dart';
 import 'package:nhat_ky_xay_dung/services/nhan_vien_service.dart';
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/models/NhanVien.dart';
 
-class LuongCoBanFormDialog extends StatefulWidget {
+class LuongCoBanFormScreen extends StatefulWidget {
   final Luongcoban? luong;
-  final Function(Luongcoban) onSave;
-
-  const LuongCoBanFormDialog({
+  const LuongCoBanFormScreen({
     super.key,
     this.luong,
-    required this.onSave,
   });
 
   @override
-  State<LuongCoBanFormDialog> createState() => _LuongCoBanFormDialogState();
+  State<LuongCoBanFormScreen> createState() => _LuongCoBanFormDialogState();
 }
 
-class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
+class _LuongCoBanFormDialogState extends State<LuongCoBanFormScreen> {
   late TextEditingController mucLuongController;
   late TextEditingController ngayApDungController;
   late TextEditingController ghiChuController;
@@ -26,6 +24,7 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
   DateTime? ngayApDung;
 
   NhanVienService _nhanVienService = NhanVienService();
+  LuongCoBanService _service = LuongCoBanService();
   final NumberFormat currencyFormat = NumberFormat("#,##0", "vi_VN");
 
   late List<NhanVien> nhanViens = [];
@@ -69,9 +68,14 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.luong == null ? "Thêm lương cơ bản" : "Sửa lương cơ bản"),
-      content: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.luong == null
+            ? "Thêm lương cơ bản"
+            : "Sửa lương cơ bản"),
+        backgroundColor: Colors.blue,
+      ),
+      body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -128,27 +132,56 @@ class _LuongCoBanFormDialogState extends State<LuongCoBanFormDialog> {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context), child: const Text("Hủy")),
-        ElevatedButton(
-          onPressed: () {
-            if (selectedNhanVien == null) return;
-            final mucLuong = _parseCurrency(mucLuongController.text);
-            final newLuong = Luongcoban(
-              id: widget.luong?.id,
-              idNhanVien: selectedNhanVien!.id!,
-              mucLuong: mucLuong,
-              ngayApDung: ngayApDung,
-              ghiChu: ghiChuController.text,
-              nhanVien: selectedNhanVien,
-            );
-            widget.onSave(newLuong);
-            Navigator.pop(context);
-          },
-          child: const Text("Lưu"),
-        ),
-      ],
+      // actions: [
+      //   TextButton(
+      //       onPressed: () => Navigator.pop(context), child: const Text("Hủy")),
+      //   ElevatedButton(
+      //     onPressed: () {
+      //       if (selectedNhanVien == null) return;
+      //       final mucLuong = _parseCurrency(mucLuongController.text);
+      //       final newLuong = Luongcoban(
+      //         id: widget.luong?.id,
+      //         idNhanVien: selectedNhanVien!.id!,
+      //         mucLuong: mucLuong,
+      //         ngayApDung: ngayApDung,
+      //         ghiChu: ghiChuController.text,
+      //         nhanVien: selectedNhanVien,
+      //       );
+      //       widget.onSave(newLuong);
+      //       Navigator.pop(context);
+      //     },
+      //     child: const Text("Lưu"),
+      //   ),
+      // ],
     );
+  }
+
+  Future<void> _save() async {
+    if (selectedNhanVien == null) return;
+
+    final mucLuong = _parseCurrency(mucLuongController.text);
+
+    final newLuong = Luongcoban(
+      id: widget.luong?.id,
+      idNhanVien: selectedNhanVien!.id!,
+      mucLuong: mucLuong,
+      ngayApDung: ngayApDung,
+      ghiChu: ghiChuController.text,
+      nhanVien: selectedNhanVien,
+    );
+
+    try {
+      if (widget.luong == null) {
+        await _service.addLuongCoBan(newLuong);
+      } else {
+        await _service.updateLuongCoBan(newLuong);
+      }
+
+      Navigator.pop(context, true); // trả về reload
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e")),
+      );
+    }
   }
 }

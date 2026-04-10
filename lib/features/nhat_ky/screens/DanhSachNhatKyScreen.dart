@@ -67,16 +67,13 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
                       ),
                     ],
                   ),
-          backgroundColor: Colors.blue.shade100,
           foregroundColor: Colors.black,
           elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _openForm(),
-            ),
-          ],
         ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () =>_openForm(),
+      ),
       body: FutureBuilder<List<NhatKyViewModel>>(
         future: _future,
         builder: (context, snapshot) {

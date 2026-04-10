@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../services/cham_cong_service.dart';
+import '../../../data/repositories/ChamCongRepository.dart';
 import '../../../core/utils/currencyFormat.dart';
 import '../../../core/utils/trang_thai_cham_cong.dart';
+import '../../../services/cham_cong_service.dart';
 import '../../../viewmodel/ChamCongModel.dart';
 
 class ChamCongNgayScreen extends StatefulWidget {
@@ -23,8 +24,8 @@ class ChamCongNgayScreen extends StatefulWidget {
 }
 
 class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
-  final ChamCongService _service = ChamCongService();
-
+  late final ChamCongService _service;
+  final ghiChuCtrl = TextEditingController();
   ChamCongNgayLuong? data;
   bool isLoading = true;
   TrangThaiChamCong? _sang;
@@ -33,6 +34,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
   @override
   void initState() {
     super.initState();
+    _service = ChamCongService(ChamCongRepository());
     _load();
   }
 
@@ -154,6 +156,8 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               _row("Buổi sáng", cc.sang.label),
               const SizedBox(height: 10),
               _row("Buổi chiều", cc.chieu.label),
+              const SizedBox(height: 10),
+              _row("Ghi chú", ghiChuCtrl.text),
             ]
 
             // ===== EDIT MODE =====
@@ -183,6 +187,17 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                     onChanged: (v) => setState(() => _chieu = v),
                   );
                 }).toList(),
+              ),
+              const SizedBox(height: 20),
+              const Text("Ghi chú",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: ghiChuCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.note),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -268,7 +283,18 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                 );
               }).toList(),
             ),
-
+            const SizedBox(height: 16),
+            const Text("Ghi chú",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextFormField(
+              controller: ghiChuCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: "Ghi chú",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.note),
+              ),
+            ),
             const SizedBox(height: 20),
 
             // ===== BUTTON LƯU =====
@@ -291,6 +317,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                     ngay: widget.ngay!,
                     sang: _sang,
                     chieu: _chieu,
+                    ghiChu: ghiChuCtrl.text
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

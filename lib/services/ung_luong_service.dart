@@ -4,12 +4,14 @@ import '../data/db_helper.dart';
 import '../data/models/CongTrinh.dart';
 import '../data/models/NhanVienCongTrinh.dart';
 import '../data/models/UngLuong.dart';
+import '../data/repositories/ung_luong_repository.dart';
 import 'cong_trinh_service.dart';
 import 'nhan_vien_cong_trinh_service.dart';
 import 'nhan_vien_service.dart';
 
 class UngLuongService {
   final _dbHelper = DBHelper.instance;
+  final _repo = UngLuongRepository();
 
   Future<List<Ungluong>> getUngLuongCongTrinh([int? idCongTrinh]) async {
     final db = await _dbHelper.database;
@@ -91,7 +93,6 @@ class UngLuongService {
     )).toList();
   }
 
-
   // Thêm ứng lương
   Future<int> addUngLuong(Ungluong u) async {
     final db = await _dbHelper.database;
@@ -121,14 +122,64 @@ class UngLuongService {
 
   //************* ỨNG LƯƠNG TỪNG NHÂN VIÊN **************
 
-  Future<List<Ungluong>> getUngLuongNhanVien(int idNhanVienCongTrinh) async {
+  Future<List<Ungluong>> getUngLuongNhanVien(
+      int idNhanVienCongTrinh, int thang, int nam) async
+  {
     final db = await _dbHelper.database;
     final result = await db.query(
       'ung_luong',
-      where: 'idNhanVienCongTrinh = ?',
-      whereArgs: [idNhanVienCongTrinh],
+      where: '''
+      idNhanVienCongTrinh = ?
+      AND strftime('%m', ngayUng) = ?
+      AND strftime('%Y', ngayUng) = ?
+    ''',
+      whereArgs: [
+        idNhanVienCongTrinh,
+        thang.toString().padLeft(2, '0'), // 01, 02...
+        nam.toString(),
+      ],
       orderBy: 'ngayUng DESC',
     );
+
     return result.map((e) => Ungluong.fromMap(e)).toList();
+  }
+
+  // *************** DANH SÁCH NHÂN VIÊN ỨNG LƯƠNG *************
+  Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, int thang, int nam) async {
+    final rows = await _repo.getNhanVienVaUngLuong(
+      idCongTrinh,
+      thang,
+      nam,
+    );
+
+    final Map<int, UngLuongViewModel> map = {};
+
+    for (var row in rows) {
+      final idNVCT = row['idNhanVienCongTrinh'];
+      // 🔹 Nếu chưa có nhân viên → tạo mới
+      if (!map.containsKey(idNVCT)) {
+        map[idNVCT] = UngLuongViewModel(
+          idNhanVienCongTrinh: idNVCT,
+          hoTen: row['ho_ten'],
+          thang: thang,
+          nam: nam,
+          daUngs: [],
+        );
+      }
+
+      // 🔹 Nếu có ứng lương → add vào list
+      if (row['idUngLuong'] != null) {
+        map[idNVCT]!.daUngs!.add(
+          UngLuongItem(
+            soTien: (row['soTien'] as num).toDouble(),
+            ngayUng: row['ngayUng'] != null
+                ? DateTime.tryParse(row['ngayUng'])
+                : null,
+            lyDo: row['lyDo'],
+          ),
+        );
+      }
+    }
+    return map.values.toList();
   }
 }

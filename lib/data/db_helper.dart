@@ -18,13 +18,42 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
   }
 
   Future _onCreate(Database db, int version) async {
+    // Tạo bảng lương ghi chốt lương
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS bang_luong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idNhanVienCongTrinh INTEGER,
+          thang INTEGER,
+          nam INTEGER,
+        
+          tongCong REAL DEFAULT 0,
+          tongLuong REAL DEFAULT 0,
+          tongUng REAL DEFAULT 0,
+          thucNhan REAL DEFAULT 0,
+        
+          trangThai INTEGER DEFAULT 0, -- 0: chưa chi, 1: đã chi
+          ngayChot TEXT,
+          UNIQUE(idNhanVienCongTrinh, thang, nam)
+        )
+        ''');
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS chi_luong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idBangLuong INTEGER,
+          soTien REAL NOT NULL,
+          ngayChi TEXT NOT NULL,
+          ghiChu TEXT,
+          createdAt TEXT NOT NULL,
+          FOREIGN KEY (idBangLuong) REFERENCES bang_luong(id)
+        )
+        ''');
     // Tạo bảng công trình
     await db.execute('''
       CREATE TABLE cong_trinh (
@@ -245,6 +274,38 @@ class DBHelper {
 
       // 4. Đổi tên
       await db.execute('ALTER TABLE ung_luong_new RENAME TO ung_luong');
+    }
+    if(oldVersion < 7){
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS bang_luong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idNhanVienCongTrinh INTEGER,
+          thang INTEGER,
+          nam INTEGER,
+        
+          tongCong REAL DEFAULT 0,
+          tongLuong REAL DEFAULT 0,
+          tongUng REAL DEFAULT 0,
+          thucNhan REAL DEFAULT 0,
+          ngayChot TEXT,
+          UNIQUE(idNhanVienCongTrinh, thang, nam)
+        )
+        ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS chi_luong (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idBangLuong INTEGER,
+          soTien REAL NOT NULL,
+          ngayChi TEXT NOT NULL,
+          ghiChu TEXT,
+          FOREIGN KEY (idBangLuong) REFERENCES bang_luong(id)
+        )
+        ''');
+    }
+    if(oldVersion < 8){
+      await db.execute('''
+        ALTER TABLE chi_luong ADD COLUMN createdAt TEXT
+      ''');
     }
   }
 }

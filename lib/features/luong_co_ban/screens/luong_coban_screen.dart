@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
-
-import '../../../data/models/LuongCoBan.dart';
-import '../../../data/models/NhanVien.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/LuongCoBanNhanVien.dart';
 import '../../../services/luong_co_ban_service.dart';
-import '../../../services/nhan_vien_service.dart';
-import '../widgets/ConfirmDeleteDialog.dart';
-import '../widgets/LuongCoBanFormDialog.dart';
+import '../../../viewmodel/LuongCoBan.dart';
 
 class LuongCoBanScreen extends StatefulWidget {
   const LuongCoBanScreen({super.key});
-
   @override
   State<LuongCoBanScreen> createState() => _LuongCoBanScreenState();
 }
 
 class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
   final LuongCoBanService _service = LuongCoBanService();
-  final NhanVienService _nhanVienService = NhanVienService();
   final NumberFormat currencyFormat = NumberFormat("#,##0", "vi_VN");
-
-  LuongCoBanViewModel _viewModel = LuongCoBanViewModel();
+  late Future<List<LuongCoBanModel>> _futureLuong;
 
   @override
   void initState() {
@@ -29,185 +21,92 @@ class _LuongCoBanScreenState extends State<LuongCoBanScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    try {
-      final vm = await _service.getAllGroupedByNhanVien();
-      setState(() {
-        _viewModel = vm;
-      });
-    } catch (e) {
-      debugPrint("Lỗi load dữ liệu: $e");
-    }
-  }
-
-  void _showForm({Luongcoban? luong}) {
-    showDialog(
-      context: context,
-      builder: (_) => LuongCoBanFormDialog(
-        luong: luong,
-        onSave: (newLuong) async {
-          try {
-            if (luong == null) {
-              await _service.addLuongCoBan(newLuong);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Thêm lương thành công", style: TextStyle(color: Colors.white)),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            } else {
-              await _service.updateLuongCoBan(newLuong);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Cập nhật lương thành công", style: TextStyle(color: Colors.white)),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-            _loadData();
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Lỗi: ${e.toString()}")),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  void _delete(int id) {
-    showDialog(
-      context: context,
-      builder: (_) => ConfirmDeleteDialog(
-        message: "Bạn có chắc chắn muốn xóa không?",
-        onConfirm: () async {
-          try {
-            await _service.deleteLuongCoBan(id);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Xóa lương thành công")),
-            );
-            _loadData();
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Xóa thất bại: ${e.toString()}")),
-            );
-          }
-        },
-      ),
-    );
+  void _loadData() {
+    setState(() {
+      _futureLuong = _service.getLuongCoBan();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Lương cơ bản"),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: ListView.builder(
-        itemCount: _viewModel.luongNhanViens.length,
-        itemBuilder: (context, index) {
-          final nvModel = _viewModel.luongNhanViens[index];
-          return Column(
-            children: [
-              ExpansionTile(
-                title: Text("${index + 1}. ${nvModel.nhanVien.hoTen ?? "Không có tên"}"),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // canh trái
-                  children: [
-                    Text('Mức lương hiện tại: ' + currencyFormat.format(nvModel.mucLuongHienTai ?? 0) + ' đ'),
-                    Text('Số lần tăng lương: ' + nvModel.soLanTangLuong.toString()),
-                  ],
-                ),
-                children: nvModel.luongCoBans.map((luong) {
+        appBar: AppBar(
+          title: const Text("Lương cơ bản"),
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        body: FutureBuilder<List<LuongCoBanModel>>(
+            future: _futureLuong,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Lỗi: ${snapshot.error}'));
+              }
+              final data = snapshot.data ?? [];
+              if (data.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.people_outline,
+                          size: 60, color: Colors.grey.shade400),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Chưa có nhân viên nào',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return ListView.separated(
+                itemCount: data.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                padding: const EdgeInsets.all(12),
+                itemBuilder: (context, index) {
+                  final luong = data[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Slidable(
-                      key: ValueKey(luong.id),
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(), // hiệu ứng trượt
-                        extentRatio: 0.4, // chiếm 40% chiều rộng
-                        children: [
-                          SlidableAction(
-                            onPressed: (_) async {
-                              _showForm(luong: luong);
-                            },
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            icon: Icons.edit,
-                            label: 'Sửa',
-                          ),
-                          SlidableAction(
-                            onPressed: (_) async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text("Xác nhận"),
-                                  content: Text("Bạn có chắc muốn xóa ?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx, false),
-                                      child: const Text("Hủy"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx, true),
-                                      child: const Text("Xóa"),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm == true) {
-                                await _service.deleteLuongCoBan(luong.id!);
-                                setState(() {
-                                  _loadData();
-                                });
-                              }
-                            },
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            icon: Icons.delete,
-                            label: 'Xóa',
-                          ),
-                        ],
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue.shade50,
+                        child: const Icon(Icons.person, color: Colors.blue),
                       ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50, // nền nhẹ, dịu mắt
-                          borderRadius: BorderRadius.circular(12), // bo góc mềm
-                          border: Border.all(
-                            color: Colors.grey.shade50, // border nhẹ nhàng
-                            width: 1,
-                          ),
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: ListTile(
-                          title: Text("Mức lương: ${currencyFormat.format(luong.mucLuong ?? 0)} đ"),
-                          subtitle: Text(
-                            "Ngày áp dụng: ${luong.ngayApDung != null ? DateFormat("dd/MM/yyyy").format(luong.ngayApDung!) : "Chưa có"}\n"
-                                "Ghi chú: ${luong.ghiChu ?? ""}",
-                          )
+                      title: Text(
+                        luong.hoTen ?? "Không tên",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(luong.ngaySinh ?? "Chưa có ngày sinh"),
+                      trailing: Text(
+                        "${currencyFormat.format(luong.luongHienTai ?? 0)} đ",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
-                    )
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    LuongCoBanNhanVienScreen(idNhanVien: luong.idNhanVien, hoTen: luong.hoTen,)
+                            )
+                        ).then((_) {
+                          _loadData();
+                        });
+                      },
+                    ),
                   );
-                }).toList(),
-              ),
-              Divider(
-                color: Colors.grey.shade300,
-                thickness: 1,
-                height: 1,
-              ),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showForm(),
-        child: const Icon(Icons.add),
-      ),
-    );
+                },
+              );
+            }));
   }
 }
