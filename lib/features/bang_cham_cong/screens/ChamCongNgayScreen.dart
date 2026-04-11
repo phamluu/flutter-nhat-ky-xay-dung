@@ -5,18 +5,22 @@ import '../../../core/utils/currencyFormat.dart';
 import '../../../core/utils/trang_thai_cham_cong.dart';
 import '../../../services/cham_cong_service.dart';
 import '../../../viewmodel/ChamCongModel.dart';
+import '../widgets/radioCompact.dart';
+import '../widgets/row.dart';
 
 class ChamCongNgayScreen extends StatefulWidget {
   final int? idNhanVienCongTrinh;
   final String? ngay;
   final String? hoTen;
   final String? tenCongTrinh;
+  final bool daKhoa;
   const ChamCongNgayScreen({
     super.key,
     this.idNhanVienCongTrinh,
     this.ngay,
     this.hoTen,
-    this.tenCongTrinh
+    this.tenCongTrinh,
+    required this.daKhoa
   });
 
   @override
@@ -31,6 +35,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
   TrangThaiChamCong? _sang;
   TrangThaiChamCong? _chieu;
   bool _isEdit = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +84,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               const SizedBox(height: 16),
               _cardLuong(),
             ] else ...[
-              _cardChuaChamCong(), // 👈 thêm cái này
+              _cardChuaChamCong(),
             ]
           ],
         ),
@@ -112,9 +117,9 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               ],
             ),
             const Divider(height: 20),
-            _row("Công trình", widget.tenCongTrinh ?? "---"),
-            _row("Họ tên", widget.hoTen ?? "---"),
-            _row("Ngày", widget.ngay ?? "---"),
+            row("Công trình", widget.tenCongTrinh ?? "---"),
+            row("Họ tên", widget.hoTen ?? "---"),
+            row("Ngày", widget.ngay ?? "---"),
           ],
         ),
       ),
@@ -136,6 +141,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                   "Chấm công",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+                widget.daKhoa ? Text('Đã khóa chấm công') :
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -153,11 +159,11 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
             const Divider(),
             // ===== VIEW MODE =====
             if (!_isEdit) ...[
-              _row("Buổi sáng", cc.sang.label),
+              row("Buổi sáng", cc.sang.label),
               const SizedBox(height: 10),
-              _row("Buổi chiều", cc.chieu.label),
+              row("Buổi chiều", cc.chieu.label),
               const SizedBox(height: 10),
-              _row("Ghi chú", ghiChuCtrl.text),
+              row("Ghi chú", ghiChuCtrl.text),
             ]
 
             // ===== EDIT MODE =====
@@ -168,7 +174,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               Wrap(
                 spacing: 10,
                 children: TrangThaiChamCong.values.map((e) {
-                  return _radioCompact(
+                  return radioCompact(
                     value: e,
                     groupValue: _sang,
                     onChanged: (v) => setState(() => _sang = v),
@@ -181,7 +187,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               Wrap(
                 spacing: 10,
                 children: TrangThaiChamCong.values.map((e) {
-                  return _radioCompact(
+                  return radioCompact(
                     value: e,
                     groupValue: _chieu,
                     onChanged: (v) => setState(() => _chieu = v),
@@ -227,8 +233,8 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
 
             const Divider(height: 25),
 
-            _row("Ký hiệu", cc.hienThi),
-            _row("Công", cc.soCong.toString()),
+            row("Ký hiệu", cc.hienThi),
+            row("Công", cc.soCong.toString()),
           ],
         ),
       ),
@@ -257,16 +263,27 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 10,
+              spacing: 5,
               children: TrangThaiChamCong.values.map((e) {
-                return _radioCompact(
-                  value: e,
-                  groupValue: _sang,
-                  onChanged: (v) => setState(() => _sang = v),
+                return SizedBox(
+                  width: 90,
+                  child: RadioListTile<TrangThaiChamCong>(
+                    title: Text(
+                      e.label,
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: e,
+                    groupValue: _sang,
+                    onChanged: (v) => setState(() => _sang = v),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                    horizontalTitleGap: 4, // giảm khoảng cách radio - label
+                    minLeadingWidth: 0, // bỏ khoảng trống dư bên trái
+                  ),
                 );
               }).toList(),
             ),
-
             const SizedBox(height: 20),
 
             // ===== BUỔI CHIỀU =====
@@ -274,12 +291,24 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 10,
+              spacing: 5,
               children: TrangThaiChamCong.values.map((e) {
-                return _radioCompact(
-                  value: e,
-                  groupValue: _chieu,
-                  onChanged: (v) => setState(() => _chieu = v),
+                return SizedBox(
+                  width: 90,
+                  child: RadioListTile<TrangThaiChamCong>(
+                    title: Text(
+                      e.label,
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: e,
+                    groupValue: _chieu,
+                    onChanged: (v) => setState(() => _chieu = v),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                    horizontalTitleGap: 4,
+                    minLeadingWidth: 0,
+                  ),
                 );
               }).toList(),
             ),
@@ -336,26 +365,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
       ),
     );
   }
-  Widget _radioCompact({
-    required TrangThaiChamCong value,
-    required TrangThaiChamCong? groupValue,
-    required Function(TrangThaiChamCong?) onChanged,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Radio<TrangThaiChamCong>(
-          value: value,
-          groupValue: groupValue,
-          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          onChanged: onChanged,
-        ),
-        Text(value.label),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
+
   // ===== CARD LƯƠNG =====
   Widget _cardLuong() {
     return Card(
@@ -364,9 +374,9 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _row("Lương ngày", formatCurrency(data!.luongNgay)),
+            row("Lương ngày", formatCurrency(data!.luongNgay)),
             const SizedBox(height: 10),
-            _row("Tiền công",
+            row("Tiền công",
                 formatCurrency(data!.tienCongNgay)),
           ],
         ),
@@ -374,17 +384,4 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
     );
   }
 
-  // ===== UI ROW =====
-  Widget _row(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
 }

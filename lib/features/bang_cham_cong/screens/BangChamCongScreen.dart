@@ -9,6 +9,9 @@ import '../../../services/ChotChiLuongService.dart';
 import '../../../services/cham_cong_service.dart';
 import '../../../viewmodel/ChamCongModel.dart';
 import '../../chi_luong/ChiLuongScreen.dart';
+import '../widgets/buildToggle.dart';
+import '../widgets/exportExcel.dart';
+import '../widgets/khoaChamCong.dart';
 import 'ChamCongNgayScreen.dart';
 
 class ChamCong2Screen extends StatefulWidget {
@@ -33,33 +36,36 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
   List<ChamCongModel> data = [];
   late final BangLuongService _service;
   late final Chotchiluongservice _chotService;
+  late final ChamCongService _chamCongService;
   int get soNgay => DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
-  final ScrollController _verticalController = ScrollController();
+  String get thang => "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}";
+  late var daKhoaCC = false;
+
   @override
   void initState() {
     super.initState();
-    // _service = ChamCongService(ChamCongRepository());
     _service = BangLuongService(
       chamCongService: ChamCongService(ChamCongRepository()),
       chotRepo: ChotChiLuongRepository(),
     );
     _chotService = Chotchiluongservice(ChotChiLuongRepository());
+    _chamCongService = ChamCongService(ChamCongRepository());
     _load();
   }
 
   Future<void> _load() async {
     if (widget.idCongTrinh == null) return;
-
     final result = await _service.loadLuong(
         widget.idCongTrinh!, _selectedMonth, _selectedYear);
-
-    setState(() {
+    setState(() async {
       data = result;
+      daKhoaCC = await _chamCongService.checkKhoaChamCong(thang);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -109,37 +115,57 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 1),
-
                 /// HÀNG 2: FILTER NGÀY
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildToggle("1-10", _show10Dau, (v) {
+                      buildToggle("1-10", _show10Dau, (v) {
                         setState(() => _show10Dau = v);
                       }),
                       const SizedBox(width: 10),
-                      _buildToggle("11-20", _show10Giua, (v) {
+                      buildToggle("11-20", _show10Giua, (v) {
                         setState(() => _show10Giua = v);
                       }),
                       const SizedBox(width: 10),
-                      _buildToggle("21+", _show10Cuoi, (v) {
+                      buildToggle("21+", _show10Cuoi, (v) {
                         setState(() => _show10Cuoi = v);
                       }),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        icon: Icon(Icons.download),
+                        onPressed: () async {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => Center(child: CircularProgressIndicator()),
+                          );
+                          await exportExcelFull(
+                            context: context,
+                            data: data,
+                            soNgay: soNgay,
+                            selectedMonth: _selectedMonth,
+                            selectedYear: _selectedYear,
+                          );
+                          Navigator.pop(context);
+                        },
+                      )
                     ],
                   ),
                 ),
+                Text(daKhoaCC.toString())
+                //Text(daKhoaCC ? 'Đã khóa chấm công':'', style: TextStyle(color: Colors.red),),
               ],
             ),
           ),
           const SizedBox(height: 10),
+
           Row(
             children: [
               if (_showTen)
                 DataTable(
-                  columnSpacing: 10,
+                  columnSpacing: 2,
                   border: TableBorder.all(color: Colors.grey),
                   headingRowColor:
                       MaterialStateProperty.all(Colors.green.shade300),
@@ -202,7 +228,7 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
               },
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             child: DropdownButtonFormField<int>(
               value: _selectedYear,
@@ -222,17 +248,29 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
               },
             ),
           ),
+          const SizedBox(width: 6),
+          ElevatedButton.icon(
+            onPressed:(){
+              khoaChamCong(
+                context: context,
+                selectedMonth: _selectedMonth,
+                selectedYear: _selectedYear
+              ).then((_) {
+                _load();
+              });
+            },
+            icon: Icon(Icons.lock, color: Colors.white,),
+            label: Text("Chốt công", style: TextStyle(color: Colors.white),),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 4),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          )
         ],
       ),
-    );
-  }
-
-  Widget _buildToggle(String text, bool value, Function(bool) onChanged) {
-    return FilterChip(
-      label: Text(text),
-      selected: value,
-      onSelected: onChanged,
-      selectedColor: Colors.blue.shade100,
     );
   }
 
@@ -241,13 +279,6 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
     if (day >= 11 && day <= 20 && !_show10Giua) return false;
     if (day >= 21 && !_show10Cuoi) return false;
     return true;
-  }
-
-  Color getColor(String? value) {
-    if (value != null && value.trim().isNotEmpty) {
-      return Colors.red.shade300;
-    }
-    return Colors.transparent;
   }
 
   Future<void> _showConfirmChot(ChamCongModel nv) async {
@@ -362,8 +393,6 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
     );
   }
 
-
-
   // ===== COLUMNS =====
   List<DataColumn> _buildColumns() {
     List<DataColumn> columns = [
@@ -430,7 +459,8 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                   onTap: () async {
                     final ngay =
                         "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}-${i.toString().padLeft(2, '0')}";
-
+                    String thang ="${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}";
+                    bool daKhoa = await _chamCongService.checkKhoaChamCong(thang);
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -439,6 +469,7 @@ class _ChamCong2ScreenState extends State<ChamCong2Screen> {
                           ngay: ngay,
                           hoTen: nv.ten,
                           tenCongTrinh: widget.tenCongTrinh,
+                          daKhoa: daKhoa,
                         ),
                       ),
                     );

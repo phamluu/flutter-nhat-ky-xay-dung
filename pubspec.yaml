@@ -41,7 +41,11 @@ dependencies:
   http: ^1.2.0
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
+  #Xuất file
   pdf: ^3.10.7
+  excel: ^2.1.0
+  permission_handler: ^11.0.1
+  open_file: ^3.3.2
   printing: ^5.11.1
   flutter_speed_dial: ^7.0.0
   flutter_quill: 11.5.0

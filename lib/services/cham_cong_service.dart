@@ -4,28 +4,21 @@ import '../viewmodel/ChamCongModel.dart';
 
 class ChamCongService {
   final ChamCongRepository repo;
-
   ChamCongService(this.repo);
-
   /// 📌 Load chấm công theo tháng
   Future<List<ChamCongModel>> loadChamCong(
       int idCongTrinh, int thang, int nam) async {
-
     final firstDay = "$nam-${thang.toString().padLeft(2, '0')}-01";
     final lastDay = "$nam-${thang.toString().padLeft(2, '0')}-31";
-
     // 🔹 lấy raw data từ repository
     final rawChamCong =
     await repo.getChamCongRaw(idCongTrinh, firstDay, lastDay);
-
     final rawUngLuong =
     await repo.getUngLuongRaw(idCongTrinh, firstDay, lastDay);
-
     /// 👉 map ứng lương
     Map<int, List<DaUng>> daUngMap = {};
     for (var row in rawUngLuong) {
       final id = (row['id_nvct'] as num).toInt();
-
       daUngMap.putIfAbsent(id, () => []);
       daUngMap[id]!.add(
         DaUng(
@@ -33,13 +26,10 @@ class ChamCongService {
         ),
       );
     }
-
     /// 👉 map chấm công
     Map<int, ChamCongModel> map = {};
-
     for (var row in rawChamCong) {
       final id = (row['id_nvct'] as num).toInt();
-
       /// tạo nhân viên nếu chưa có
       if (!map.containsKey(id)) {
         map[id] = ChamCongModel(
@@ -52,7 +42,6 @@ class ChamCongService {
           tongDaChi: 0
         );
       }
-
       /// 👉 thêm dữ liệu ngày
       if (row['ngay'] != null) {
         final sang = TrangThaiChamCong.fromValue(
@@ -66,48 +55,36 @@ class ChamCongService {
           chieu: chieu,
           ghiChu: (row['ghi_chu'] ?? '').toString(),
         );
-
         final luongNgay =
             (row['luongNgay'] as num?)?.toDouble() ?? 0.0;
-
         final ngay = row['ngay'] as String;
-
         map[id]!.data[ngay] = ChamCongNgayLuong(
           chamCong: chamCongNgay,
           luongNgay: luongNgay,
         );
       }
     }
-
     return map.values.toList();
   }
-
   /// 📌 Lấy chấm công + lương 1 ngày
   Future<ChamCongNgayLuong?> getChamCongNgayLuong(
-      int idNhanVienCongTrinh, String ngay) async {
-
+      int idNhanVienCongTrinh, String ngay) async
+  {
     final result =
     await repo.getChamCongNgay(idNhanVienCongTrinh, ngay);
-
     if (result.isEmpty) return null;
-
     final row = result.first;
-
     final sang = TrangThaiChamCong.fromValue(
         row['trang_thai_sang'] as int?);
-
     final chieu = TrangThaiChamCong.fromValue(
         row['trang_thai_chieu'] as int?);
-
     final chamCongNgay = ChamCongNgay(
       sang: sang,
       chieu: chieu,
       ghiChu: (row['ghi_chu'] ?? '').toString(),
     );
-
     final luongNgay =
         (row['luongNgay'] as num?)?.toDouble() ?? 0.0;
-
     return ChamCongNgayLuong(
       chamCong: chamCongNgay,
       luongNgay: luongNgay,
@@ -121,8 +98,8 @@ class ChamCongService {
     TrangThaiChamCong? sang,
     TrangThaiChamCong? chieu,
     String? ghiChu,
-  }) async {
-
+  }) async
+  {
     await repo.upsertChamCong(
       idNhanVienCongTrinh: idNhanVienCongTrinh,
       ngay: ngay,
@@ -130,5 +107,11 @@ class ChamCongService {
       trangThaiChieu: chieu?.value,
       ghiChu: ghiChu,
     );
+  }
+  Future<void> khoaChamCong(String thang) async{
+    await repo.khoaChamCong(thang);
+  }
+  Future<bool> checkKhoaChamCong(String thang) async {
+    return await repo.checkKhoaChamCong(thang);
   }
 }

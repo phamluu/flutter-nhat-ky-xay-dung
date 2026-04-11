@@ -1,13 +1,16 @@
+import 'package:sqflite/sqflite.dart';
+
+import '../../core/utils/trang_thai_khoa_cong.dart';
 import '../db_helper.dart';
 
+// Mới
 class ChamCongRepository {
   final _dbHelper = DBHelper.instance;
 
   Future<List<Map<String, dynamic>>> getChamCongRaw(
       int idCongTrinh, String firstDay, String lastDay) async {
     final db = await _dbHelper.database;
-
-    return await db.rawQuery(''' 
+    return await db.rawQuery('''
       SELECT 
           nvct.id as id_nvct,
           nv.id as id_nv,
@@ -36,11 +39,9 @@ class ChamCongRepository {
         ORDER BY nv.ho_ten
     ''', [firstDay, lastDay, idCongTrinh]);
   }
-
   Future<List<Map<String, dynamic>>> getUngLuongRaw(
       int idCongTrinh, String firstDay, String lastDay) async {
     final db = await _dbHelper.database;
-
     return await db.rawQuery('''
       SELECT 
           nvct.id as id_nvct,
@@ -52,11 +53,9 @@ class ChamCongRepository {
           AND nvct.idCongTrinh = ?
     ''', [firstDay, lastDay, idCongTrinh]);
   }
-
   Future<List<Map<String, dynamic>>> getChamCongNgay(
       int idNvct, String ngay) async {
     final db = await _dbHelper.database;
-
     return await db.rawQuery('''
       SELECT 
       cc.trang_thai_sang,
@@ -79,16 +78,15 @@ class ChamCongRepository {
       AND cc.ngay = ?
     ''', [idNvct, idNvct, ngay]);
   }
-
   Future<void> upsertChamCong({
     required int idNhanVienCongTrinh,
     required String ngay,
     int? trangThaiSang,
     int? trangThaiChieu,
     String? ghiChu,
-  }) async {
+  }) async
+  {
     final db = await _dbHelper.database;
-
     // 🔍 kiểm tra đã tồn tại chưa
     final existing = await db.query(
       'cham_cong',
@@ -96,7 +94,6 @@ class ChamCongRepository {
       whereArgs: [idNhanVienCongTrinh, ngay],
       limit: 1,
     );
-
     if (existing.isNotEmpty) {
       // 👉 UPDATE
       await db.update(
@@ -123,5 +120,28 @@ class ChamCongRepository {
         },
       );
     }
+  }
+
+  //****************KHÓA CÔNG *************
+  Future<void> khoaChamCong(String thang) async {
+    final db = await _dbHelper.database;
+    await db.insert(
+      'khoa_cham_cong',
+      {
+        'thang': thang,
+        'da_khoa': TrangThaiKhoaChamCong.dakhoa,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+  Future<bool> checkKhoaChamCong(String thang) async {
+    final db = await _dbHelper.database;
+    final result = await db.query(
+      'khoa_cham_cong',
+      where: 'thang = ?',
+      whereArgs: [thang],
+    );
+    if (result.isEmpty) return false;
+    return result.first['da_khoa'] == TrangThaiKhoaChamCong.dakhoa;
   }
 }

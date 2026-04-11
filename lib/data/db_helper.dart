@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -149,7 +149,13 @@ class DBHelper {
           ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
         );
     ''');
-
+    // Khóa chấm công
+    await db.execute('''
+      CREATE TABLE khoa_cham_cong (
+        thang TEXT PRIMARY KEY,   -- dạng yyyy-MM
+        da_khoa INTEGER DEFAULT 0 -- 0: chưa khóa, 1: đã khóa
+      );
+    ''');
     // Tạo bảng lương cơ bản
     await db.execute('''
         CREATE TABLE luong_co_ban (
@@ -306,6 +312,14 @@ class DBHelper {
       await db.execute('''
         ALTER TABLE chi_luong ADD COLUMN createdAt TEXT
       ''');
+    }
+    if(oldVersion < 9){
+      await db.execute('''
+      CREATE TABLE khoa_cham_cong (
+        thang TEXT PRIMARY KEY,   -- dạng yyyy-MM
+        da_khoa INTEGER DEFAULT 0 -- 0: chưa khóa, 1: đã khóa
+      );
+    ''');
     }
   }
 }
