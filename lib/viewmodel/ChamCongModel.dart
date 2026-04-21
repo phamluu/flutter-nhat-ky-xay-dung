@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
+
 import '../core/utils/trang_thai_cham_cong.dart';
 
 // Bảng chấm công tháng
@@ -7,7 +9,7 @@ class ChamCongModel {
   final String chucVu;
   final Map<String, ChamCongNgayLuong> data;
   final List<DaUng>? daUng;
-   int trangThai;
+   int trangThai; // trạng thái lương
    int? idBangLuong;
   double? tongLuongChot;
   double? tongUngChot;
@@ -52,21 +54,21 @@ class ChamCongModel {
   }
 
   double get tongLuongHienThi {
-    if (trangThai == 1 && tongLuongChot != null) {
+    if (trangThai == TrangThaiLuong.dachot.value && tongLuongChot != null) {
       return tongLuongChot!;
     }
     return tongTienCong;
   }
 
   double get tongUngHienThi {
-    if (trangThai == 1 && tongUngChot != null) {
+    if (trangThai == TrangThaiLuong.dachot.value && tongUngChot != null) {
       return tongUngChot!;
     }
     return tongUng;
   }
 
   double get thucNhanHienThi {
-    if (trangThai == 1 && thucNhanChot != null) {
+    if (trangThai == TrangThaiLuong.dachot.value && thucNhanChot != null) {
       return thucNhanChot!;
     }
     return thucNhan;

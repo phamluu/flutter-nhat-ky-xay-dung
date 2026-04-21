@@ -8,6 +8,7 @@ class Luongcoban {
   final DateTime? ngayApDung;
   final NhanVien? nhanVien;
   final String? ghiChu;
+  final int? isSynced;
 
   Luongcoban({
     this.id,
@@ -17,6 +18,7 @@ class Luongcoban {
     this.ngayApDung,
     this.nhanVien,
     this.ghiChu,
+    this.isSynced
   });
 
   Map<String, dynamic> toMap() {

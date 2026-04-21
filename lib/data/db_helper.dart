@@ -13,12 +13,15 @@ class DBHelper {
     _db = await _initDB();
     return _db!;
   }
-
+  Future<void> resetDB() async {
+    String path = join(await getDatabasesPath(), 'ptl_app.db');
+    await deleteDatabase(path);
+  }
   Future<Database> _initDB() async {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 9,
+      version: 13,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -38,8 +41,12 @@ class DBHelper {
           tongUng REAL DEFAULT 0,
           thucNhan REAL DEFAULT 0,
         
-          trangThai INTEGER DEFAULT 0, -- 0: chưa chi, 1: đã chi
+          trangThai INTEGER DEFAULT 0, -- 0: chưa chốt, 1: đã chốt
           ngayChot TEXT,
+          server_id TEXT,
+          is_synced INTEGER DEFAULT 0,
+          updated_at TEXT,
+          is_deleted INTEGER DEFAULT 0,
           UNIQUE(idNhanVienCongTrinh, thang, nam)
         )
         ''');
@@ -51,6 +58,10 @@ class DBHelper {
           ngayChi TEXT NOT NULL,
           ghiChu TEXT,
           createdAt TEXT NOT NULL,
+          server_id TEXT,
+          is_synced INTEGER DEFAULT 0,
+          updated_at TEXT,
+          is_deleted INTEGER DEFAULT 0,
           FOREIGN KEY (idBangLuong) REFERENCES bang_luong(id)
         )
         ''');
@@ -64,10 +75,35 @@ class DBHelper {
         mo_ta TEXT,
         ngay_bat_dau TEXT NOT NULL,
         ngay_ket_thuc TEXT,
-        ngay_tao TEXT NOT NULL
+        ngay_tao TEXT NOT NULL,
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0
       )
     ''');
-
+    // Tạo bảng tiến độ công trình
+    await db.execute('''
+    CREATE TABLE tien_do_cong_trinh (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_cong_trinh INTEGER NOT NULL,
+        ten_cong_viec TEXT NOT NULL,       -- Tên task (vd: Đổ móng)
+        mo_ta TEXT,
+        ngay_bat_dau TEXT,                 -- kế hoạch
+        ngay_ket_thuc TEXT,                -- deadline
+        phan_tram_ke_hoach REAL DEFAULT 0, -- % dự kiến (optional)
+        phan_tram_thuc_te REAL DEFAULT 0,  -- % thực tế (có thể update từ nhật ký)
+        trang_thai INTEGER DEFAULT 0,      -- 0: chưa làm, 1: đang làm, 2: hoàn thành
+        trong_so REAL DEFAULT 1,           -- độ quan trọng (dùng tính tổng tiến độ)
+        ngay_tao TEXT NOT NULL DEFAULT (datetime('now')),
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0,
+        FOREIGN KEY (id_cong_trinh) REFERENCES cong_trinh(id) ON DELETE CASCADE
+      );
+      '''
+    );
     // Tạo bảng nhật ký xây dựng
     await db.execute('''
       CREATE TABLE nhat_ky (
@@ -80,6 +116,10 @@ class DBHelper {
         trang_thai INTEGER,
         thoi_tiet_sang INTEGER,
         thoi_tiet_chieu INTEGER,
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0,
         FOREIGN KEY (id_cong_trinh) REFERENCES cong_trinh(id) ON DELETE CASCADE ON UPDATE NO ACTION
       )
     ''');
@@ -94,7 +134,11 @@ class DBHelper {
         hinh_anh TEXT,
         dia_chi TEXT,
         ngay_sinh TEXT,
-        user_id INTEGER
+        user_id INTEGER,
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0
       )
     ''');
 
@@ -102,7 +146,11 @@ class DBHelper {
     await db.execute('''
       CREATE TABLE danh_muc_thu_chi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ten TEXT NOT NULL
+        ten TEXT NOT NULL,
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0
       )
     ''');
 
@@ -117,6 +165,10 @@ class DBHelper {
         ngay TEXT NOT NULL,
         id_cong_trinh INTEGER,
         ngay_tao TEXT NOT NULL,
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0,
         FOREIGN KEY (id_danh_muc_thu_chi) REFERENCES danh_muc_thu_chi(id) ON DELETE SET NULL
       )
     ''');
@@ -130,6 +182,10 @@ class DBHelper {
           ngayBatDau TEXT,
           ngayKetThuc TEXT,
           vaiTro TEXT,
+          server_id TEXT,
+          is_synced INTEGER DEFAULT 0,
+          updated_at TEXT,
+          is_deleted INTEGER DEFAULT 0,
           FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id),
           FOREIGN KEY (idCongTrinh) REFERENCES cong_trinh(id)
         )
@@ -146,14 +202,22 @@ class DBHelper {
           tang_ca_bat_dau TEXT,             -- lưu dạng HH:mm
           tang_ca_ket_thuc TEXT,            -- lưu dạng HH:mm
           ghi_chu TEXT,
-          ngay_tao TEXT NOT NULL            -- lưu DateTime.now().toIso8601String()
+          ngay_tao TEXT NOT NULL,            -- lưu DateTime.now().toIso8601String()
+          server_id TEXT,
+          is_synced INTEGER DEFAULT 0,
+          updated_at TEXT,
+          is_deleted INTEGER DEFAULT 0
         );
     ''');
     // Khóa chấm công
     await db.execute('''
       CREATE TABLE khoa_cham_cong (
         thang TEXT PRIMARY KEY,   -- dạng yyyy-MM
-        da_khoa INTEGER DEFAULT 0 -- 0: chưa khóa, 1: đã khóa
+        da_khoa INTEGER DEFAULT 0, -- 0: chưa khóa, 1: đã khóa
+        server_id TEXT,
+        is_synced INTEGER DEFAULT 0,
+        updated_at TEXT,
+        is_deleted INTEGER DEFAULT 0
       );
     ''');
     // Tạo bảng lương cơ bản
@@ -165,6 +229,10 @@ class DBHelper {
               ngayTao TEXT NOT NULL DEFAULT (datetime('now')),        -- lưu dạng ISO8601 string (yyyy-MM-dd)
               ngayApDung TEXT,              -- có thể null
               ghiChu TEXT,
+              server_id TEXT,
+              is_synced INTEGER DEFAULT 0,
+              updated_at TEXT,
+              is_deleted INTEGER DEFAULT 0,
               FOREIGN KEY (idNhanVien) REFERENCES nhan_vien(id) ON DELETE CASCADE
           );
      ''');
@@ -177,6 +245,10 @@ class DBHelper {
                 soTien REAL,
                 ngayUng TEXT,     -- lưu dạng ISO8601 (yyyy-MM-dd) hoặc timestamp
                 lyDo TEXT,
+                server_id TEXT,
+                is_synced INTEGER DEFAULT 0,
+                updated_at TEXT,
+                is_deleted INTEGER DEFAULT 0,
                 FOREIGN KEY (idNhanVienCongTrinh) REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
             );
     ''');
@@ -185,141 +257,17 @@ class DBHelper {
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               id_nhat_ky INTEGER NOT NULL,
               url TEXT NOT NULL,
+              server_id TEXT,
+              is_synced INTEGER DEFAULT 0,
+              updated_at TEXT,
+              is_deleted INTEGER DEFAULT 0,
               FOREIGN KEY (id_nhat_ky) REFERENCES nhat_ky(id) ON DELETE CASCADE
             )
     ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('''
-      CREATE TABLE nhat_ky_hinh_anh (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_nhat_ky INTEGER NOT NULL,
-        url TEXT NOT NULL,
-        FOREIGN KEY (id_nhat_ky) REFERENCES nhat_ky(id) ON DELETE CASCADE
-      )
-    ''');
-    }
-    if (oldVersion < 3) {
-      await db.execute('''
-      ALTER TABLE cong_trinh ADD COLUMN hinh_anh TEXT
-    ''');
-    }
-    if (oldVersion < 4) {
-      // 1. Add column
-      await db.execute('''
-        ALTER TABLE cong_trinh ADD COLUMN ngay_tao TEXT
-      ''');
-
-// 2. Update dữ liệu cũ
-      await db.execute('''
-          UPDATE cong_trinh 
-          SET ngay_tao = datetime('now') 
-          WHERE ngay_tao IS NULL
-        ''');
-    }
-    if (oldVersion < 5) {
-      // 1. Tạo bảng mới (đã bỏ NOT NULL)
-      await db.execute('''
-        CREATE TABLE thu_chi_new (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          id_danh_muc_thu_chi INTEGER,
-          loai INTEGER NOT NULL,
-          so_tien REAL NOT NULL,
-          ghi_chu TEXT,
-          ngay TEXT NOT NULL,
-          id_cong_trinh INTEGER,
-          ngay_tao TEXT NOT NULL,
-          FOREIGN KEY (id_danh_muc_thu_chi) 
-            REFERENCES danh_muc_thu_chi(id) ON DELETE SET NULL
-        )
-      ''');
-
-      // 2. Copy dữ liệu cũ
-      await db.execute('''
-          INSERT INTO thu_chi_new (
-            id, id_danh_muc_thu_chi, loai, so_tien, ghi_chu, ngay, id_cong_trinh, ngay_tao
-          )
-          SELECT 
-            id, id_danh_muc_thu_chi, loai, so_tien, ghi_chu, ngay, id_cong_trinh, ngay_tao
-          FROM thu_chi
-        ''');
-
-      // 3. Xóa bảng cũ
-      await db.execute('DROP TABLE thu_chi');
-
-      // 4. Đổi tên
-      await db.execute('ALTER TABLE thu_chi_new RENAME TO thu_chi');
-    }
-    if (oldVersion < 6) {
-      // 1. Tạo bảng mới KHÔNG có idNhanVien
-      await db.execute('''
-    CREATE TABLE ung_luong_new (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      idNhanVienCongTrinh INTEGER,
-      soTien REAL,
-      ngayUng TEXT,
-      lyDo TEXT,
-      FOREIGN KEY (idNhanVienCongTrinh) 
-        REFERENCES nhan_vien_cong_trinh(id) ON DELETE SET NULL
-    )
-  ''');
-
-      // 2. Copy dữ liệu (bỏ cột idNhanVien)
-      await db.execute('''
-    INSERT INTO ung_luong_new (
-      id, idNhanVienCongTrinh, soTien, ngayUng, lyDo
-    )
-    SELECT 
-      id, idNhanVienCongTrinh, soTien, ngayUng, lyDo
-    FROM ung_luong
-  ''');
-
-      // 3. Xóa bảng cũ
-      await db.execute('DROP TABLE ung_luong');
-
-      // 4. Đổi tên
-      await db.execute('ALTER TABLE ung_luong_new RENAME TO ung_luong');
-    }
-    if(oldVersion < 7){
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS bang_luong (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          idNhanVienCongTrinh INTEGER,
-          thang INTEGER,
-          nam INTEGER,
-        
-          tongCong REAL DEFAULT 0,
-          tongLuong REAL DEFAULT 0,
-          tongUng REAL DEFAULT 0,
-          thucNhan REAL DEFAULT 0,
-          ngayChot TEXT,
-          UNIQUE(idNhanVienCongTrinh, thang, nam)
-        )
-        ''');
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS chi_luong (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          idBangLuong INTEGER,
-          soTien REAL NOT NULL,
-          ngayChi TEXT NOT NULL,
-          ghiChu TEXT,
-          FOREIGN KEY (idBangLuong) REFERENCES bang_luong(id)
-        )
-        ''');
-    }
-    if(oldVersion < 8){
-      await db.execute('''
-        ALTER TABLE chi_luong ADD COLUMN createdAt TEXT
-      ''');
-    }
-    if(oldVersion < 9){
-      await db.execute('''
-      CREATE TABLE khoa_cham_cong (
-        thang TEXT PRIMARY KEY,   -- dạng yyyy-MM
-        da_khoa INTEGER DEFAULT 0 -- 0: chưa khóa, 1: đã khóa
-      );
-    ''');
+    if (oldVersion < 12){
+      resetDB();
     }
   }
 }

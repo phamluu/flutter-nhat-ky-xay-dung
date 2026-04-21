@@ -11,6 +11,7 @@ class NhatKy {
   final int? trangThai;
   final int? thoiTietSang;
   final int? thoiTietChieu;
+  final int? isSynced;
   // final List<String>? hinhAnhList;
   NhatKy({
     this.id,
@@ -23,6 +24,7 @@ class NhatKy {
     this.trangThai,
     this.thoiTietSang,
     this.thoiTietChieu,
+    this.isSynced
     // this.hinhAnhList
   });
 

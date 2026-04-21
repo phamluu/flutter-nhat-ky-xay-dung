@@ -1,25 +1,24 @@
 import '../data/db_helper.dart';
 import '../data/models/CongTrinh.dart';
+import '../data/repositories/CongTrinhReponsitory.dart';
+import '../data/repositories/TienDoRepository.dart';
 
 class CongTrinhService {
   final _dbHelper = DBHelper.instance;
+  final CongtrinhReponsitory repo;
 
+  CongTrinhService({
+    required this.repo
+  });
   Future<CongTrinh?> getCongTrinh(idCongTrinh) async{
-    final db = await _dbHelper.database;
-    final maps = await db.query('cong_trinh',where: 'id = ?',
-        whereArgs: [idCongTrinh], orderBy: 'ngay_bat_dau DESC');
-    if (maps.isNotEmpty) {
-      return CongTrinh.fromMap(maps.first);
-    } else {
-      return null;
-    }
+    return repo.getCongTrinh(idCongTrinh);
   }
   Future<List<CongTrinh>> getDanhSachCongTrinh() async {
-    final db = await _dbHelper.database;
-    final maps = await db.query('cong_trinh', orderBy: 'datetime(ngay_tao) DESC',);
-    return maps.map((map) => CongTrinh.fromMap(map)).toList();
+    return repo.getDanhSachCongTrinh();
   }
-
+  Future<List<CongTrinh>> getCongTrinhWithTienDo() async {
+    return repo.getCongTrinhWithTienDo();
+  }
   Future<int> themCongTrinh(CongTrinh congTrinh) async {
     final db = await _dbHelper.database;
     return await db.insert('cong_trinh', congTrinh.toMapInsert());
@@ -41,6 +40,4 @@ class CongTrinhService {
       whereArgs: [id],
     );
   }
-
-
 }

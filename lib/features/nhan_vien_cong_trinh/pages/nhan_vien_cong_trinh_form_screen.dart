@@ -6,6 +6,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../data/models/NhanVienCongTrinh.dart';
+import '../../../data/repositories/CongTrinhReponsitory.dart';
 import '../../../services/nhan_vien_cong_trinh_service.dart';
 
 class NhanVienCongTrinhFormScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
 
   final _service = NhanVienCongTrinhService();
   final _nhanvienservice = NhanVienService();
-  final _congtrinhservice = CongTrinhService();
+  final _congtrinhservice = CongTrinhService(repo: CongtrinhReponsitory());
 
   List<NhanVien> _nhanViens = [];
   List<CongTrinh> _conTrinhs = [];

@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/CongTrinhFormScreen.dart';
+import '../../../core/utils/SyncColor.dart';
+import '../../../core/utils/trang_thai_dong_bo.dart';
 import '../../../data/models/CongTrinh.dart';
+import '../../../data/repositories/CongTrinhReponsitory.dart';
 import '../../../services/cong_trinh_service.dart';
 
 class DanhSachCongTrinhScreen extends StatefulWidget {
@@ -16,7 +19,7 @@ class DanhSachCongTrinhScreen extends StatefulWidget {
 }
 
 class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
-  final _service = CongTrinhService();
+  final _service = CongTrinhService(repo: CongtrinhReponsitory());
 
   late Future<List<CongTrinh>> _futureCongTrinh;
 
@@ -27,7 +30,7 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
   }
 
   void _loadData() {
-    _futureCongTrinh = _service.getDanhSachCongTrinh();
+    _futureCongTrinh = _service.getCongTrinhWithTienDo();
   }
 
   void _openThemCongTrinh() async {
@@ -82,7 +85,7 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                   motion: const DrawerMotion(), // hiệu ứng trượt
                   extentRatio: 0.4, // chiếm 40% chiều rộng
                   children: [
-                    SlidableAction(
+                    CustomSlidableAction(
                       onPressed: (_) async {
                         final result = await Navigator.push(
                           context,
@@ -96,12 +99,18 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                           });
                         }
                       },
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      icon: Icons.edit,
-                      label: 'Sửa',
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.edit, color: Colors.white),
+                      ),
                     ),
-                    SlidableAction(
+                    CustomSlidableAction(
                       onPressed: (_) async {
                         final confirm = await showDialog<bool>(
                           context: context,
@@ -135,10 +144,16 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                           });
                         }
                       },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Xóa',
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -168,8 +183,8 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
+            color: SyncColor.background(ct.isSynced),
           ),
           child: Row(
             children: [
@@ -179,11 +194,18 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      ct.ten,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            ct.ten,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SyncColor.icon(ct.isSynced)
+                      ],
                     ),
                     Text(
                       ct.diaChi!,
@@ -193,12 +215,12 @@ class _DanhSachCongTrinhScreenState extends State<DanhSachCongTrinhScreen> {
                     ),
                     const SizedBox(height: 6),
                     LinearProgressIndicator(
-                      value: 50 / 100,
+                      value: (ct.tienDo ?? 0)/100,
                       color: Colors.orange,
                       backgroundColor: Colors.grey.shade300,
                     ),
                     const SizedBox(height: 4),
-                    Text("Tiến độ: 50%"),
+                    Text("Tiến độ: ${(ct.tienDo ?? 0).toStringAsFixed(1)}%"),
                   ],
                 ),
               ),

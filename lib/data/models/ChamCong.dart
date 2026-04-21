@@ -9,6 +9,7 @@ class ChamCong {
   int? trangThaiChieu;
   String? ghiChu;
   NhanVienCongTrinh? nhanVienCongTrinh;
+  final int? isSynced;
   ChamCong({
     this.id,
     required this.idNhanVienCongTrinh,
@@ -17,6 +18,7 @@ class ChamCong {
     this.trangThaiChieu,
     this.ghiChu,
     this.nhanVienCongTrinh,
+    this.isSynced
   });
 
   factory ChamCong.fromMap(Map<String, dynamic> map) => ChamCong(

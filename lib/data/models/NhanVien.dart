@@ -5,9 +5,11 @@ class NhanVien {
   final String? soDienThoai;
   final String? hinhAnh;
   final String? diaChi;
-  final String? ngaySinh;
-  final int? userId;
-
+  final DateTime? ngaySinh;
+  final String? userId;
+  int? isSynced;
+  String? server_id;
+  final int? is_deleted;
   NhanVien({
     this.id,
     this.hoTen,
@@ -17,6 +19,9 @@ class NhanVien {
     this.diaChi,
     this.ngaySinh,
     this.userId,
+    this.isSynced,
+    this.server_id,
+    this.is_deleted
   });
 
   @override
@@ -27,6 +32,18 @@ class NhanVien {
   @override
   int get hashCode => id.hashCode;
 
+  // Lấy dữ liệu ra ngoài truyền cho api
+  Map<String, dynamic> toApi() {
+    return {
+      'HoTen': hoTen,
+      'Email': email,
+      'SoDienThoai': soDienThoai,
+      'HinhAnh': hinhAnh,
+      'DiaChi': diaChi,
+      'NgaySinh': ngaySinh?.toIso8601String(),
+    };
+  }
+  // Để insert, update local
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -35,21 +52,28 @@ class NhanVien {
       'so_dien_thoai': soDienThoai,
       'hinh_anh': hinhAnh,
       'dia_chi': diaChi,
-      'ngay_sinh': ngaySinh,
+      'ngay_sinh': ngaySinh?.toIso8601String(),
       'user_id': userId,
+      'server_id': server_id
     };
   }
 
+  // Lấy dữ liệu từ db local
   factory NhanVien.fromMap(Map<String, dynamic> map) {
     return NhanVien(
-      id: map['id'],
-      hoTen: map['ho_ten'],
-      email: map['email'],
-      soDienThoai: map['so_dien_thoai'],
-      hinhAnh: map['hinh_anh'],
-      diaChi: map['dia_chi'],
-      ngaySinh: map['ngay_sinh'],
-      userId: map['user_id'],
+        id: map['id'],
+        hoTen: map['ho_ten'],
+        email: map['email'],
+        soDienThoai: map['so_dien_thoai'],
+        hinhAnh: map['hinh_anh'],
+        diaChi: map['dia_chi'],
+        ngaySinh: map['ngay_sinh'] != null
+            ? DateTime.tryParse(map['ngay_sinh'])
+            : null,
+        userId: map['user_id'],
+        isSynced: map['is_synced'],
+        server_id: map['server_id'],
+        is_deleted: map['is_deleted']
     );
   }
 
@@ -60,8 +84,8 @@ class NhanVien {
     String? soDienThoai,
     String? hinhAnh,
     String? diaChi,
-    String? ngaySinh,
-    int? userId,
+    DateTime? ngaySinh,
+    String? userId,
   }) {
     return NhanVien(
       id: id ?? this.id,

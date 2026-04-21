@@ -8,6 +8,8 @@ class CongTrinh {
   final String? hinhAnh;
   final double? tienDo;
   final String? ngayTao;
+  final int? isSynced;
+  final String? server_id;
   CongTrinh({
     this.id,
     required this.ten,
@@ -17,7 +19,9 @@ class CongTrinh {
     this.ngayKetThuc,
     this.hinhAnh,
     this.tienDo,
-    this.ngayTao
+    this.ngayTao,
+    this.isSynced,
+    this.server_id
   });
 
   /// Convert object -> Map (dùng để insert/update vào SQLite)
@@ -29,6 +33,7 @@ class CongTrinh {
       'ngay_bat_dau': ngayBatDau,
       'ngay_ket_thuc': ngayKetThuc,
       'hinh_anh': hinhAnh,
+      'server_id': server_id,
       'ngay_tao': DateTime.now().toIso8601String(),
     };
   }
@@ -41,19 +46,23 @@ class CongTrinh {
       'ngay_bat_dau': ngayBatDau,
       'ngay_ket_thuc': ngayKetThuc,
       'hinh_anh': hinhAnh,
+      'server_id': server_id
     };
   }
   /// Convert Map -> object (dùng khi đọc từ SQLite)
   factory CongTrinh.fromMap(Map<String, dynamic> map) {
     return CongTrinh(
-      id: map['id'],
-      ten: map['ten'],
-      diaChi: map['dia_chi'],
-      moTa: map['mo_ta'],
-      ngayBatDau: map['ngay_bat_dau'],
-      ngayKetThuc: map['ngay_ket_thuc'],
-      hinhAnh: map['hinh_anh'],
-      ngayTao: map['ngay_tao']
+        id: map['id'],
+        ten: map['ten'],
+        diaChi: map['dia_chi'],
+        moTa: map['mo_ta'],
+        ngayBatDau: map['ngay_bat_dau'],
+        ngayKetThuc: map['ngay_ket_thuc'],
+        hinhAnh: map['hinh_anh'],
+        ngayTao: map['ngay_tao'],
+        tienDo: map['tienDo'],
+        isSynced: map['is_synced'],
+        server_id: map['server_id']
     );
   }
   // 👉 Thêm copyWith ở đây

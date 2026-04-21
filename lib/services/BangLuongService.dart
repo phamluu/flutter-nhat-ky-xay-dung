@@ -31,11 +31,11 @@ class BangLuongService {
       if (bl != null) {
         nv.idBangLuong = bl['id'];
         // nv.data.clear();
-        nv.daUng?.clear();
+        //nv.daUng?.clear();
         nv.tongUngChot = bl['tongUng'];
         nv.tongLuongChot = bl['tongLuong'];
         nv.thucNhanChot = bl['thucNhan'];
-        nv.trangThai = TrangThaiLuong.dachot.value;
+        nv.trangThai = bl['trangThai'];
         final tongDaChi = await chotRepo.getTongDaChi(nv.idBangLuong!);
         nv.tongDaChi = tongDaChi;
       } else {

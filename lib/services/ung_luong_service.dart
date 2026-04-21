@@ -1,3 +1,4 @@
+import 'package:nhat_ky_xay_dung/data/repositories/CongTrinhReponsitory.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../data/db_helper.dart';
@@ -83,7 +84,7 @@ class UngLuongService {
     final nhanVienCongTrinhs = await nvctService.getAll();
 
     // load công trình
-    final congTrinhService = CongTrinhService();
+    final congTrinhService = CongTrinhService(repo: CongtrinhReponsitory());
     final congTrinhs = await congTrinhService.getDanhSachCongTrinh();
 
     return result.map((e) => Ungluong.fromMap(

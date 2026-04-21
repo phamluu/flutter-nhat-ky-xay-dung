@@ -11,6 +11,7 @@ class NhanVienCongTrinh {
   String? vaiTro;
   final CongTrinh? congTrinh;
   final NhanVien? nhanVien;
+  final int? isSynced;
   NhanVienCongTrinh({
     this.id,
     required this.idNhanVien,
@@ -19,7 +20,8 @@ class NhanVienCongTrinh {
     this.ngayKetThuc,
     this.vaiTro,
     this.congTrinh,
-    this.nhanVien
+    this.nhanVien,
+    this.isSynced
   });
 
   // Chuyển từ Map (SQLite) sang object

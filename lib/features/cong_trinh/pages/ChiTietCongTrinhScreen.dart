@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/tien_do/TienDoScreen.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/CongTrinh.dart';
@@ -37,6 +38,17 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
                   tenCongTrinh: congTrinh.ten,
                 ),
                 value: controller.soLuongNhanVienCongTrinh.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
+            Item(
+                icon: Icons.people,
+                label: 'Tiến độ',
+                page: TienDoScreen(
+                  idCongTrinh: congTrinh.id!,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongKeHoach.toString(),
                 color: const Color(0xFF27AE60),
                 reloadAfterPop: true
             ),
@@ -199,7 +211,7 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
   }
 
   Widget _buildProgressSection() {
-    double progress = (congTrinh.tienDo ?? 20) / 100;
+    double progress = (congTrinh.tienDo ?? 0) / 100;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,10 +226,12 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 10,
+            color: Colors.orange,
+            backgroundColor: Colors.grey.shade300,
           ),
         ),
         const SizedBox(height: 6),
-        Text("${congTrinh.tienDo ?? 20}% hoàn thành"),
+        Text("${(congTrinh.tienDo ?? 0).toStringAsFixed(1)}% hoàn thành"),
       ],
     );
   }

@@ -108,8 +108,8 @@ class ChamCongService {
       ghiChu: ghiChu,
     );
   }
-  Future<void> khoaChamCong(String thang) async{
-    await repo.khoaChamCong(thang);
+  Future<void> setKhoaChamCong(String thang, bool daKhoa) async{
+    await repo.setKhoaChamCong(thang, daKhoa);
   }
   Future<bool> checkKhoaChamCong(String thang) async {
     return await repo.checkKhoaChamCong(thang);

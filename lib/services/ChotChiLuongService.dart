@@ -11,8 +11,9 @@ class Chotchiluongservice {
     required ChamCongModel nv,
     required int thang,
     required int nam,
-  }) async {
-    await repo.upsertBangLuong(
+  }) async
+  {
+    final id =await repo.upsertBangLuong(
       idNhanVienCongTrinh: nv.idNhanVienCongTrinh!,
       thang: thang,
       nam: nam,
@@ -21,14 +22,23 @@ class Chotchiluongservice {
       tongUng: nv.tongUng ?? 0,
       thucNhan: nv.thucNhan ?? 0,
     );
+    await repo.chotLuong(id);
   }
 
   /// 👉 kiểm tra đã chốt chưa
-  Future<bool> isDaChot(int idNvct, int thang, int nam) async {
-    final data = await repo.getBangLuong(idNvct, thang, nam);
-    return data != null;
+  Future<bool> isDaChotLuong(int idNvct, int thang, int nam) async {
+    final data = await repo.checkDaChotLuong(thang, nam, idNvct);
+    return data;
   }
-
+  Future<bool> isTonTaiDaChotLuong(int thang, int nam) async {
+    final data = await repo.tonTaiDaChotLuong(thang, nam);
+    return data;
+  }
+  // Kiểm tra tồn tại nhân viên đã được chốt lương
+  Future<bool> isTonTaiChotLuong(int thang, int nam) async {
+    final data = await repo.tonTaiDaChotLuong(thang, nam);
+    return data;
+  }
   Future<Set<int>> getDanhSachDaChot(
       int idCongTrinh, int thang, int nam) async {
     final data = await repo.getDanhSachDaChot(idCongTrinh, thang, nam);
@@ -45,6 +55,6 @@ class Chotchiluongservice {
   }
 
   Future<void> huyChot({required int idBangLuong}) async {
-    await repo.delete(idBangLuong);
+    await repo.huyChot(idBangLuong);
   }
 }

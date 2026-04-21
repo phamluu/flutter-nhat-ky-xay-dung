@@ -26,7 +26,14 @@ class ThongKeService {
 
     return Sqflite.firstIntValue(result) ?? 0;
   }
-
+  Future<int> getSoLuongKeHoach([int? IdCongTrinh]) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM tien_do_cong_trinh ${IdCongTrinh != null ? "WHERE id_cong_trinh = ?" : ""}',
+      IdCongTrinh != null ? [IdCongTrinh] : [],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
   Future<int> getSoLuongNhanVienCongTrinh([int? IdCongTrinh]) async {
     final db = await _dbHelper.database;
 

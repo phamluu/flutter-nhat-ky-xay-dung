@@ -8,7 +8,19 @@ class NhanVienService {
     final db = await _dbHelper.database;
     return await db.insert('nhan_vien', nv.toMap());
   }
-
+  Future<NhanVien?> getNhanVienById(int id) async {
+    final db = await _dbHelper.database;
+    final maps = await db.query(
+      'nhan_vien',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return NhanVien.fromMap(maps.first);
+    }
+    return null;
+  }
   Future<List<NhanVien>> getAllNhanVien() async {
     final db = await _dbHelper.database;
 

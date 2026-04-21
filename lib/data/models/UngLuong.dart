@@ -10,6 +10,7 @@ class Ungluong {
    NhanVien? nhanVien;
    NhanVienCongTrinh? nhanVienCongTrinh;
     String? lyDo;
+    final int? isSynced;
 
   Ungluong({
     this.id,
@@ -19,6 +20,7 @@ class Ungluong {
     this.nhanVien,
     this.nhanVienCongTrinh,
     this.lyDo,
+    this.isSynced
   });
 
   Map<String, dynamic> toMap() {

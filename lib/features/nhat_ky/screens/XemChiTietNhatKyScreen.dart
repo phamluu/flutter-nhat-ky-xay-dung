@@ -15,8 +15,6 @@ class XemChiTietNhatKyScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(nhatKy.tenNhatKy ?? "Chi tiết nhật ký"),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: SingleChildScrollView(

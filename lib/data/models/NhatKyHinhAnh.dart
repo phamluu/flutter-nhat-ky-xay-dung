@@ -2,11 +2,12 @@ class NhatKyHinhAnh {
   final int? id;
   final int idNhatKy;
   final String url;
-
+  final int? isSynced;
   NhatKyHinhAnh({
     this.id,
     required this.idNhatKy,
     required this.url,
+    this.isSynced
   });
 
   Map<String, dynamic> toMap() {

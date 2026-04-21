@@ -84,7 +84,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
               const SizedBox(height: 16),
               _cardLuong(),
             ] else ...[
-              _cardChuaChamCong(),
+              widget.daKhoa ? Text('Đã khóa chấm công', style: TextStyle(color: Colors.red),) : _cardChuaChamCong()
             ]
           ],
         ),
@@ -141,7 +141,7 @@ class _ChamCongNgayScreenState extends State<ChamCongNgayScreen> {
                   "Chấm công",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                widget.daKhoa ? Text('Đã khóa chấm công') :
+                widget.daKhoa ? Text('Đã khóa chấm công', style: TextStyle(color: Colors.red),) :
                 TextButton(
                   onPressed: () {
                     setState(() {

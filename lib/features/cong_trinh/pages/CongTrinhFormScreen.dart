@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/CongTrinh.dart';
+import '../../../data/repositories/CongTrinhReponsitory.dart';
 import '../../../services/cong_trinh_service.dart';
 
 class CongTrinhFormScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class CongTrinhFormScreen extends StatefulWidget {
 
 class _CongTrinhFormScreenState extends State<CongTrinhFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _service = CongTrinhService();
+  final _service = CongTrinhService(repo: CongtrinhReponsitory());
 
   final _tenController = TextEditingController();
   final _diaChiController = TextEditingController();

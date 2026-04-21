@@ -18,7 +18,27 @@ class ChiLuongRepository {
     );
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
+  Future<List<ChiLuongModel>> getByCongTrinhThangNamWithNhanVien(
+      int idCongTrinh, int thang, int nam) async {
+    final db = await _dbHelper.database;
 
+    final result = await db.rawQuery('''
+    SELECT 
+      cl.*,
+      nv.ho_ten AS tenNhanVien
+    FROM chi_luong cl
+    INNER JOIN bang_luong bl ON cl.idBangLuong = bl.id
+    INNER JOIN nhan_vien_cong_trinh nvct 
+        ON bl.idNhanVienCongTrinh = nvct.id
+    INNER JOIN nhan_vien nv 
+        ON nvct.idNhanVien = nv.id
+    WHERE nvct.idCongTrinh = ?
+      AND bl.thang = ?
+      AND bl.nam = ?
+    ORDER BY cl.ngayChi DESC
+  ''', [idCongTrinh, thang, nam]);
+    return result.map((e) => ChiLuongModel.fromMap(e)).toList();
+  }
   Future<double> getTongDaChi(int idBangLuong) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(

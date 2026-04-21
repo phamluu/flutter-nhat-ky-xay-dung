@@ -8,16 +8,17 @@ Future<void> setkhoaChamCong({
   required int selectedMonth,
   required int selectedYear,
   required bool isKhoa,
+  required bool daChotLuong
 }) async {
   final ok = await showDialog(
     context: context,
-    builder: (_) => AlertDialog(
-      title: Text("Xác nhận"),
+    builder: (_) => daChotLuong ? AlertDialog(content: Text('Không thể mở khóa'),) : AlertDialog(
+      title: Text("Xác nhận ${daChotLuong}"),
       content: Text(isKhoa ? "Khóa chấm công tháng $selectedMonth/$selectedYear?" :
       "Mở khóa chấm công tháng $selectedMonth/$selectedYear"),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Huỷ")),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text("Khóa")),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text(isKhoa ? "Khóa" : "Mở khóa")),
       ],
     ),
   );

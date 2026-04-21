@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
-
+import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/update_helper.dart';
+import '../../auth/screens/LoginScreen.dart';
 import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
 import '../../../controllers/thong_ke_controller.dart';
+import '../../settings/screens/SettingsScreen.dart' show SettingsScreen;
 import '../widgets/ProjectList.dart';
 import '../widgets/bottomNavigation.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -62,7 +65,7 @@ class _HomePageState extends State<HomePage> {
       NavItem(
         icon: Icons.person,
         label: 'Tôi',
-        page: const HomePage(),
+        page: const SettingsScreen(),
         color: Colors.grey,
       ),
     ];
@@ -77,11 +80,34 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         foregroundColor: Colors.white,
-        actions: const [
-          Icon(Icons.notifications_none),
-          SizedBox(width: 8),
-          CircleAvatar(radius: 16, child: Icon(Icons.person)),
-          SizedBox(width: 12),
+        actions: [
+          const Icon(Icons.notifications_none),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () async {
+              final isLoggedIn = await AuthHelper.isLoggedIn();
+              if (isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
+                );
+              }
+            },
+            child: const CircleAvatar(
+              radius: 16,
+              child: Icon(Icons.person),
+            ),
+          ),
+          const SizedBox(width: 12),
         ],
       ),
       body: Container(

@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import '../../../data/models/NhatKy.dart';
+import '../../../data/repositories/CongTrinhReponsitory.dart';
 import '../../../services/nhat_ky_service.dart';
 import '../../../services/cong_trinh_service.dart';
 import '../../../data/models/CongTrinh.dart';
@@ -24,7 +25,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
   final _ngayTrienKhaiController = TextEditingController();
 
   final _nhatKyService = NhatKyService();
-  final _congTrinhService = CongTrinhService();
+  final _congTrinhService = CongTrinhService(repo: CongtrinhReponsitory());
 
   List<CongTrinh> _dsCongTrinh = [];
   int? _selectedCongTrinhId;

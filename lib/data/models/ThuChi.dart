@@ -13,6 +13,7 @@ class ThuChi {
   final int? idCongTrinh;
   final CongTrinh? congTrinh;
   final String ngayTao;
+  final int? isSynced;
 
   ThuChi({
     this.id,
@@ -25,6 +26,7 @@ class ThuChi {
     this.idCongTrinh,
     this.congTrinh,
     required this.ngayTao,
+    this.isSynced
   });
 
   Map<String, dynamic> toMap() {

@@ -6,6 +6,7 @@ import '../data/db_helper.dart';
 import '../data/models/CongTrinh.dart';
 import '../data/models/DanhMucThuChi.dart';
 import '../data/models/ThuChi.dart';
+import '../data/repositories/CongTrinhReponsitory.dart';
 
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
@@ -46,7 +47,7 @@ class ThuChiService {
 
   // final _thuChiRepo = ThuChiRepository();
    final _danhMucRepo = DanhMucThuChiService();
-   final _congTrinhRepo = CongTrinhService();
+   final _congTrinhRepo = CongtrinhReponsitory();
 
   Future<ThuChiViewModel> loadThuChiViewModel([int? idCongTrinh]) async {
     final allThuChis = await getAllWithDetails(idCongTrinh);

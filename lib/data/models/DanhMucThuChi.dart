@@ -1,8 +1,8 @@
 class DanhMucThuChi {
   final int? id;
   final String ten;
-
-  DanhMucThuChi({this.id, required this.ten});
+  final int? isSynced;
+  DanhMucThuChi({this.id, required this.ten, this.isSynced});
 
   Map<String, dynamic> toMap() {
     return {

@@ -29,7 +29,9 @@ class _ThemSuaNhanVienScreenState extends State<ThemSuaNhanVienScreen> {
       _emailController.text = widget.nhanVien!.email ?? '';
       _sdtController.text = widget.nhanVien!.soDienThoai ?? '';
       _diaChiController.text = widget.nhanVien!.diaChi ?? '';
-      _ngaySinhController.text = widget.nhanVien!.ngaySinh ?? '';
+      _ngaySinhController.text = widget.nhanVien!.ngaySinh != null
+          ? widget.nhanVien!.ngaySinh!.toIso8601String().split('T')[0]
+          : '';
     }
   }
 
@@ -42,7 +44,9 @@ class _ThemSuaNhanVienScreenState extends State<ThemSuaNhanVienScreen> {
       email: _emailController.text,
       soDienThoai: _sdtController.text,
       diaChi: _diaChiController.text,
-      ngaySinh: _ngaySinhController.text,
+      ngaySinh: _ngaySinhController.text.isNotEmpty
+          ? DateTime.parse(_ngaySinhController.text)
+          : null,
     );
 
     if (widget.nhanVien == null) {

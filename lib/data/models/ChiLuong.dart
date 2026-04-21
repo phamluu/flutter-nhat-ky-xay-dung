@@ -1,18 +1,21 @@
 class ChiLuongModel {
   final int? id;
+  String? tenNhanVien;
   final int idBangLuong;
   final double soTien;
   final DateTime ngayChi;
   final String? ghiChu;
   final DateTime createdAt;
-
+  final int? isSynced;
   ChiLuongModel({
     this.id,
+    this.tenNhanVien,
     required this.idBangLuong,
     required this.soTien,
     required this.ngayChi,
     this.ghiChu,
     required this.createdAt,
+    this.isSynced
   });
 
   factory ChiLuongModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +26,7 @@ class ChiLuongModel {
       ngayChi: DateTime.parse(map['ngayChi']),
       ghiChu: map['ghiChu'],
       createdAt: DateTime.parse(map['createdAt']),
+      tenNhanVien: map['tenNhanVien'],
     );
   }
 

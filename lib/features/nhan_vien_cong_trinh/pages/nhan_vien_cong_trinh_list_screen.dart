@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
+import '../../../core/utils/SyncColor.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../data/models/NhanVienCongTrinh.dart';
 import '../../../services/nhan_vien_cong_trinh_service.dart';
@@ -42,31 +43,6 @@ class _NhanVienCongTrinhListScreenState extends State<NhanVienCongTrinhListScree
     }
   }
 
-  Future<void> _loadData() async {
-    final data = await _service.getAll();
-    setState(() {
-      _items = data;
-      _loading = false;
-    });
-  }
-
-  Future<void> _delete(NhanVienCongTrinh item) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Xóa nhân viên công trình?'),
-        content: const Text('Bạn có chắc chắn muốn xóa?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xóa')),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await _service.delete(item.id!);
-      _loadData();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,16 +137,11 @@ class _NhanVienCongTrinhListScreenState extends State<NhanVienCongTrinhListScree
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Họ tên + số thứ tự
                         Text(
                           "${index + 1}. ${item.nhanVien?.hoTen ?? "Chưa đặt tên"}",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        // Số điện thoại
-                        Text(
-                          item.nhanVien?.soDienThoai ?? "N/A",
-                          style: const TextStyle(color: Colors.blueGrey, fontSize: 16),
-                        ),
+                        SyncColor.icon(item.isSynced)
                       ],
                     ),
                     subtitle: Column(
@@ -181,8 +152,8 @@ class _NhanVienCongTrinhListScreenState extends State<NhanVienCongTrinhListScree
                           style: const TextStyle(color: Colors.blueGrey),
                         ),
                         Text(
-                          "${DateUtilsCore.formatDate(item.ngayBatDau)} - ${DateUtilsCore.formatDate(item.ngayKetThuc)}",
-                          style: const TextStyle(color: Colors.blueGrey),
+                          item.nhanVien?.soDienThoai ?? "N/A",
+                          style: const TextStyle(color: Colors.blueGrey, fontSize: 16),
                         ),
                       ],
                     ),

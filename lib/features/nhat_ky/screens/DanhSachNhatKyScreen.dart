@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import '../../../core/utils/SyncColor.dart';
 import '../../../data/models/NhatKy.dart';
 import '../../../services/nhat_ky_service.dart';
 import '../widgets/weather_dropdown.dart';
@@ -97,49 +98,62 @@ class _DanhSachNhatKyScreenState extends State<DanhSachNhatKyScreen> {
                 endActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
-                    SlidableAction(
-                      onPressed: (context) => _openForm(nhatKy: nk.nhatKy),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      icon: Icons.edit,
-                      label: 'Sửa',
-                    ),
-                    SlidableAction(
-                      onPressed: (context) async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text("Xác nhận"),
-                            content: Text("Bạn có chắc muốn xóa nhật ký '${nk.nhatKy.tenNhatKy}'?"),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text("Hủy"),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text("Xóa"),
-                              ),
-                            ],
+                    CustomSlidableAction(
+                        onPressed: (context) => _openForm(nhatKy: nk.nhatKy),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        );
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(Icons.edit, color: Colors.white),
+                        )),
+                    CustomSlidableAction(
+                        onPressed: (context) async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text("Xác nhận"),
+                              content: Text("Bạn có chắc muốn xóa nhật ký '${nk.nhatKy.tenNhatKy}'?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text("Hủy"),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text("Xóa"),
+                                ),
+                              ],
+                            ),
+                          );
 
-                        if (confirm == true) {
-                          await _service.deleteNhatKy(nk.nhatKy.id!);
-                          setState(() => _reload());
-                        }
-                      },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Xóa',
-                    ),
+                          if (confirm == true) {
+                            await _service.deleteNhatKy(nk.nhatKy.id!);
+                            setState(() => _reload());
+                          }
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        )),
                   ],
                 ),
                 child: ListTile(
-                  title: Text(
-                    "${index + 1}. ${nk.nhatKy.tenNhatKy ?? "Chưa đặt tên"}",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  title: Row(
+                    children: [
+                      Expanded(child: Text(
+                        "${index + 1}. ${nk.nhatKy.tenNhatKy ?? "Chưa đặt tên"}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),),
+                      SyncColor.icon(nk.nhatKy.isSynced)
+                    ],
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

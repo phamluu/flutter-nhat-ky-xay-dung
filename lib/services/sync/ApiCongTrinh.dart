@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import '../core/services/ApiClient.dart';
-import '../data/models/CongTrinh.dart';
+import '../../core/services/ApiClient.dart';
+import '../../data/models/CongTrinh.dart';
 
-class ApiService {
+class ApiCongTrinh {
 
   Future<Map<String, dynamic>> createCongTrinh(CongTrinh congTrinh) async {
     final response = await ApiClient.post(
@@ -15,7 +15,7 @@ class ApiService {
   }
   Future<void> updateCongTrinh(CongTrinh congTrinh) async {
     final response = await ApiClient.put(
-      "congtrinh/${congTrinh.id}", // ✅ đúng URL
+      "congtrinh/${congTrinh.server_id}", // ✅ đúng URL
       congTrinh.toMapUpdate(),     // ✅ đúng body
     );
     if (response.statusCode != 200) {

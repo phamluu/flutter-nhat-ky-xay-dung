@@ -22,14 +22,17 @@ class LuongNhanVienScreen extends StatefulWidget {
 }
 
 class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
+  late var daKhoaCC = false;
   late final BangLuongService _service;
   late final Chotchiluongservice _chotService;
+  late final ChamCongService _chamCongService;
   List<ChamCongModel> data = [];
   late Future<List<ChamCongModel>> _future;
 
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
-
+  String get thang =>
+      "${_selectedYear}-${_selectedMonth.toString().padLeft(2, '0')}";
   @override
   void initState() {
     super.initState();
@@ -38,14 +41,23 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
       chotRepo: ChotChiLuongRepository(),
     );
     _chotService = Chotchiluongservice(ChotChiLuongRepository());
+    _chamCongService = ChamCongService(ChamCongRepository());
     _future = _load();
   }
   Future<List<ChamCongModel>> _load() async {
-    return await _service.loadLuong(
+    final result = await _service.loadLuong(
       widget.idCongTrinh!,
       _selectedMonth,
       _selectedYear,
     );
+
+    final khoa = await _chamCongService.checkKhoaChamCong(thang);
+
+    setState(() {
+      daKhoaCC = khoa;
+    });
+
+    return result;
   }
 
   @override
@@ -80,7 +92,7 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final data = snapshot.data ?? [];
-                if (snapshot == null || data.isEmpty) {
+                if (!snapshot.hasData || data.isEmpty){
                   return const Center(child: Text("Không có dữ liệu"));
                 }
 
@@ -202,32 +214,60 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
                 const SizedBox(height: 8),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      trangthai == TrangThaiLuong.dachot ? "Đã chốt" : "Chưa chốt",
-                      style: TextStyle(
-                        color: trangthai == TrangThaiLuong.dachot ? Colors.green : Colors.orange,
-                        fontWeight: FontWeight.bold,
+                    /// TEXT TRẠNG THÁI
+                    Expanded(
+                      child: Text(
+                        trangthai == TrangThaiLuong.dachot
+                            ? "Đã chốt lương"
+                            : "Chưa chốt lương",
+                        overflow: TextOverflow.ellipsis, // 👈 QUAN TRỌNG
+                        style: TextStyle(
+                          color: trangthai == TrangThaiLuong.dachot
+                              ? Colors.green
+                              : Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    Text(
-                      (trangthai == TrangThaiLuong.dachot && daChiDu)
-                          ? "Đã chi đủ"
-                          : "",
-                      style: TextStyle(
-                          color: Colors.green,
-                        fontWeight: FontWeight.w500,
+
+                    const SizedBox(width: 4),
+
+                    /// ĐÃ CHI
+                    if (trangthai == TrangThaiLuong.dachot && daChiDu)
+                      Flexible(
+                        child: Text(
+                          "Đã chi đủ",
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(width: 4),
+
+                    /// BUTTON
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (daKhoaCC)
+                            ...(trangthai == TrangThaiLuong.dachot
+                                ? (item.tongDaChi == 0
+                                ? [
+                              _huyChotbtn(item),
+                              const SizedBox(width: 4),
+                              _chiLuongbtn(item),
+                            ]
+                                : [_chiLuongbtn(item)])
+                                : [_chotbtn(item)])
+                          else
+                            const Text('Chưa khóa CC', style: TextStyle(color: Colors.red),),
+                        ],
                       ),
                     ),
-                    // 👇 NÚT THAY ĐỔI THEO TRẠNG THÁI
-                    trangthai == TrangThaiLuong.dachot
-                        ? (item.tongDaChi == 0 ? Row(children: [
-                          _huyChotbtn(item),
-                          SizedBox(width: 5,),
-                          _chiLuongbtn(item)
-                    ],) : _chiLuongbtn(item))
-                        : _chotbtn(item),
                   ],
                 )
               ],
@@ -261,7 +301,7 @@ class _LuongNhanVienScreenState extends State<LuongNhanVienScreen> {
           idBangLuong: idBangLuong
       );
       setState(() {
-        _load();
+        _future = _load();
       });
     }
   }

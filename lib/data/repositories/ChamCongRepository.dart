@@ -123,17 +123,20 @@ class ChamCongRepository {
   }
 
   //****************KHÓA CÔNG *************
-  Future<void> khoaChamCong(String thang) async {
+  Future<void> setKhoaChamCong(String thang, bool daKhoa) async {
     final db = await _dbHelper.database;
     await db.insert(
       'khoa_cham_cong',
       {
         'thang': thang,
-        'da_khoa': TrangThaiKhoaChamCong.dakhoa,
+        'da_khoa': daKhoa
+            ? TrangThaiKhoaChamCong.dakhoa.value
+            : TrangThaiKhoaChamCong.chuakhoa.value,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
   Future<bool> checkKhoaChamCong(String thang) async {
     final db = await _dbHelper.database;
     final result = await db.query(
@@ -142,6 +145,6 @@ class ChamCongRepository {
       whereArgs: [thang],
     );
     if (result.isEmpty) return false;
-    return result.first['da_khoa'] == TrangThaiKhoaChamCong.dakhoa;
+    return result.first['da_khoa'] == TrangThaiKhoaChamCong.dakhoa.value;
   }
 }

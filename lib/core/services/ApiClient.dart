@@ -8,7 +8,6 @@ class ApiClient {
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("access_token");
-
     return {
       "Content-Type": "application/json",
       if (token != null) "Authorization": "Bearer $token",
@@ -18,7 +17,6 @@ class ApiClient {
   /// POST
   static Future<http.Response> post(String path, Map<String, dynamic> body) async {
     final headers = await _getHeaders();
-
     return await http.post(
       Uri.parse("$baseUrl/$path"),
       headers: headers,
@@ -26,6 +24,23 @@ class ApiClient {
     );
   }
 
+  /// PUT (update)
+  static Future<http.Response> put(String path, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    return await http.put(
+      Uri.parse("$baseUrl/$path"),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+  }
+  /// DELETE
+  static Future<http.Response> delete(String path) async {
+    final headers = await _getHeaders();
+    return await http.delete(
+      Uri.parse("$baseUrl/$path"),
+      headers: headers,
+    );
+  }
   /// GET
   static Future<http.Response> get(String path) async {
     final headers = await _getHeaders();
