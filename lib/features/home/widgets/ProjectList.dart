@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/DanhSachCongTrinhScreen.dart';
+import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/repositories/CongTrinhReponsitory.dart';
@@ -21,19 +22,27 @@ class _ProjectListState extends State<ProjectList> {
   List<CongTrinh> projects = [];
   bool isLoading = true;
   final _service = CongTrinhService(repo: CongtrinhReponsitory());
-
+  bool isLoggedIn = false;
+  bool isAdmin = false;
   @override
   void initState() {
     super.initState();
     _loadProjects();
+    checkLogin();
   }
-
+  Future<void> checkLogin() async {
+    final auth = await AuthHelper.getAuthState();
+    setState(() {
+      isLoggedIn = auth.isLoggedIn;
+      isAdmin = auth.isAdmin;
+    });
+  }
   Future<void> _loadProjects() async {
     setState(() => isLoading = true);
     try {
       final result = await _service.getCongTrinhWithTienDo();
       setState(() => projects =
-          result.take(3).toList()); // giữ nguyên kiểu List<CongTrinh>
+          result.take(3).toList());
     } catch (e) {
       print('Lỗi load dự án: $e');
       setState(() => projects = []);
@@ -66,6 +75,8 @@ class _ProjectListState extends State<ProjectList> {
           const Text('Không có dự án nào')
         else
           ...projects.map((p) => _ProjectItem(
+                isAdmin: isAdmin,
+                isLoggedIn: isLoggedIn,
                 congTrinh: p,
                 name: p.ten,
                 image: p.hinhAnh,
@@ -82,6 +93,8 @@ class _ProjectListState extends State<ProjectList> {
 }
 
 class _ProjectItem extends StatelessWidget {
+  final bool isAdmin;
+  final bool isLoggedIn;
   final CongTrinh congTrinh;
   final String name;
   final String? image;
@@ -92,7 +105,10 @@ class _ProjectItem extends StatelessWidget {
   final String? ngayTao;
   final VoidCallback onReload;
   const _ProjectItem(
-      {required this.congTrinh,
+      {
+        required this.isAdmin,
+        required this.isLoggedIn,
+        required this.congTrinh,
       required this.name,
       this.image,
       this.location,
@@ -144,15 +160,18 @@ class _ProjectItem extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Icon(
-                          congTrinh.isSynced == TrangThaiDongBo.dadongbo.value
-                              ? Icons.cloud_done
-                              : Icons.cloud_off,
-                          color: congTrinh.isSynced == TrangThaiDongBo.dadongbo.value
-                              ? Colors.green
-                              : Colors.orange,
-                          size: 18,
-                        ),
+                        if(isAdmin || !isLoggedIn) ...[
+                          Icon(
+                            congTrinh.isSynced == TrangThaiDongBo.dadongbo.value
+                                ? Icons.cloud_done
+                                : Icons.cloud_off,
+                            color: congTrinh.isSynced == TrangThaiDongBo.dadongbo.value
+                                ? Colors.green
+                                : Colors.orange,
+                            size: 18,
+                          ),
+                        ]
+
                       ],
                     ),
                     Text(

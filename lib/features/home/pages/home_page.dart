@@ -7,6 +7,8 @@ import '../../cong_trinh/pages/DanhSachCongTrinhScreen.dart';
 import '../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
 import '../../../controllers/thong_ke_controller.dart';
 import '../../settings/screens/SettingsScreen.dart' show SettingsScreen;
+import '../../tax/features/vat_report/vat_report_screen.dart';
+import '../../tax/vat_quarter_screen.dart';
 import '../widgets/ProjectList.dart';
 import '../widgets/bottomNavigation.dart';
 
@@ -61,6 +63,13 @@ class _HomePageState extends State<HomePage> {
         page: const LuongCoBanScreen(),
         color: Theme.of(context).colorScheme.secondary,
         reloadAfterPop: true,
+      ),
+      NavItem(
+        icon: Icons.person,
+        label: 'Thuế',
+        //page: TaxReportScreen(),
+        page:VatReportScreen(),
+        color: Colors.grey,
       ),
       NavItem(
         icon: Icons.person,

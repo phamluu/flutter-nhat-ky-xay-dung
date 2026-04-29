@@ -21,7 +21,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'ptl_app.db');
     return await openDatabase(
       path,
-      version: 13,
+      version: 1,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade
     );
@@ -266,8 +266,8 @@ class DBHelper {
     ''');
   }
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 12){
-      resetDB();
-    }
+    // if (oldVersion < 12){
+    //   resetDB();
+    // }
   }
 }

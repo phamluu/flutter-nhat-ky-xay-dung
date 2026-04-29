@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../viewmodel/UserModel.dart';
 import '../services/ApiClient.dart';
 
 class AuthHelper {
@@ -13,6 +16,32 @@ class AuthHelper {
     } catch (e) {
       return false;
     }
+  }
+
+  static Future<AuthState> getAuthState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("access_token");
+    if (token == null || token.isEmpty) {
+      return AuthState(isLoggedIn: false, role: "");
+    }
+    try {
+      final res = await ApiClient.get("user/me");
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final roles = data["roles"] ?? [];
+        String role = "";
+        if (roles.contains("Admin")) {
+          role = "Admin";
+        } else if (roles.contains("User")) {
+          role = "User";
+        }
+        return AuthState(
+          isLoggedIn: true,
+          role: role,
+        );
+      }
+    } catch (e) {}
+    return AuthState(isLoggedIn: false, role: "");
   }
 
   static Future<String?> getToken() async {

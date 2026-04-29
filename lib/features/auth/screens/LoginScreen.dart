@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nhat_ky_xay_dung/features/home/pages/HomeRouter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/ApiClient.dart';
 import '../../../core/utils/AuthHelper.dart';
@@ -46,12 +47,11 @@ class _LoginScreenState extends State<LoginScreen> {
               content: Text("Đăng nhập thành công", style: TextStyle(color: Colors.white),),
           backgroundColor: Colors.green,),
         );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HomePage(),
-            ),
-          );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeRouter()),
+              (route) => false,
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

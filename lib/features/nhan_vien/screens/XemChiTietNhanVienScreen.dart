@@ -8,7 +8,7 @@ import '../../../core/utils/AuthHelper.dart';
 import '../../../data/models/NhanVien.dart';
 import '../../../services/SyncService.dart';
 import '../../../services/nhan_vien_service.dart';
-import '../../../viewmodel/UserInfo.dart';
+import '../../../viewmodel/UserModel.dart';
 import '../../auth/screens/LoginScreen.dart';
 
 class XemChiTietNhanVienScreen extends StatefulWidget {
@@ -126,20 +126,7 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-
-                  if (!isLoggedIn) ...[
-                    _buildLoginButton(),
-                  ] else ...[
-                    if(widget.nhanVien.isSynced == TrangThaiDongBo.chuadongbo.value
-                    || widget.nhanVien.server_id == null)
-                      _buildSynButton(),
-                    if (widget.nhanVien.isSynced == TrangThaiDongBo.dadongbo.value
-                        && widget.nhanVien.server_id != null
-                        && userInfo == null)
-                      _buildRegisterButton(),
-                    if (userInfo != null)
-                      _buildUserInfo(),
-                  ]
+                  _buildAccountContent(isLoggedIn),
                 ],
               ),
             ),
@@ -148,6 +135,15 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
 
       },
     );
+  }
+  Widget _buildAccountContent(bool isLoggedIn) {
+    final isSynced = widget.nhanVien.isSynced == TrangThaiDongBo.dadongbo.value;
+    final hasServerId = widget.nhanVien.server_id != null;
+
+    if (!isLoggedIn) return _buildLoginButton();
+    if (!isSynced || !hasServerId) return _buildSynButton();
+    if (userInfo == null) return _buildRegisterButton();
+    return _buildUserInfo();
   }
   Widget _infoRow(String label, String? value) {
     return Padding(
@@ -246,6 +242,190 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
       );
     }
   }
+  Widget _buildEditEmailButton(){
+    return TextButton(
+      onPressed: () async {
+        final newEmail = await _showEditEmailDialog();
+        if (newEmail == null) return;
+
+        try {
+          final response = await ApiClient.put(
+            "user/update-email/${userInfo!.id}",
+            {"email": newEmail},
+          );
+
+          final data = jsonDecode(response.body);
+          if (data["success"] == true) {
+            await fetchUserInfo();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text("Cập nhật email thành công", style: TextStyle(color: Colors.white),),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi: $e", style: TextStyle(color: Colors.white),),
+            backgroundColor: Colors.red,),
+          );
+        }
+      },
+      child: const Text("Sửa email"),
+    );
+  }
+  Future<String?> _showEditEmailDialog() async {
+    final controller = TextEditingController(text: userInfo?.email);
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Sửa email"),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: "Nhập email mới"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Hủy"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text("Lưu"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResetPassButton() {
+    return TextButton(
+      onPressed: () async {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Xác nhận"),
+            content: const Text("Bạn có chắc muốn reset mật khẩu không?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Hủy"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  "Reset",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm != true) return;
+
+        try {
+          final response = await ApiClient.post(
+            "user/reset-password/${userInfo!.id}",
+            {},
+          );
+
+          final data = jsonDecode(response.body);
+
+          if (data["success"] == true) {
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text("Mật khẩu mới"),
+                content: Text(data["password"]),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data["message"] ?? "Lỗi",style: TextStyle(color: Colors.white),),
+              backgroundColor: Colors.red,),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi: $e", style: TextStyle(color: Colors.white)),
+              backgroundColor: Colors.red,),
+          );
+        }
+      },
+      child: const Text("Reset mật khẩu"),
+    );
+  }
+
+  Widget _buildDeleteButton(){
+    return TextButton(
+      onPressed: () async {
+        final confirm = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Xác nhận"),
+            content: const Text("Bạn có chắc muốn xóa tài khoản này?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Hủy"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  "Xóa",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        );
+        if (confirm != true) return;
+        try{
+          final response = await ApiClient.delete(
+              "user/delete/${userInfo?.id}"
+          );
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            if (data["success"] == true) {
+              setState(() {
+                userInfo = null;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(data["message"] ?? "Xóa thành cônng"),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }else{
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(data["message"] ?? "Xóa thất bại"),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        }catch(e){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Lỗi: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: const Text("Xóa",
+          style: TextStyle(color: Colors.red)),
+    );
+  }
   Widget _buildUserInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,70 +435,9 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
         const SizedBox(height: 8),
         Row(
           children: [
-            TextButton(
-              onPressed: () {},
-              child: const Text("Sửa"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final confirm = await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("Xác nhận"),
-                    content: const Text("Bạn có chắc muốn xóa tài khoản này?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Hủy"),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
-                          "Xóa",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirm != true) return;
-                try{
-                  final response = await ApiClient.delete(
-                      "user/delete/${userInfo?.id}"
-                  );
-                  if (response.statusCode == 200) {
-                    final data = jsonDecode(response.body);
-                    if (data["success"] == true) {
-                      setState(() {
-                        userInfo = null;
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(data["message"] ?? "Xóa thành cônng"),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }else{
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(data["message"] ?? "Xóa thất bại"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                }catch(e){
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Lỗi: $e"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: const Text("Xóa",
-                  style: TextStyle(color: Colors.red)),
-            ),
+            _buildEditEmailButton(),
+            _buildResetPassButton(),
+            _buildDeleteButton()
           ],
         )
       ],

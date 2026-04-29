@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/services/ApiClient.dart';
 import '../../../core/utils/AuthHelper.dart';
 import '../../../services/SyncService.dart';
-import '../../../viewmodel/UserInfo.dart';
+import '../../../viewmodel/UserModel.dart';
 import '../../auth/screens/LoginScreen.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 class SettingsScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   UserInfo? userInfo;
   bool isLoggedIn = false;
+  bool isAdmin = false;
   bool isLoading = false;
   final syncService = SyncService();
   int unsyncedCount = 0;
@@ -39,11 +40,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
   Future<void> checkLogin() async {
-    final loggedIn = await AuthHelper.isLoggedIn();
+    final auth = await AuthHelper.getAuthState();
     setState(() {
-      isLoggedIn = loggedIn;
+      isLoggedIn = auth.isLoggedIn;
+      isAdmin = auth.isAdmin;
     });
-    if (loggedIn) {
+    if (isLoggedIn) {
       await fetchUserInfo();
     }
   }
@@ -170,37 +172,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
         ),
 
-        /// 🔄 SYNC DATA
-        ListTile(
-          leading: const Icon(Icons.sync),
-          title: const Text("Đồng bộ dữ liệu"),
-          subtitle: const Text("Gửi dữ liệu lên server"),
-          onTap: () async {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Đang đồng bộ..."), backgroundColor: Colors.orange,),
-            );
-            await SyncService().syncAll();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Đồng bộ thành công", style: TextStyle(color: Colors.white),),
-                backgroundColor: Colors.green,),
-            );
-          },
-        ),
-
-        /// 📊 SYNC STATUS
-        ListTile(
-          leading: Icon(
-            syncedCount == 0 ? Icons.cloud_upload : Icons.cloud_done ,
-            color: syncedCount == 0 ? Colors.orange : Colors.green ,
+        if (isAdmin) ...[
+          ListTile(
+            leading: const Icon(Icons.sync),
+            title: const Text("Đồng bộ dữ liệu"),
+            subtitle: const Text("Gửi dữ liệu lên server"),
+            onTap: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Đang đồng bộ..."), backgroundColor: Colors.orange,),
+              );
+              await SyncService().syncAll();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Đồng bộ thành công", style: TextStyle(color: Colors.white),),
+                  backgroundColor: Colors.green,),
+              );
+            },
           ),
-          title: const Text("Trạng thái đồng bộ"),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            Text("${syncedCount} dữ liệu đã được đồng bộ"),
-            Text("Còn ${unsyncedCount} dữ liệu chưa đồng bộ")
-          ],),
-        ),
+          /// 📊 SYNC STATUS
+          ListTile(
+            leading: Icon(
+              syncedCount == 0 ? Icons.cloud_upload : Icons.cloud_done ,
+              color: syncedCount == 0 ? Colors.orange : Colors.green ,
+            ),
+            title: const Text("Trạng thái đồng bộ"),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("${syncedCount} dữ liệu đã được đồng bộ"),
+                Text("Còn ${unsyncedCount} dữ liệu chưa đồng bộ")
+              ],),
+          ),
+        ],
 
         const Divider(),
 

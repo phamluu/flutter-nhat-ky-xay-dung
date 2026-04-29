@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/home/pages/HomeRouter.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'data/db_helper.dart';
@@ -59,7 +60,7 @@ class MyApp extends StatelessWidget {
         // ),
         useMaterial3: true,
       ),
-      home: const HomePage()
+      home: const HomeRouter()
 
       //const MyHomePage(title: 'Nhật ký xây dựng Home Page'),
     );
