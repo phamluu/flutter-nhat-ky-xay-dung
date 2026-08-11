@@ -12,12 +12,9 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.35.0"
+          flutter-version: "3.41.2"
 
       - run: flutter pub get
-
-      - run: pod install
-        working-directory: ios
 
       - run: flutter build ios --release --no-codesign
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
 import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/update_helper.dart';
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
       NavItem(
         icon: Icons.apartment,
         label: 'Công trình',
-        page: const DanhSachCongTrinhScreen(),
+        page: const CongTrinhListPage(),
         color: Colors.blue,
         reloadAfterPop: true,
       ),

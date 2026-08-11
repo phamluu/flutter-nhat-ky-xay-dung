@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 
 import '../../../core/services/ApiClient.dart';
 import '../../../viewmodel/UserModel.dart';
@@ -47,7 +48,7 @@ class _HomeUserPageState  extends  State<HomeUserPage> {
       NavItem(
         icon: Icons.apartment,
         label: 'Công trình',
-        page: const DanhSachCongTrinhScreen(),
+        page: const CongTrinhListPage(),
         color: Colors.blue,
       ),
       NavItem(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/ChiTietCongTrinhScreen.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/pages/DanhSachCongTrinhScreen.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
@@ -62,7 +63,7 @@ class _ProjectListState extends State<ProjectList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => DanhSachCongTrinhScreen(),
+                  builder: (_) => CongTrinhListPage(),
                 ),
               ).then((_) {
                 _loadProjects();

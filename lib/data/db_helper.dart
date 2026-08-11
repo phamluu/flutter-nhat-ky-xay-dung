@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -13,12 +16,42 @@ class DBHelper {
     _db = await _initDB();
     return _db!;
   }
-  Future<void> resetDB() async {
-    String path = join(await getDatabasesPath(), 'ptl_app.db');
-    await deleteDatabase(path);
+
+  Future<String> _getDatabasePath() async {
+    // Desktop
+    if (!kIsWeb &&
+        (Platform.isWindows ||
+            Platform.isLinux ||
+            Platform.isMacOS)) {
+
+      // Trong quá trình phát triển:
+      final directory = Directory(
+        r'E:\PTLApp\data',
+      );
+
+      if (!await directory.exists()) {
+        await directory.create(
+          recursive: true,
+        );
+      }
+
+      return join(
+        directory.path,
+        'ptl_app.db',
+      );
+    }
+
+    // Android / iOS
+    final databaseDirectory = await getDatabasesPath();
+
+    return join(
+      databaseDirectory,
+      'ptl_app.db',
+    );
   }
+
   Future<Database> _initDB() async {
-    String path = join(await getDatabasesPath(), 'ptl_app.db');
+    final path = await _getDatabasePath();
     return await openDatabase(
       path,
       version: 1,
@@ -26,7 +59,10 @@ class DBHelper {
       onUpgrade: _onUpgrade
     );
   }
-
+  Future<void> resetDB() async {
+    final path = await _getDatabasePath();
+    await deleteDatabase(path);
+  }
   Future _onCreate(Database db, int version) async {
     // Tạo bảng lương ghi chốt lương
     await db.execute('''
