@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import '../../../core/services/ApiClient.dart';
 import '../../../core/utils/AuthHelper.dart';
 import '../../../services/SyncService.dart';
 import '../../../viewmodel/UserModel.dart';
-import '../../auth/screens/LoginScreen.dart';
+import '../../auth/presentation/desktop/login_desktop.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -94,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const LoginMobile()),
               ).then((_) => checkLogin());
             },
             child: const Text("Đăng nhập"),
@@ -151,7 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await AuthHelper.logout();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const LoginMobile()),
                 (route) => false,
               );
               ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             } else {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const LoginMobile()),
               );
             }
           },

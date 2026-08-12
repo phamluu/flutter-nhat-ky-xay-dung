@@ -1,6 +1,6 @@
 import 'package:nhat_ky_xay_dung/data/models/DanhMucThuChi.dart';
 
-import 'CongTrinh.dart';
+import '../../features/cong_trinh/data/models/CongTrinh.dart';
 
 class ThuChi {
   final int? id;

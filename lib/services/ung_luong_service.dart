@@ -2,13 +2,13 @@ import 'package:nhat_ky_xay_dung/data/repositories/CongTrinhReponsitory.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../data/db_helper.dart';
-import '../data/models/CongTrinh.dart';
-import '../data/models/NhanVienCongTrinh.dart';
+import '../features/cong_trinh/data/models/CongTrinh.dart';
+import '../features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
 import '../data/models/UngLuong.dart';
 import '../data/repositories/ung_luong_repository.dart';
-import 'cong_trinh_service.dart';
-import 'nhan_vien_cong_trinh_service.dart';
-import 'nhan_vien_service.dart';
+import '../features/cong_trinh/data/services/cong_trinh_service.dart';
+import '../features/nhan_vien_cong_trinh/data/services/nhan_vien_cong_trinh_service.dart';
+import '../features/nhan_vien/data/services/nhan_vien_service.dart';
 
 class UngLuongService {
   final _dbHelper = DBHelper.instance;

@@ -1,5 +1,5 @@
-import 'package:nhat_ky_xay_dung/data/models/NhanVien.dart';
-import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien/data/models/NhanVien.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
 
 class ChamCong {
   int? id;

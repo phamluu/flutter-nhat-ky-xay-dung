@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nhat_ky_xay_dung/data/models/CongTrinh.dart';
-import 'package:nhat_ky_xay_dung/services/cong_trinh_service.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/services/cong_trinh_service.dart';
 
 import '../../../data/models/DanhMucThuChi.dart';
 import '../../../data/models/ThuChi.dart';

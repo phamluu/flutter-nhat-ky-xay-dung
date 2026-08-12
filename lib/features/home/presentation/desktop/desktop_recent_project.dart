@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../data/models/CongTrinh.dart';
+import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../../../services/cong_trinh_service.dart';
+import '../../../cong_trinh/data/services/cong_trinh_service.dart';
 
 class DesktopRecentProjects extends StatefulWidget {
   const DesktopRecentProjects({

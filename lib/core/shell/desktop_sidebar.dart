@@ -6,6 +6,8 @@ class DesktopSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentPath = GoRouterState.of(context).uri.path;
+
     return Container(
       width: 250,
       color: Colors.white,
@@ -18,68 +20,98 @@ class DesktopSidebar extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Color(0xff263238),
             ),
           ),
 
           const SizedBox(height: 30),
 
-          ListTile(
-            leading: const Icon(Icons.dashboard_outlined),
-            title: const Text('Tổng quan'),
-            onTap: () {
-              context.go('/');
-            },
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.dashboard_outlined,
+            title: 'Tổng quan',
+            route: '/',
           ),
 
-          ListTile(
-            leading: const Icon(Icons.business_outlined),
-            title: const Text('Công trình'),
-            onTap: () {
-               context.go('/cong-trinh');
-            },
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.business_outlined,
+            title: 'Công trình',
+            route: '/cong-trinh',
           ),
 
-          ListTile(
-            leading: const Icon(Icons.people_outline),
-            title: const Text('Nhân viên'),
-            onTap: () {},
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.people_outline,
+            title: 'Nhân viên',
+            route: '/nhan-vien',
           ),
 
-          ListTile(
-            leading: const Icon(Icons.access_time),
-            title: const Text('Chấm công'),
-            onTap: () {},
-          ),
-
-          ListTile(
-            leading: const Icon(Icons.payments_outlined),
-            title: const Text('Lương'),
-            onTap: () {},
-          ),
-
-          ListTile(
-            leading: const Icon(Icons.receipt_long_outlined),
-            title: const Text('Chi phí'),
-            onTap: () {},
-          ),
-
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined),
-            title: const Text('Nhật ký'),
-            onTap: () {},
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.payments_outlined,
+            title: 'Lương cơ bản',
+            route: '/luong-co-ban',
           ),
 
           const Spacer(),
 
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('Cài đặt'),
-            onTap: () {},
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.settings_outlined,
+            title: 'Cài đặt',
+            route: '/cai-dat',
           ),
 
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  Widget _menuItem(
+      BuildContext context,
+      String currentPath, {
+        required IconData icon,
+        required String title,
+        required String route,
+      }) {
+    final bool isActive = route == '/'
+        ? currentPath == '/'
+        : currentPath == route ||
+        currentPath.startsWith('$route/');
+
+    // Màu khi active
+    final Color activeColor = Colors.blue.shade700;
+
+    // Màu mặc định
+    const Color normalColor = Color(0xff4b4850);
+
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isActive ? activeColor : normalColor,
+      ),
+
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isActive ? activeColor : normalColor,
+          fontWeight:
+          isActive ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+
+      onTap: () {
+        if (!isActive) {
+          context.go(route);
+        }
+      },
     );
   }
 }

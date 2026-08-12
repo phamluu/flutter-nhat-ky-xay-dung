@@ -8,10 +8,10 @@ import 'package:nhat_ky_xay_dung/services/sync/ApiTienDo.dart';
 
 import '../data/db_helper.dart';
 import '../data/models/ChamCong.dart';
-import '../data/models/CongTrinh.dart';
-import '../data/models/NhanVien.dart';
-import '../data/models/NhanVienCongTrinh.dart';
-import '../data/models/NhatKy.dart';
+import '../features/cong_trinh/data/models/CongTrinh.dart';
+import '../features/nhan_vien/data/models/NhanVien.dart';
+import '../features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
+import '../features/nhat_ky/data/models/NhatKy.dart';
 import 'sync/ApiChamCong.dart';
 import 'sync/ApiCongTrinh.dart';
 

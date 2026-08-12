@@ -1,14 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/presentation/desktop/nhan_vien_cong_trinh_list_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_cong_trinh_desktop.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../controllers/thong_ke_controller.dart';
-import '../../../../data/models/CongTrinh.dart';
+import '../../../nhat_ky/presentation/desktop/nhat_ky_list_desktop.dart';
+import '../../data/models/CongTrinh.dart';
 import '../../../bang_cham_cong/screens/BangChamCongScreen.dart';
 import '../../../luong/LuongScreen.dart';
-import '../../../nhan_vien_cong_trinh/pages/nhan_vien_cong_trinh_list_screen.dart';
-import '../../../nhat_ky/screens/DanhSachNhatKyScreen.dart';
 import '../../../thu_chi/screens/thu_chi_cong_trinh_screen.dart';
 import '../../../tien_do/TienDoScreen.dart';
 import '../../../ung_luong/screens/UngLuongListScreen.dart';
@@ -443,7 +444,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                         .soLuongNhanVienCongTrinh
                         .toString(),
                     color: const Color(0xFF27AE60),
-                    page: NhanVienCongTrinhListScreen(
+                    page: NhanVienCongTrinhListDesktop(
                       idCongTrinh: congTrinh.id,
                       tenCongTrinh: congTrinh.ten,
                     ),
@@ -467,7 +468,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     title: 'Nhật ký',
                     value: controller.soLuongNhatKy.toString(),
                     color: Colors.blue,
-                    page: DanhSachNhatKyScreen(
+                    page: NhatKyListDesktop(
                       idCongTrinh: congTrinh.id,
                       tenCongTrinh: congTrinh.ten,
                     ),
@@ -491,7 +492,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     title: 'Thu chi',
                     value: controller.soLanThuChi.toString(),
                     color: Colors.teal,
-                    page: ThuChiCongTrinhScreen(
+                    page: ThuChiCongTrinhDesktop(
                       idCongTrinh: congTrinh.id,
                       tenCongTrinh: congTrinh.ten,
                     ),

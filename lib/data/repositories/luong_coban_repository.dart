@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../../services/nhan_vien_service.dart';
+import '../../features/nhan_vien/data/services/nhan_vien_service.dart';
 import '../db_helper.dart';
 import '../models/LuongCoBan.dart';
 

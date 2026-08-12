@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import '../../core/services/ApiClient.dart';
-import '../../data/models/CongTrinh.dart';
+import '../../features/cong_trinh/data/models/CongTrinh.dart';
 
 class ApiCongTrinh {
 

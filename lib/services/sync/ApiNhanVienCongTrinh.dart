@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
 
 import '../../core/services/ApiClient.dart';
-import '../../data/models/CongTrinh.dart';
+import '../../features/cong_trinh/data/models/CongTrinh.dart';
 
 class ApiNhanVienCongTrinh {
 

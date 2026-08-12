@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/home/presentation/desktop/home_desktop.dart';
 
 import '../../../core/utils/AuthHelper.dart';
 import '../../../viewmodel/UserModel.dart';
-import '../../auth/screens/LoginScreen.dart';
+import '../../auth/presentation/desktop/login_desktop.dart';
 import 'HomeUserPage.dart';
 import 'home_page.dart';
 
@@ -38,7 +39,7 @@ class _HomeRouterState extends State<HomeRouter> {
         if (auth.isLoggedIn && !auth.isAdmin) {
           return const HomeUserPage();
         }
-        return const HomePage();
+        return const HomeDesktop();
       },
     );
   }

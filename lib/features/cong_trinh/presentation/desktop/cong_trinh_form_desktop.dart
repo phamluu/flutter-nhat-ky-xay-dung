@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../data/models/CongTrinh.dart';
+import '../../data/models/CongTrinh.dart';
 import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../../../services/cong_trinh_service.dart';
+import '../../data/services/cong_trinh_service.dart';
 
 class CongTrinhFormDesktop extends StatefulWidget {
   final CongTrinh? congTrinh;

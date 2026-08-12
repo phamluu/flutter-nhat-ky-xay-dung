@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_trinh_form_desktop.dart';
 
 import '../../../../core/utils/SyncColor.dart';
-import '../../../../data/models/CongTrinh.dart';
+import '../../data/models/CongTrinh.dart';
 import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../../../services/cong_trinh_service.dart';
+import '../../data/services/cong_trinh_service.dart';
 
-import '../../pages/ChiTietCongTrinhScreen.dart';
-import '../../pages/CongTrinhFormScreen.dart';
 import 'cong_trinh_detail_desktop.dart';
 
 class CongTrinhListDesktop extends StatefulWidget {

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien/presentation/mobile/nhan_vien_list_mobile.dart';
 import '../../../../controllers/thong_ke_controller.dart';
 import '../../../../core/utils/AuthHelper.dart';
 import '../../../../core/utils/update_helper.dart';
-import '../../../auth/screens/LoginScreen.dart';
+import '../../../auth/presentation/desktop/login_desktop.dart';
 import '../../../nhan_vien/screens/DanhSachNhanVienScreen.dart';
 import '../../../settings/screens/SettingsScreen.dart';
 import '../../../tax/features/vat_report/vat_report_screen.dart';
@@ -52,7 +54,7 @@ class _HomeMobileState extends State<HomeMobile> {
       NavItem(
         icon: Icons.person,
         label: 'Nhân viên',
-        page: const DanhSachNhanVienScreen(),
+        page: const NhanVienListMobile(),
         color: Theme.of(context).colorScheme.secondary,
         reloadAfterPop: true,
       ),
@@ -105,7 +107,7 @@ class _HomeMobileState extends State<HomeMobile> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
+                    builder: (_) => const LoginMobile(),
                   ),
                 );
               }

@@ -1,6 +1,6 @@
-import 'package:nhat_ky_xay_dung/data/models/CongTrinh.dart';
-import 'package:nhat_ky_xay_dung/data/models/NhanVienCongTrinh.dart';
-import 'NhanVien.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
+import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
+import '../../features/nhan_vien/data/models/NhanVien.dart';
 
 class Ungluong {
     int? id;

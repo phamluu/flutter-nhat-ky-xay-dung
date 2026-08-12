@@ -1,5 +1,5 @@
 import '../db_helper.dart';
-import '../models/CongTrinh.dart';
+import '../../features/cong_trinh/data/models/CongTrinh.dart';
 
 class CongtrinhReponsitory {
   final _dbHelper = DBHelper.instance;
