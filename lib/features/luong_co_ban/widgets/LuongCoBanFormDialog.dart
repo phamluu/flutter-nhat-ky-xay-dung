@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/services/luong_co_ban_service.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien/data/services/nhan_vien_service.dart';
-import '../../../data/models/LuongCoBan.dart';
+import '../data/models/LuongCoBan.dart';
 import '../../nhan_vien/data/models/NhanVien.dart';
 
 class LuongCoBanFormScreen extends StatefulWidget {

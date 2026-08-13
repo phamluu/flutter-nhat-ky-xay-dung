@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
-import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/luong_coban_screen.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/mobile/luong_coban_screen.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien/presentation/mobile/nhan_vien_list_mobile.dart';
 import '../../../../controllers/thong_ke_controller.dart';
 import '../../../../core/utils/AuthHelper.dart';

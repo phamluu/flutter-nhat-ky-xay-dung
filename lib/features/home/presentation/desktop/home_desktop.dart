@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
 import '../../../../controllers/thong_ke_controller.dart';
 import '../../../../core/utils/update_helper.dart';
-import '../../widgets/ProjectList.dart';
 import 'desktop_recent_project.dart';
 
 class HomeDesktop extends StatefulWidget {
@@ -265,9 +262,6 @@ class _HomeDesktopState extends State<HomeDesktop> {
 
         const SizedBox(width: 20),
 
-        Expanded(
-          child: _buildQuickActions(),
-        ),
       ],
     );
   }
@@ -291,110 +285,4 @@ class _HomeDesktopState extends State<HomeDesktop> {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Thao tác nhanh',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          _quickAction(
-            icon: Icons.business,
-            title: 'Danh sách công trình',
-            onTap: () {
-              context.go('/cong-trinh');
-            },
-          ),
-
-          _quickAction(
-            icon: Icons.people,
-            title: 'Danh sách nhân viên',
-            onTap: () {
-              context.go('/nhan-vien');
-            },
-          ),
-
-          _quickAction(
-            icon: Icons.receipt_long,
-            title: 'Quản lý lương',
-            onTap: () {
-              context.go('/luong');
-            },
-          ),
-
-          _quickAction(
-            icon: Icons.description,
-            title: 'Nhật ký xây dựng',
-            onTap: () {
-              // Sau này thêm route
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _quickAction({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 12,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: Colors.orange,
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-
-            const Icon(
-              Icons.chevron_right,
-              color: Colors.grey,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

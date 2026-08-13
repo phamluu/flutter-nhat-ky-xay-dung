@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/LuongCoBanNhanVien.dart';
-import '../../../services/luong_co_ban_service.dart';
-import '../../../viewmodel/LuongCoBan.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/mobile/LuongCoBanNhanVien.dart';
+import '../../../../services/luong_co_ban_service.dart';
+import '../../../../viewmodel/LuongCoBan.dart';
 
 class LuongCoBanScreen extends StatefulWidget {
   const LuongCoBanScreen({super.key});

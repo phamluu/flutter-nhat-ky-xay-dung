@@ -1,7 +1,7 @@
 import 'package:nhat_ky_xay_dung/viewmodel/LuongCoBan.dart';
 
 import '../data/db_helper.dart';
-import '../data/models/LuongCoBan.dart';
+import '../features/luong_co_ban/data/models/LuongCoBan.dart';
 import '../features/nhan_vien/data/models/NhanVien.dart';
 import '../data/repositories/luong_coban_repository.dart';
 import '../features/nhan_vien/data/services/nhan_vien_service.dart';

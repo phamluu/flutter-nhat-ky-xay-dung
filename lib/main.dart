@@ -52,18 +52,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Nhật ký xây dựng',
-
       routerConfig: appRouter,
-
       theme: ThemeData(
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
+        useMaterial3: true,
+
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF2C3E50),
           elevation: 0,
-          titleTextStyle: TextStyle(
+
+          // Tạo đường border phía dưới AppBar
+          shape: Border(
+            bottom: BorderSide(
+              color: Colors.grey.shade200,
+            ),
+          ),
+
+          titleTextStyle: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Color(0xFF2C3E50),
           ),
         ),
 
@@ -80,8 +88,6 @@ class MyApp extends StatelessWidget {
             color: Color(0xFF2C3E50),
           ),
         ),
-
-        useMaterial3: true,
       ),
     );
   }

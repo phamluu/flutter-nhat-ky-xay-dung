@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:nhat_ky_xay_dung/features/luong_co_ban/screens/LuongCoBanNhanVien.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/desktop/luong_co_ban_nhan_vien_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/mobile/LuongCoBanNhanVien.dart';
 
 import '../../../../services/luong_co_ban_service.dart';
 import '../../../../viewmodel/LuongCoBan.dart';
@@ -578,7 +579,7 @@ class _LuongCoBanDesktopState extends State<LuongCoBanDesktop> {
       context,
       MaterialPageRoute(
         builder: (_) =>
-            LuongCoBanNhanVienScreen(
+            LuongCoBanNhanVienDesktop(
               idNhanVien: luong.idNhanVien,
               hoTen: luong.hoTen,
             ),

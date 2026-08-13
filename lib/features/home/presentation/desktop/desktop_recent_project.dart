@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_trinh_detail_desktop.dart';
 
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../../data/repositories/CongTrinhReponsitory.dart';
@@ -178,7 +179,6 @@ class _DesktopRecentProjectsState
           TextButton(
             onPressed: () async {
               await context.push('/cong-trinh');
-
               // Khi quay lại Home
               // thì load lại dữ liệu
               await _loadProjects();
@@ -247,10 +247,14 @@ class _ProjectRowState
           // MỞ CHI TIẾT CÔNG TRÌNH
           // ==================================================
 
-          await context.push(
-            '/cong-trinh/${project.id}',
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CongTrinhDetailDesktop(
+                congTrinh: project,
+              ),
+            ),
           );
-
           // ==================================================
           // QUAY LẠI -> LOAD LẠI DỮ LIỆU
           // ==================================================

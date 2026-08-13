@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bang_cham_cong_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/presentation/desktop/nhan_vien_cong_trinh_list_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_cong_trinh_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/ung_luong/presentation/desktop/ung_luong_list_desktop.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../controllers/thong_ke_controller.dart';
@@ -480,7 +482,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     title: 'Bảng chấm công',
                     value: controller.soLuongCoMat.toString(),
                     color: Colors.indigo,
-                    page: ChamCong2Screen(
+                    page: BangChamCongDesktop(
                       idCongTrinh: congTrinh.id,
                       tenCongTrinh: congTrinh.ten,
                     ),
@@ -504,23 +506,12 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     title: 'Ứng lương',
                     value: controller.soLuongUngLuong.toString(),
                     color: Colors.deepOrange,
-                    page: UngLuongListScreen(
+                    page: UngLuongListDesktop(
                       idCongTrinh: congTrinh.id!,
                       tenCongTrinh: congTrinh.ten,
                     ),
                   ),
 
-                  _moduleCard(
-                    context,
-                    icon: Icons.receipt_long_outlined,
-                    title: 'Bảng lương',
-                    value: controller.soLuongUngLuong.toString(),
-                    color: Colors.purple,
-                    page: LuongNhanVienScreen(
-                      idCongTrinh: congTrinh.id,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
                 ],
               );
             },
