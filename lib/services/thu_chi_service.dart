@@ -7,7 +7,7 @@ import '../features/cong_trinh/data/models/CongTrinh.dart';
 import '../data/models/DanhMucThuChi.dart';
 import '../data/models/ThuChi.dart';
 import '../data/repositories/CongTrinhReponsitory.dart';
-
+import 'package:intl/intl.dart';
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
   Future<int> insert(ThuChi tc) async {
@@ -21,27 +21,80 @@ class ThuChiService {
     return maps.map((e) => ThuChi.fromMap(e)).toList();
   }
 
-  Future<List<ThuChi>> getAllWithDetails([int? idCongTrinh]) async {
+  Future<List<ThuChi>> getAllWithDetails([
+    int? idCongTrinh,
+    DateTime? tuNgay,
+    DateTime? denNgay,
+  ]) async {
     final db = await _dbHelper.database;
-    final res = await db.rawQuery('''
-      SELECT tc.*, ct.id as ct_id, ct.ten as ct_ten, dm.id as dm_id, dm.ten as dm_ten
-      FROM thu_chi tc
-      LEFT JOIN cong_trinh ct ON tc.id_cong_trinh = ct.id
-      LEFT JOIN danh_muc_thu_chi dm ON tc.id_danh_muc_thu_chi = dm.id
-      ${idCongTrinh != null ? 'WHERE tc.id_cong_trinh = ?' : ''}
-      ORDER BY tc.ngay DESC
+
+    final conditions = <String>[];
+    final args = <dynamic>[];
+
+    if (idCongTrinh != null) {
+      conditions.add('tc.id_cong_trinh = ?');
+      args.add(idCongTrinh);
+    }
+
+    // Lọc từ ngày
+    if (tuNgay != null) {
+      conditions.add('date(tc.ngay) >= date(?)');
+      args.add(
+        DateFormat('yyyy-MM-dd').format(tuNgay),
+      );
+    }
+
+    // Lọc đến ngày
+    if (denNgay != null) {
+      conditions.add('date(tc.ngay) <= date(?)');
+      args.add(
+        DateFormat('yyyy-MM-dd').format(denNgay),
+      );
+    }
+
+    final whereClause = conditions.isNotEmpty
+        ? 'WHERE ${conditions.join(' AND ')}'
+        : '';
+
+    final res = await db.rawQuery(
+      '''
+    SELECT 
+      tc.*, 
+      ct.id as ct_id, 
+      ct.ten as ct_ten, 
+      dm.id as dm_id, 
+      dm.ten as dm_ten
+    FROM thu_chi tc
+    LEFT JOIN cong_trinh ct 
+      ON tc.id_cong_trinh = ct.id
+    LEFT JOIN danh_muc_thu_chi dm 
+      ON tc.id_danh_muc_thu_chi = dm.id
+    $whereClause
+    ORDER BY tc.ngay DESC
     ''',
-      idCongTrinh != null ? [idCongTrinh] : [], // truyền tham số vào nếu có
+      args,
     );
+
     return res.map((row) {
       final congTrinh = row['ct_id'] != null
-          ? CongTrinh(id: row['ct_id'] as int, ten: row['ct_ten'] as String)
+          ? CongTrinh(
+        id: row['ct_id'] as int,
+        ten: row['ct_ten'] as String,
+      )
           : null;
 
       final danhMuc = row['dm_id'] != null
-          ? DanhMucThuChi(id: row['dm_id'] as int, ten: row['dm_ten'] as String)
+          ? DanhMucThuChi(
+        id: row['dm_id'] as int,
+        ten: row['dm_ten'] as String,
+      )
           : null;
-      return ThuChi.fromMap(row, congTrinh: congTrinh, danhMucThuChi: danhMuc);
+
+      return ThuChi.fromMap(
+        row,
+        congTrinh: congTrinh,
+        danhMucThuChi: danhMuc,
+      );
     }).toList();
   }
 
@@ -124,8 +177,8 @@ class ThuChiService {
       ..thuChiCongTrinhs = congTrinhVMs;
   }
 
-  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh) async {
-    final allThuChis = await getAllWithDetails(idCongTrinh);
+  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh, {DateTime? tuNgay, DateTime? denNgay}) async {
+    final allThuChis = await getAllWithDetails(idCongTrinh, tuNgay, denNgay);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinh = await _congTrinhRepo.getCongTrinh(idCongTrinh);
     final thuChiCtList = allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();

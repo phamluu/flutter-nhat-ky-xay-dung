@@ -33,15 +33,35 @@ class _ThuChiCongTrinhDesktopState
     decimalDigits: 0,
   );
 
+  // ============================================================
+  // FILTER
+  // ============================================================
+
+  String _filterType = 'all';
+
+  int _selectedYear = DateTime.now().year;
+  int _selectedMonth = DateTime.now().month;
+
+  DateTime? _fromDate;
+  DateTime? _toDate;
+
   @override
   void initState() {
     super.initState();
     _load();
   }
 
+  // ============================================================
+  // LOAD DATA
+  // ============================================================
+
   void _load() {
+    final range = _getFilterDateRange();
+
     _futureThuChi = _thuChiService.loadThuChiCongTrinh(
       widget.idCongTrinh,
+      tuNgay: range?.$1,
+      denNgay: range?.$2,
     );
   }
 
@@ -65,13 +85,87 @@ class _ThuChiCongTrinhDesktopState
     }
   }
 
+  // ============================================================
+  // FILTER DATE RANGE
+  // ============================================================
+
+  (DateTime, DateTime)? _getFilterDateRange() {
+    switch (_filterType) {
+      case 'month':
+        final from = DateTime(
+          _selectedYear,
+          _selectedMonth,
+          1,
+        );
+
+        final to = DateTime(
+          _selectedYear,
+          _selectedMonth + 1,
+          0,
+        );
+
+        return (
+        DateTime(
+          from.year,
+          from.month,
+          from.day,
+        ),
+        DateTime(
+          to.year,
+          to.month,
+          to.day,
+        ),
+        );
+
+      case 'year':
+        return (
+        DateTime(
+          _selectedYear,
+          1,
+          1,
+        ),
+        DateTime(
+          _selectedYear,
+          12,
+          31,
+        ),
+        );
+
+      case 'range':
+        if (_fromDate == null || _toDate == null) {
+          return null;
+        }
+
+        return (
+        DateTime(
+          _fromDate!.year,
+          _fromDate!.month,
+          _fromDate!.day,
+        ),
+        DateTime(
+          _toDate!.year,
+          _toDate!.month,
+          _toDate!.day,
+        ),
+        );
+
+      case 'all':
+      default:
+        return null;
+    }
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff4f6f8),
       appBar: AppBar(
         title: _buildTopBar(),
-      ) ,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -251,6 +345,10 @@ class _ThuChiCongTrinhDesktopState
             children: [
               _buildPageTitle(),
 
+              const SizedBox(height: 16),
+
+              _buildFilterBar(),
+
               const SizedBox(height: 22),
 
               _buildSummary(vm),
@@ -259,7 +357,8 @@ class _ThuChiCongTrinhDesktopState
 
               if (isCompact)
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
                   children: [
                     _buildTransactionArea(vm),
                     const SizedBox(height: 20),
@@ -268,7 +367,8 @@ class _ThuChiCongTrinhDesktopState
                 )
               else
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 7,
@@ -290,12 +390,17 @@ class _ThuChiCongTrinhDesktopState
     );
   }
 
+  // ============================================================
+  // PAGE TITLE
+  // ============================================================
+
   Widget _buildPageTitle() {
     return Row(
       children: [
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
             children: [
               const Text(
                 'Tổng quan thu chi',
@@ -309,7 +414,7 @@ class _ThuChiCongTrinhDesktopState
               const SizedBox(height: 5),
 
               Text(
-                'Theo dõi các khoản thu, chi và số dư của công trình',
+                _getFilterDescription(),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -320,6 +425,471 @@ class _ThuChiCongTrinhDesktopState
         ),
       ],
     );
+  }
+
+  String _getFilterDescription() {
+    switch (_filterType) {
+      case 'month':
+        return 'Theo dõi thu chi tháng $_selectedMonth/$_selectedYear';
+
+      case 'year':
+        return 'Theo dõi thu chi năm $_selectedYear';
+
+      case 'range':
+        if (_fromDate != null && _toDate != null) {
+          final format = DateFormat('dd/MM/yyyy');
+
+          return 'Theo dõi thu chi từ '
+              '${format.format(_fromDate!)} đến '
+              '${format.format(_toDate!)}';
+        }
+
+        return 'Theo dõi các khoản thu, chi và số dư của công trình';
+
+      case 'all':
+      default:
+        return 'Theo dõi các khoản thu, chi và số dư của công trình';
+    }
+  }
+
+  // ============================================================
+  // FILTER BAR
+  // ============================================================
+
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.grey.shade200,
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 750) {
+            return Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                _buildFilterTitle(),
+
+                const SizedBox(height: 12),
+
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildFilterButton(
+                      label: 'Tất cả',
+                      value: 'all',
+                    ),
+                    _buildFilterButton(
+                      label: 'Theo tháng',
+                      value: 'month',
+                    ),
+                    _buildFilterButton(
+                      label: 'Theo năm',
+                      value: 'year',
+                    ),
+                    _buildFilterButton(
+                      label: 'Khoảng thời gian',
+                      value: 'range',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildFilterValueControl(),
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              _buildFilterTitle(),
+
+              const SizedBox(width: 20),
+
+              _buildFilterButton(
+                label: 'Tất cả',
+                value: 'all',
+              ),
+
+              const SizedBox(width: 6),
+
+              _buildFilterButton(
+                label: 'Theo tháng',
+                value: 'month',
+              ),
+
+              const SizedBox(width: 6),
+
+              _buildFilterButton(
+                label: 'Theo năm',
+                value: 'year',
+              ),
+
+              const SizedBox(width: 6),
+
+              _buildFilterButton(
+                label: 'Khoảng thời gian',
+                value: 'range',
+              ),
+
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: _buildFilterValueControl(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterTitle() {
+    return const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.filter_alt_outlined,
+          size: 18,
+          color: Color(0xff64748b),
+        ),
+        SizedBox(width: 7),
+        Text(
+          'Lọc thời gian',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xff334155),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterButton({
+    required String label,
+    required String value,
+  }) {
+    final selected = _filterType == value;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(7),
+      onTap: () async {
+        if (value == 'range') {
+          await _selectDateRange();
+          return;
+        }
+
+        if (_filterType == value) {
+          return;
+        }
+
+        setState(() {
+          _filterType = value;
+          _load();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 11,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xffeff6ff)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(
+            color: selected
+                ? const Color(0xff2563eb)
+                : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: selected
+                ? FontWeight.w600
+                : FontWeight.w500,
+            color: selected
+                ? const Color(0xff2563eb)
+                : const Color(0xff475569),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterValueControl() {
+    switch (_filterType) {
+      case 'month':
+        return _buildMonthSelector();
+
+      case 'year':
+        return _buildYearSelector();
+
+      case 'range':
+        return _buildRangeSelector();
+
+      case 'all':
+      default:
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Đang hiển thị toàn bộ thời gian',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        );
+    }
+  }
+
+  // ============================================================
+  // MONTH SELECTOR
+  // ============================================================
+
+  Widget _buildMonthSelector() {
+    final months = List.generate(
+      12,
+          (index) => index + 1,
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildDropdown<int>(
+          value: _selectedMonth,
+          items: months,
+          itemLabel: (month) =>
+          'Tháng ${month.toString().padLeft(2, '0')}',
+          onChanged: (value) {
+            if (value == null) return;
+
+            setState(() {
+              _selectedMonth = value;
+              _load();
+            });
+          },
+        ),
+
+        const SizedBox(width: 8),
+
+        _buildDropdown<int>(
+          value: _selectedYear,
+          items: _getYears(),
+          itemLabel: (year) => '$year',
+          onChanged: (value) {
+            if (value == null) return;
+
+            setState(() {
+              _selectedYear = value;
+              _load();
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // YEAR SELECTOR
+  // ============================================================
+
+  Widget _buildYearSelector() {
+    return _buildDropdown<int>(
+      value: _selectedYear,
+      items: _getYears(),
+      itemLabel: (year) => 'Năm $year',
+      onChanged: (value) {
+        if (value == null) return;
+
+        setState(() {
+          _selectedYear = value;
+          _load();
+        });
+      },
+    );
+  }
+
+  List<int> _getYears() {
+    final currentYear = DateTime.now().year;
+
+    return List.generate(
+      21,
+          (index) => currentYear - 10 + index,
+    );
+  }
+
+  // ============================================================
+  // DROPDOWN
+  // ============================================================
+
+  Widget _buildDropdown<T>({
+    required T value,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: items.contains(value)
+              ? value
+              : items.first,
+          isDense: true,
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            size: 18,
+          ),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Color(0xff334155),
+          ),
+          items: items.map(
+                (item) {
+              return DropdownMenuItem<T>(
+                value: item,
+                child: Text(
+                  itemLabel(item),
+                ),
+              );
+            },
+          ).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DATE RANGE
+  // ============================================================
+
+  Widget _buildRangeSelector() {
+    if (_fromDate == null || _toDate == null) {
+      return OutlinedButton.icon(
+        onPressed: _selectDateRange,
+        icon: const Icon(
+          Icons.date_range_outlined,
+          size: 17,
+        ),
+        label: const Text(
+          'Chọn khoảng thời gian',
+        ),
+      );
+    }
+
+    final format = DateFormat('dd/MM/yyyy');
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(7),
+      onTap: _selectDateRange,
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xffeff6ff),
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(
+            color: const Color(0xffbfdbfe),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.date_range_outlined,
+              size: 17,
+              color: Color(0xff2563eb),
+            ),
+
+            const SizedBox(width: 8),
+
+            Text(
+              '${format.format(_fromDate!)} - '
+                  '${format.format(_toDate!)}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xff2563eb),
+              ),
+            ),
+
+            const SizedBox(width: 6),
+
+            const Icon(
+              Icons.edit_calendar_outlined,
+              size: 15,
+              color: Color(0xff2563eb),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDateRange() async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDateRange: _fromDate != null &&
+          _toDate != null
+          ? DateTimeRange(
+        start: _fromDate!,
+        end: _toDate!,
+      )
+          : DateTimeRange(
+        start: DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          1,
+        ),
+        end: DateTime.now(),
+      ),
+      locale: const Locale(
+        'vi',
+        'VN',
+      ),
+    );
+
+    if (range == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _filterType = 'range';
+      _fromDate = range.start;
+      _toDate = range.end;
+      _load();
+    });
   }
 
   // ============================================================
@@ -344,7 +914,8 @@ class _ThuChiCongTrinhDesktopState
                 ),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
-                background: const Color(0xffecfdf3),
+                background:
+                const Color(0xffecfdf3),
               ),
 
               const SizedBox(height: 12),
@@ -356,7 +927,8 @@ class _ThuChiCongTrinhDesktopState
                 ),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
-                background: const Color(0xfffef2f2),
+                background:
+                const Color(0xfffef2f2),
               ),
 
               const SizedBox(height: 12),
@@ -366,7 +938,8 @@ class _ThuChiCongTrinhDesktopState
                 value: _currencyFormat.format(
                   vm.conLai,
                 ),
-                icon: Icons.account_balance_wallet_outlined,
+                icon: Icons
+                    .account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
                     : const Color(0xffdc2626),
@@ -389,7 +962,8 @@ class _ThuChiCongTrinhDesktopState
                 ),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
-                background: const Color(0xffecfdf3),
+                background:
+                const Color(0xffecfdf3),
               ),
             ),
 
@@ -404,7 +978,8 @@ class _ThuChiCongTrinhDesktopState
                 ),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
-                background: const Color(0xfffef2f2),
+                background:
+                const Color(0xfffef2f2),
               ),
             ),
 
@@ -416,7 +991,8 @@ class _ThuChiCongTrinhDesktopState
                 value: _currencyFormat.format(
                   vm.conLai,
                 ),
-                icon: Icons.account_balance_wallet_outlined,
+                icon: Icons
+                    .account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
                     : const Color(0xffdc2626),
@@ -478,7 +1054,8 @@ class _ThuChiCongTrinhDesktopState
 
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+              MainAxisAlignment.center,
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
@@ -597,7 +1174,7 @@ class _ThuChiCongTrinhDesktopState
                 ),
                 SizedBox(height: 3),
                 Text(
-                  'Chi tiết các giao dịch theo danh mục',
+                  'Chi tiết các giao dịch theo danh mục và thời gian',
                   style: TextStyle(
                     fontSize: 12,
                     color: Color(0xff64748b),
@@ -890,14 +1467,16 @@ class _ThuChiCongTrinhDesktopState
   Widget _buildBalancePanel(
       ThuChiCongTrinhViewModel vm,
       ) {
-    final total = vm.tongThu.abs() +
-        vm.tongChi.abs();
+    final total =
+        vm.tongThu.abs() + vm.tongChi.abs();
 
-    final incomePercent =
-    total == 0 ? 0.0 : vm.tongThu.abs() / total;
+    final incomePercent = total == 0
+        ? 0.0
+        : vm.tongThu.abs() / total;
 
-    final expensePercent =
-    total == 0 ? 0.0 : vm.tongChi.abs() / total;
+    final expensePercent = total == 0
+        ? 0.0
+        : vm.tongChi.abs() / total;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -924,7 +1503,7 @@ class _ThuChiCongTrinhDesktopState
           const SizedBox(height: 5),
 
           Text(
-            'Tỷ lệ giữa tổng thu và tổng chi',
+            _getFinancialDescription(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey.shade600,
@@ -957,7 +1536,8 @@ class _ThuChiCongTrinhDesktopState
               color: vm.conLai >= 0
                   ? const Color(0xffeff6ff)
                   : const Color(0xfffef2f2),
-              borderRadius: BorderRadius.circular(9),
+              borderRadius:
+              BorderRadius.circular(9),
             ),
             child: Row(
               children: [
@@ -984,7 +1564,8 @@ class _ThuChiCongTrinhDesktopState
                             : 'Đang âm ngân sách',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade600,
+                          color:
+                          Colors.grey.shade600,
                         ),
                       ),
 
@@ -1016,6 +1597,23 @@ class _ThuChiCongTrinhDesktopState
         ],
       ),
     );
+  }
+
+  String _getFinancialDescription() {
+    switch (_filterType) {
+      case 'month':
+        return 'Tỷ lệ thu chi tháng $_selectedMonth/$_selectedYear';
+
+      case 'year':
+        return 'Tỷ lệ thu chi năm $_selectedYear';
+
+      case 'range':
+        return 'Tỷ lệ thu chi trong khoảng đã chọn';
+
+      case 'all':
+      default:
+        return 'Tỷ lệ giữa tổng thu và tổng chi';
+    }
   }
 
   Widget _buildProgressRow({
@@ -1113,6 +1711,13 @@ class _ThuChiCongTrinhDesktopState
           const SizedBox(height: 16),
 
           _buildInfoRow(
+            'Phạm vi',
+            _getFilterLabel(),
+          ),
+
+          const SizedBox(height: 12),
+
+          _buildInfoRow(
             'Danh mục',
             '${vm.thuChiDanhMucs.length}',
           ),
@@ -1151,6 +1756,32 @@ class _ThuChiCongTrinhDesktopState
     );
   }
 
+  String _getFilterLabel() {
+    switch (_filterType) {
+      case 'month':
+        return 'Tháng $_selectedMonth/$_selectedYear';
+
+      case 'year':
+        return 'Năm $_selectedYear';
+
+      case 'range':
+        if (_fromDate != null &&
+            _toDate != null) {
+          final format =
+          DateFormat('dd/MM/yyyy');
+
+          return '${format.format(_fromDate!)} - '
+              '${format.format(_toDate!)}';
+        }
+
+        return 'Khoảng thời gian';
+
+      case 'all':
+      default:
+        return 'Toàn bộ công trình';
+    }
+  }
+
   Widget _buildInfoRow(
       String title,
       String value, {
@@ -1168,13 +1799,16 @@ class _ThuChiCongTrinhDesktopState
           ),
         ),
 
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: valueColor ??
-                const Color(0xff334155),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ??
+                  const Color(0xff334155),
+            ),
           ),
         ),
       ],
@@ -1182,7 +1816,7 @@ class _ThuChiCongTrinhDesktopState
   }
 
   // ============================================================
-  // EMPTY
+  // EMPTY TRANSACTION
   // ============================================================
 
   Widget _buildNoTransaction() {
@@ -1222,7 +1856,9 @@ class _ThuChiCongTrinhDesktopState
           const SizedBox(height: 6),
 
           Text(
-            'Hãy thêm khoản thu hoặc chi đầu tiên cho công trình.',
+            _filterType == 'all'
+                ? 'Hãy thêm khoản thu hoặc chi đầu tiên cho công trình.'
+                : 'Không có khoản thu chi trong khoảng thời gian đã chọn.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
@@ -1232,32 +1868,33 @@ class _ThuChiCongTrinhDesktopState
 
           const SizedBox(height: 18),
 
-          ElevatedButton.icon(
-            onPressed: _addThuChi,
-            icon: const Icon(
-              Icons.add,
-              size: 17,
-            ),
-            label: const Text(
-              'Thêm khoản thu chi',
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-              const Color(0xff2563eb),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 11,
+          if (_filterType == 'all')
+            ElevatedButton.icon(
+              onPressed: _addThuChi,
+              icon: const Icon(
+                Icons.add,
+                size: 17,
               ),
-              shape:
-              RoundedRectangleBorder(
-                borderRadius:
-                BorderRadius.circular(8),
+              label: const Text(
+                'Thêm khoản thu chi',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                const Color(0xff2563eb),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding:
+                const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 11,
+                ),
+                shape:
+                RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(8),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
