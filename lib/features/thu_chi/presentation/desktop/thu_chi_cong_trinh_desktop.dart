@@ -69,10 +69,11 @@ class _ThuChiCongTrinhDesktopState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff4f6f8),
+      appBar: AppBar(
+        title: _buildTopBar(),
+      ) ,
       body: Column(
         children: [
-          _buildTopBar(),
-
           Expanded(
             child: FutureBuilder<ThuChiCongTrinhViewModel>(
               future: _futureThuChi,

@@ -9,12 +9,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../controllers/thong_ke_controller.dart';
 import '../../../nhat_ky/presentation/desktop/nhat_ky_list_desktop.dart';
+import '../../../tien_do/presentation/desktop/tien_do_desktop.dart';
 import '../../data/models/CongTrinh.dart';
-import '../../../bang_cham_cong/screens/BangChamCongScreen.dart';
-import '../../../luong/LuongScreen.dart';
-import '../../../thu_chi/screens/thu_chi_cong_trinh_screen.dart';
-import '../../../tien_do/TienDoScreen.dart';
-import '../../../ung_luong/screens/UngLuongListScreen.dart';
 
 
 class CongTrinhDetailDesktop extends StatelessWidget {
@@ -458,7 +454,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     title: 'Tiến độ',
                     value: controller.soLuongKeHoach.toString(),
                     color: Colors.orange,
-                    page: TienDoScreen(
+                    page: TienDoDesktop(
                       idCongTrinh: congTrinh.id!,
                       tenCongTrinh: congTrinh.ten,
                     ),

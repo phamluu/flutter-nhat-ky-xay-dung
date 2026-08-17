@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_detail_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_form_desktop.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../data/models/ThuChi.dart';
 import '../../widgets/thu_chi_button.dart';
@@ -197,11 +198,15 @@ class _ThuChiItemDesktopState extends State<ThuChiItemDesktop> {
                       background:
                       const Color(0xffeff6ff),
                       onPressed: () {
-                        openThuChiForm(
+                         Navigator.push(
                           context,
-                          tc,
-                          widget.onRefresh,
+                          MaterialPageRoute(builder: (_) => ThuChiFormDesktop(thuChi: tc)),
                         );
+                        // openThuChiForm(
+                        //   context,
+                        //   tc,
+                        //   widget.onRefresh,
+                        // );
                       },
                     ),
 

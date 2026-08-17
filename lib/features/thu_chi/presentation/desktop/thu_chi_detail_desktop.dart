@@ -77,8 +77,8 @@ class ThuChiDetailDesktop extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+          child: Padding(
+            padding: const EdgeInsets.all(15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

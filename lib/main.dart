@@ -8,7 +8,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/router/app_router.dart';
 import 'data/db_helper.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -53,6 +53,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Nhật ký xây dựng',
       routerConfig: appRouter,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      supportedLocales: const [
+        Locale('vi', 'VN'),
+        Locale('en', 'US'),
+      ],
+
+      locale: const Locale('vi', 'VN'),
       theme: ThemeData(
         useMaterial3: true,
 
