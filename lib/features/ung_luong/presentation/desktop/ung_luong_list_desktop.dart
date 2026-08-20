@@ -4,8 +4,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
-import '../../../../data/models/UngLuong.dart';
-import '../../../../services/ung_luong_service.dart';
+import '../../data/models/UngLuong.dart';
+import '../../data/services/ung_luong_service.dart';
 import 'ung_luong_nhan_vien_desktop.dart';
 
 class UngLuongListDesktop extends StatefulWidget {

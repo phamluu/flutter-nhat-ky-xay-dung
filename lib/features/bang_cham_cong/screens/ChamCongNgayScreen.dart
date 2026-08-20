@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../data/repositories/ChamCongRepository.dart';
+import '../data/repositories/ChamCongRepository.dart';
 import '../../../core/utils/currencyFormat.dart';
 import '../../../core/utils/trang_thai_cham_cong.dart';
-import '../../../services/cham_cong_service.dart';
-import '../../../viewmodel/ChamCongModel.dart';
+import '../data/services/cham_cong_service.dart';
+import '../data/models/ChamCongModel.dart';
 import '../widgets/radioCompact.dart';
 import '../widgets/row.dart';
 

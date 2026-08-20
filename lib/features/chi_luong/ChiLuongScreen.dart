@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../core/utils/currencyFormat.dart';
-import '../../data/models/ChiLuong.dart';
-import '../../data/repositories/ChiLuongRepository.dart';
-import '../../services/ChiLuongService.dart';
+import 'data/models/ChiLuong.dart';
+import 'data/respositories/ChiLuongRepository.dart';
+import 'data/services/ChiLuongService.dart';
 
 class ChiLuongScreen extends StatefulWidget {
   final int idBangLuong;

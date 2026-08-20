@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/desktop/luong_co_ban_nhan_vien_desktop.dart';
-import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/mobile/LuongCoBanNhanVien.dart';
 
-import '../../../../services/luong_co_ban_service.dart';
-import '../../../../viewmodel/LuongCoBan.dart';
-
-
+import '../../../../core/utils/date_utils.dart';
+import '../../data/models/LuongCoBan.dart';
+import '../../data/services/luong_co_ban_service.dart';
 class LuongCoBanDesktop extends StatefulWidget {
   const LuongCoBanDesktop({super.key});
 
@@ -523,7 +521,7 @@ class _LuongCoBanDesktopState extends State<LuongCoBanDesktop> {
             Expanded(
               flex: 2,
               child: Text(
-                luong.ngaySinh ??
+                DateUtilsCore.formatDate(luong.ngaySinh) ??
                     'Chưa có ngày sinh',
                 style: TextStyle(
                   color: Colors.grey.shade600,

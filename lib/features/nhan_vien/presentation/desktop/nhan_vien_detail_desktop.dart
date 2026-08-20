@@ -6,6 +6,7 @@ import 'package:nhat_ky_xay_dung/features/auth/screens/DangKyScreen.dart';
 
 import '../../../../core/services/ApiClient.dart';
 import '../../../../core/utils/AuthHelper.dart';
+import '../../../../core/utils/date_utils.dart';
 import '../../../../services/SyncService.dart';
 import '../../data/services/nhan_vien_service.dart';
 import '../../../../viewmodel/UserModel.dart';
@@ -275,7 +276,7 @@ class _NhanVienDetailDesktopState extends State<NhanVienDetailDesktop> {
           _buildInfoItem(
             icon: Icons.cake_outlined,
             label: "Ngày sinh",
-            value: widget.nhanVien.ngaySinh?.toString(),
+            value: DateUtilsCore.formatDate(widget.nhanVien.ngaySinh?.toString()) ,
           ),
 
           _buildInfoItem(

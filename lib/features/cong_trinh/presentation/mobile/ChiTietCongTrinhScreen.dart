@@ -5,11 +5,11 @@ import 'package:nhat_ky_xay_dung/features/tien_do/TienDoScreen.dart';
 import 'package:provider/provider.dart';
 
 import '../../../nhan_vien_cong_trinh/presentation/mobile/nhan_vien_cong_trinh_list_screen.dart';
+import '../../../nhat_ky_cong_trinh/presentation/mobile/DanhSachNhatKyScreen.dart';
 import '../../data/models/CongTrinh.dart';
 import '../../../../controllers/thong_ke_controller.dart';
 import '../../../bang_cham_cong/screens/BangChamCongScreen.dart';
 import '../../../luong/LuongScreen.dart';
-import '../../../nhat_ky/presentation/mobile/DanhSachNhatKyScreen.dart';
 import '../../../thu_chi/screens/thu_chi_cong_trinh_screen.dart';
 import '../../../ung_luong/screens/UngLuongListScreen.dart';
 import 'cong_trinh_thong_ke.dart';

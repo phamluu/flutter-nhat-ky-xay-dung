@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
-import '../../../../data/models/ThuChi.dart';
+import '../../data/models/ThuChi.dart';
 import 'summaryCard.dart';
 
 Widget buildSummary(

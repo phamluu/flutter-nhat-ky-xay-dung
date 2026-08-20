@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/presentation/desktop/danh_muc_thu_chi_form_desktop.dart';
 
-import '../../../../data/models/DanhMucThuChi.dart';
-import '../../../../services/danh_muc_thu_chi_service.dart';
-import '../../screens/them_danh_muc_thu_chi_screen.dart';
-import '../../widgets/DanhMucActionButton.dart';
-import '../../widgets/DeleteDanhMucButton.dart';
+import '../../data/models/DanhMucThuChi.dart';
+import '../../data/services/danh_muc_thu_chi_service.dart';
+import '../widgets/DeleteDanhMucButton.dart';
 
 class DanhMucThuChiDesktop extends StatefulWidget {
   const DanhMucThuChiDesktop({super.key});
@@ -26,7 +24,9 @@ class _DanhMucThuChiDesktopState extends State<DanhMucThuChiDesktop> {
   }
 
   void _load() {
-    _future = _service.getAll();
+    setState(() {
+      _future = _service.getAll();
+    });
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/services/cham_cong_service.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/services/cham_cong_service.dart';
 
-import '../../../data/repositories/ChamCongRepository.dart';
+import '../data/repositories/ChamCongRepository.dart';
 
 Future<void> setkhoaChamCong({
   required BuildContext context,

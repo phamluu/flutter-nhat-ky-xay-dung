@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/tien_do/presentation/TienDoDetailDesktop.dart';
 
 import '../../../../core/utils/SyncColor.dart';
-import '../../../../data/models/TienDoCongTrinhModel.dart';
-import '../../../../data/repositories/TienDoRepository.dart';
-import '../../../../services/TienDoService.dart';
+import '../../data/models/TienDoCongTrinhModel.dart';
+import '../../data/repositories/TienDoRepository.dart';
+import '../../data/services/TienDoService.dart';
 import '../../../cong_trinh/data/models/summaryCard.dart';
 import '../../TienDoFormScreen.dart';
 import 'tien_do_form_desktop.dart';

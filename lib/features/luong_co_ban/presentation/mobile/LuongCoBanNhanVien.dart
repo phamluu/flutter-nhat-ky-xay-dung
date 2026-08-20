@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/mobile/LuongCoBanNhanVienForm.dart';
-import '../../../../services/luong_co_ban_service.dart';
-import '../../../../viewmodel/LuongCoBan.dart';
+import '../../data/models/LuongCoBan.dart';
+import '../../data/services/luong_co_ban_service.dart';
 
 class LuongCoBanNhanVienScreen extends StatefulWidget {
   final int idNhanVien;

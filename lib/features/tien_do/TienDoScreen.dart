@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../core/utils/SyncColor.dart';
-import '../../data/models/TienDoCongTrinhModel.dart';
-import '../../data/repositories/TienDoRepository.dart';
-import '../../services/TienDoService.dart';
+import 'data/models/TienDoCongTrinhModel.dart';
+import 'data/repositories/TienDoRepository.dart';
+import 'data/services/TienDoService.dart';
 import 'TienDoFormScreen.dart';
 
 class TienDoScreen extends StatefulWidget {

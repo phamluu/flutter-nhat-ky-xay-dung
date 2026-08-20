@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:nhat_ky_xay_dung/features/cong_trinh/data/services/cong_trinh_service.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien/data/services/nhan_vien_service.dart';
 
 import '../../../../core/utils/date_utils.dart';
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../nhan_vien/data/models/NhanVien.dart';
 import '../../data/models/NhanVienCongTrinh.dart';
-import '../../../../data/repositories/CongTrinhReponsitory.dart';
+import '../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import '../../data/services/nhan_vien_cong_trinh_service.dart';
 
 class NhanhVienCongTrinhFormDesktop extends StatefulWidget {
@@ -37,9 +36,7 @@ class _NhanhVienCongTrinhFormDesktopState
 
   final _nhanvienservice = NhanVienService();
 
-  final _congtrinhservice = CongTrinhService(
-    repo: CongtrinhReponsitory(),
-  );
+  final _congtrinhservice = CongtrinhReponsitory();
 
   List<NhanVien> _nhanViens = [];
   List<CongTrinh> _conTrinhs = [];

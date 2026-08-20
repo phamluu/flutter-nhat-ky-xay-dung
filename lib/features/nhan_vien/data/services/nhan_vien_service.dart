@@ -1,18 +1,21 @@
-import 'package:sqflite/sqflite.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
+
 import '../../../../data/db_helper.dart';
 import '../models/NhanVien.dart';
 
 class NhanVienService {
   final _dbHelper = DBHelper.instance;
+
   Future<int> insertNhanVien(NhanVien nv) async {
     final db = await _dbHelper.database;
-    return await db.insert('nhan_vien', nv.toMap());
+    return await db.insert(NhanVienTable.tableName, nv.toMap());
   }
+
   Future<NhanVien?> getNhanVienById(int id) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
-      'nhan_vien',
-      where: 'id = ?',
+      NhanVienTable.tableName,
+      where: '${NhanVienTable.id} = ?',
       whereArgs: [id],
       limit: 1,
     );
@@ -21,19 +24,20 @@ class NhanVienService {
     }
     return null;
   }
+
   Future<List<NhanVien>> getAllNhanVien() async {
     final db = await _dbHelper.database;
 
-    final maps = await db.query('nhan_vien', orderBy: 'ho_ten ASC');
+    final maps = await db.query(NhanVienTable.tableName, orderBy: '${NhanVienTable.hoTen} ASC');
     return maps.map((e) => NhanVien.fromMap(e)).toList();
   }
 
   Future<int> updateNhanVien(NhanVien nv) async {
     final db = await _dbHelper.database;
     return await db.update(
-      'nhan_vien',
+      NhanVienTable.tableName,
       nv.toMap(),
-      where: 'id = ?',
+      where: '${NhanVienTable.id} = ?',
       whereArgs: [nv.id],
     );
   }
@@ -41,8 +45,8 @@ class NhanVienService {
   Future<int> deleteNhanVien(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
-      'nhan_vien',
-      where: 'id = ?',
+      NhanVienTable.tableName,
+      where: '${NhanVienTable.id} = ?',
       whereArgs: [id],
     );
   }

@@ -8,7 +8,7 @@ import 'package:nhat_ky_xay_dung/features/ung_luong/presentation/desktop/ung_luo
 import 'package:provider/provider.dart';
 
 import '../../../../controllers/thong_ke_controller.dart';
-import '../../../nhat_ky/presentation/desktop/nhat_ky_list_desktop.dart';
+import '../../../nhat_ky_cong_trinh/presentation/desktop/nhat_ky_list_desktop.dart';
 import '../../../tien_do/presentation/desktop/tien_do_desktop.dart';
 import '../../data/models/CongTrinh.dart';
 

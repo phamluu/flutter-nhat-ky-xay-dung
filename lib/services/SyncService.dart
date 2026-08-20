@@ -1,17 +1,18 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_xoa.dart';
-import 'package:nhat_ky_xay_dung/data/models/TienDoCongTrinhModel.dart';
+import 'package:nhat_ky_xay_dung/features/tien_do/data/models/TienDoCongTrinhModel.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVien.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVienCongTrinh.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhatKy.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiTienDo.dart';
 
+import '../data/_db_helper.dart';
 import '../data/db_helper.dart';
-import '../data/models/ChamCong.dart';
+import '../features/bang_cham_cong/data/models/ChamCong.dart';
 import '../features/cong_trinh/data/models/CongTrinh.dart';
 import '../features/nhan_vien/data/models/NhanVien.dart';
 import '../features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
-import '../features/nhat_ky/data/models/NhatKy.dart';
+import '../features/nhat_ky_cong_trinh/data/models/NhatKy.dart';
 import 'sync/ApiChamCong.dart';
 import 'sync/ApiCongTrinh.dart';
 

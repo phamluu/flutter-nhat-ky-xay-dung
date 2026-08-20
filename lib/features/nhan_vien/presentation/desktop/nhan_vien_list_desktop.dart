@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/features/nhan_vien/presentation/desktop/nhan_vien_detail_desktop.dart';
-import 'package:nhat_ky_xay_dung/features/nhan_vien/presentation/desktop/nhan_vien_form_desktop.dart';
-
 import '../../../../core/utils/AuthHelper.dart';
 import '../../../../core/utils/SyncColor.dart';
 import '../../../../core/utils/trang_thai_dong_bo.dart';
 import '../../data/models/NhanVien.dart';
 import '../../../../services/SyncService.dart';
 import '../../data/services/nhan_vien_service.dart';
-import '../mobile/ThemSuaNhanVienScreen.dart';
-import '../mobile/XemChiTietNhanVienScreen.dart';
+import 'nhan_vien_detail_desktop.dart';
+import 'nhan_vien_form_desktop.dart';
 
 class NhanVienListDesktop extends StatefulWidget {
   const NhanVienListDesktop({super.key});

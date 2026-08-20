@@ -5,8 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_trinh_detail_desktop.dart';
 
 import '../../../cong_trinh/data/models/CongTrinh.dart';
-import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../../cong_trinh/data/services/cong_trinh_service.dart';
+import '../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 
 class DesktopRecentProjects extends StatefulWidget {
   const DesktopRecentProjects({
@@ -20,9 +19,7 @@ class DesktopRecentProjects extends StatefulWidget {
 
 class _DesktopRecentProjectsState
     extends State<DesktopRecentProjects> {
-  final _service = CongTrinhService(
-    repo: CongtrinhReponsitory(),
-  );
+  final _service = CongtrinhReponsitory();
 
   List<CongTrinh> projects = [];
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/viewmodel/ChamCongModel.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
 import 'buildToggle.dart';
 import 'exportExcel.dart';
 

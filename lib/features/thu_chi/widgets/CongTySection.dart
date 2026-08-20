@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../data/models/ThuChi.dart';
+import '../data/models/ThuChi.dart';
 import 'ThuChiItem.dart';
 
 class CongTySection extends StatefulWidget {

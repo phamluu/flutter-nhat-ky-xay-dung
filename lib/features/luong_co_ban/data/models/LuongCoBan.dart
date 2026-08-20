@@ -1,5 +1,7 @@
 import 'package:nhat_ky_xay_dung/features/nhan_vien/data/models/NhanVien.dart';
 
+import '../../../../data/tables/luong_co_ban_table.dart';
+
 class Luongcoban {
   final int? id;
   final int idNhanVien;
@@ -23,12 +25,12 @@ class Luongcoban {
 
   Map<String, dynamic> toMap() {
     final map = {
-      'id': id,
-      'idNhanVien': idNhanVien,
-      'mucLuong': mucLuong,
-      'ngayApDung': ngayApDung?.toIso8601String(),
-      'ngayTao': (ngayTao ?? DateTime.now()).toIso8601String(),
-      'ghiChu': ghiChu
+      LuongCoBanTable.id: id,
+      LuongCoBanTable.idNhanVien: idNhanVien,
+      LuongCoBanTable.mucLuong: mucLuong,
+      LuongCoBanTable.ngayApDung: ngayApDung?.toIso8601String(),
+      LuongCoBanTable.ngayTao: (ngayTao ?? DateTime.now()).toIso8601String(),
+      LuongCoBanTable.ghiChu: ghiChu
     };
     return map;
   }
@@ -37,18 +39,18 @@ class Luongcoban {
     NhanVien? nv;
     if (nhanViens != null) {
       nv = nhanViens.firstWhere(
-            (e) => e.id == map['idNhanVien'],
-        orElse: () => NhanVien(id: map['idNhanVien'], hoTen: "Không tên"),
+            (e) => e.id == map[LuongCoBanTable.idNhanVien],
+        orElse: () => NhanVien(id: map[LuongCoBanTable.idNhanVien], hoTen: "Không tên"),
       );
     }
 
     return Luongcoban(
-      id: map['id'],
-      idNhanVien: map['idNhanVien'],
-      mucLuong: map['mucLuong'],
-      ngayTao: map['ngayTao'] != null ? DateTime.parse(map['ngayTao']) : null,
-      ngayApDung: map['ngayApDung'] != null ? DateTime.parse(map['ngayApDung']) : null,
-      ghiChu: map['ghiChu'],
+      id: map[LuongCoBanTable.id],
+      idNhanVien: map[LuongCoBanTable.idNhanVien],
+      mucLuong: map[LuongCoBanTable.mucLuong],
+      ngayTao: map[LuongCoBanTable.ngayTao] != null ? DateTime.parse(map[LuongCoBanTable.ngayTao]) : null,
+      ngayApDung: map[LuongCoBanTable.ngayApDung] != null ? DateTime.parse(map[LuongCoBanTable.ngayApDung]) : null,
+      ghiChu: map[LuongCoBanTable.ghiChu],
       nhanVien: nv,
     );
   }
@@ -107,4 +109,34 @@ class LuongNhanVienViewModel{
     }
     return count;
   }
+}
+
+class LuongCoBanModel {
+  int idNhanVien;
+  final String? hoTen;
+  final String? chucVu;
+  final double? luongHienTai;
+  final String? soDienThoai;
+  final String? ngaySinh;
+  LuongCoBanModel({
+    required this.idNhanVien,
+    this.hoTen,
+    this.chucVu,
+    this.luongHienTai,
+    this.soDienThoai,
+    this.ngaySinh
+  });
+}
+
+class LuongCoBanNhanVienModel{
+  int id;
+  double? soTien;
+  DateTime? ngayApDung;
+  String? ghiChu;
+  LuongCoBanNhanVienModel({
+    required this.id,
+    this.soTien,
+    this.ngayApDung,
+    this.ghiChu
+  });
 }

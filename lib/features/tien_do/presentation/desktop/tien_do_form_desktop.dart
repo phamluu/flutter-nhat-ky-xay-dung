@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/trang_thai_tien_do.dart';
-import '../../../../data/models/TienDoCongTrinhModel.dart';
-import '../../../../data/repositories/TienDoRepository.dart';
-import '../../../../services/TienDoService.dart';
+import '../../data/models/TienDoCongTrinhModel.dart';
+import '../../data/repositories/TienDoRepository.dart';
+import '../../data/services/TienDoService.dart';
 
 class TienDoFormDesktop extends StatefulWidget {
   final int idCongTrinh;

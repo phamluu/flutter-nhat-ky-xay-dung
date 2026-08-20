@@ -1,10 +1,8 @@
 import 'dart:convert';
 
-import 'package:nhat_ky_xay_dung/features/nhat_ky/data/models/NhatKy.dart';
-import 'package:nhat_ky_xay_dung/data/models/TienDoCongTrinhModel.dart';
-
 import '../../core/services/ApiClient.dart';
 import '../../features/cong_trinh/data/models/CongTrinh.dart';
+import '../../features/nhat_ky_cong_trinh/data/models/NhatKy.dart';
 
 class ApiNhatKy {
 

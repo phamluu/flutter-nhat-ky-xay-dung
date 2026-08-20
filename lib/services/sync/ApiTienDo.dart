@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:nhat_ky_xay_dung/data/models/TienDoCongTrinhModel.dart';
+import 'package:nhat_ky_xay_dung/features/tien_do/data/models/TienDoCongTrinhModel.dart';
 
 import '../../core/services/ApiClient.dart';
 import '../../features/cong_trinh/data/models/CongTrinh.dart';

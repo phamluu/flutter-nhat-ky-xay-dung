@@ -7,8 +7,7 @@ import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_tri
 import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/SyncColor.dart';
 import '../../cong_trinh/data/models/CongTrinh.dart';
-import '../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../cong_trinh/data/services/cong_trinh_service.dart';
+import '../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import '_SectionHeader.dart';
 
 class ProjectList extends StatefulWidget {
@@ -21,7 +20,7 @@ class ProjectList extends StatefulWidget {
 class _ProjectListState extends State<ProjectList> {
   List<CongTrinh> projects = [];
   bool isLoading = true;
-  final _service = CongTrinhService(repo: CongtrinhReponsitory());
+  final _service = CongtrinhReponsitory();
   bool isLoggedIn = false;
   bool isAdmin = false;
   @override

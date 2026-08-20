@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/data/services/cong_trinh_service.dart';
 
-import '../../../data/models/DanhMucThuChi.dart';
-import '../../../data/models/ThuChi.dart';
-import '../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../../services/danh_muc_thu_chi_service.dart';
-import '../../../services/thu_chi_service.dart';
+import '../../danh_muc_thu_chi/data/models/DanhMucThuChi.dart';
+import '../data/models/ThuChi.dart';
+import '../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
+import '../../danh_muc_thu_chi/data/services/danh_muc_thu_chi_service.dart';
+import '../data/services/thu_chi_service.dart';
 
 class ThemThuChiScreen extends StatefulWidget {
   final ThuChi? thuChi;
@@ -26,7 +25,7 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
 
   final _thuChiService = ThuChiService();
   final _dmService = DanhMucThuChiService();
-  final _ctService = CongTrinhService(repo: CongtrinhReponsitory());
+  final _ctService = CongtrinhReponsitory();
   final _dateFormat = DateFormat("dd/MM/yyyy");
 
   int _loai = 0; // 0: chi, 1: thu

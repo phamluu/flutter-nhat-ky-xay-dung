@@ -3,7 +3,7 @@ import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChamCong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChiLuong.dart';
-import 'package:nhat_ky_xay_dung/viewmodel/ChamCongModel.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import '../../../core/utils/currencyFormat.dart';

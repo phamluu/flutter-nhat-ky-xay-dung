@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:nhat_ky_xay_dung/services/ung_luong_service.dart';
+import 'package:nhat_ky_xay_dung/features/ung_luong/data/services/ung_luong_service.dart';
 import '../../../core/utils/currencyFormat.dart';
-import '../../../data/models/UngLuong.dart';
+import '../data/models/UngLuong.dart';
 
 class UngLuongFormScreen extends StatefulWidget {
   final Ungluong? ul;

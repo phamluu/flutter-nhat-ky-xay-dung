@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/SyncColor.dart';
-import '../../../data/models/TienDoCongTrinhModel.dart';
+import '../data/models/TienDoCongTrinhModel.dart';
 
 class TienDoDetailDesktop extends StatelessWidget {
   final TienDoCongTrinhModel model;

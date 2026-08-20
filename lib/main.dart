@@ -7,8 +7,10 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/router/app_router.dart';
-import 'data/db_helper.dart';
+import 'data/_db_helper.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'data/db_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

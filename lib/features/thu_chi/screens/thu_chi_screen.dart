@@ -3,9 +3,9 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/currencyFormat.dart';
-import '../../../data/models/ThuChi.dart';
-import '../../../data/models/DanhMucThuChi.dart';
-import '../../../services/thu_chi_service.dart';
+import '../data/models/ThuChi.dart';
+import '../../danh_muc_thu_chi/data/models/DanhMucThuChi.dart';
+import '../data/services/thu_chi_service.dart';
 import '../widgets/CongTrinhSection.dart';
 import '../widgets/CongTySection.dart';
 import '../widgets/thu_chi_button.dart';

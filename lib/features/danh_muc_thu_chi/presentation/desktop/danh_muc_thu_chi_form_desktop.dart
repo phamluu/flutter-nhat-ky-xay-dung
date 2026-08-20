@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../data/models/DanhMucThuChi.dart';
-import '../../../../services/danh_muc_thu_chi_service.dart';
+import '../../data/models/DanhMucThuChi.dart';
+import '../../data/services/danh_muc_thu_chi_service.dart';
 
 class DanhMucThuChiFormDeskTop extends StatefulWidget {
   final DanhMucThuChi? danhMuc;
@@ -60,11 +60,27 @@ class _ThemDanhMucThuChiScreenState
             ten: _tenController.text.trim(),
           ),
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Thêm hạng mục thu chi thành công',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
       } else {
         await _service.update(
           DanhMucThuChi(
             id: widget.danhMuc!.id,
             ten: _tenController.text.trim(),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                  'Sửa hạng mục thu chi thành công'
+            ),
+            backgroundColor: Colors.green,
           ),
         );
       }

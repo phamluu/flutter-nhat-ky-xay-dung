@@ -5,8 +5,7 @@ import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_t
 
 import '../../../../core/utils/SyncColor.dart';
 import '../../data/models/CongTrinh.dart';
-import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../data/services/cong_trinh_service.dart';
+import '../../data/respositories/CongTrinhReponsitory.dart';
 
 import 'cong_trinh_detail_desktop.dart';
 
@@ -19,9 +18,7 @@ class CongTrinhListDesktop extends StatefulWidget {
 }
 
 class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
-  final _service = CongTrinhService(
-    repo: CongtrinhReponsitory(),
-  );
+  final _service = CongtrinhReponsitory();
 
   late Future<List<CongTrinh>> _futureCongTrinh;
 
@@ -47,6 +44,63 @@ class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
       _futureCongTrinh =
           _service.getCongTrinhWithTienDo();
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xfff5f6f8),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+
+              const SizedBox(height: 20),
+
+              _buildToolbar(),
+
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: FutureBuilder<List<CongTrinh>>(
+                  future: _futureCongTrinh,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(
+                        child:
+                        CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return _buildError(
+                        snapshot.error.toString(),
+                      );
+                    }
+
+                    final data =
+                    _filterData(
+                      snapshot.data ?? [],
+                    );
+
+                    if (data.isEmpty) {
+                      return _buildEmpty();
+                    }
+
+                    return _buildTable(data);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _openThemCongTrinh() async {
@@ -139,6 +193,7 @@ class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
           content: Text(
             'Xóa công trình thành công',
           ),
+          backgroundColor: Colors.green
         ),
       );
 
@@ -178,62 +233,7 @@ class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
     }).toList();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xfff5f6f8),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
 
-              const SizedBox(height: 20),
-
-              _buildToolbar(),
-
-              const SizedBox(height: 16),
-
-              Expanded(
-                child: FutureBuilder<List<CongTrinh>>(
-                  future: _futureCongTrinh,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                        child:
-                        CircularProgressIndicator(),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return _buildError(
-                        snapshot.error.toString(),
-                      );
-                    }
-
-                    final data =
-                    _filterData(
-                      snapshot.data ?? [],
-                    );
-
-                    if (data.isEmpty) {
-                      return _buildEmpty();
-                    }
-
-                    return _buildTable(data);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // =========================================================
   // HEADER

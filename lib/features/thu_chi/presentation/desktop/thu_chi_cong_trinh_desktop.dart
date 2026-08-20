@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_form_desktop.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
-import '../../../../data/models/ThuChi.dart';
-import '../../../../services/thu_chi_service.dart';
+import '../../data/models/ThuChi.dart';
+import '../../data/services/thu_chi_service.dart';
 import '../../widgets/buildInfoRow.dart';
 import '../../widgets/buildLoading.dart';
 import '../../widgets/buildProgressRow.dart';

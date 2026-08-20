@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:nhat_ky_xay_dung/data/models/ChamCong.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCong.dart';
 import '../../core/services/ApiClient.dart';
 class ApiChamCong {
 

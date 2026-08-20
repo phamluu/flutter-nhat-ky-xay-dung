@@ -5,8 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/mobile/ChiTietCongTrinhScreen.dart';
 import '../../../../core/utils/SyncColor.dart';
 import '../../data/models/CongTrinh.dart';
-import '../../../../data/repositories/CongTrinhReponsitory.dart';
-import '../../data/services/cong_trinh_service.dart';
+import '../../data/respositories/CongTrinhReponsitory.dart';
 import 'CongTrinhFormScreen.dart';
 
 class CongTrinhListMobile extends StatefulWidget {
@@ -18,7 +17,7 @@ class CongTrinhListMobile extends StatefulWidget {
 }
 
 class _CongTrinhListMobileState extends State<CongTrinhListMobile> {
-  final _service = CongTrinhService(repo: CongtrinhReponsitory());
+  final _service = CongtrinhReponsitory();
 
   late Future<List<CongTrinh>> _futureCongTrinh;
 

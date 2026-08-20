@@ -3,8 +3,8 @@ import 'package:nhat_ky_xay_dung/core/utils/trang_thai_cham_cong.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_khoa_cong.dart';
 
 import '../../../core/utils/trang_thai_luong.dart';
-import '../../../services/ChotChiLuongService.dart';
-import '../../../viewmodel/ChamCongModel.dart';
+import '../data/services/ChotChiLuongService.dart';
+import '../data/models/ChamCongModel.dart';
 import '../../chi_luong/ChiLuongScreen.dart';
 import '../../chi_luong/presentation/pages/chi_luong_page.dart';
 import 'chiLuongbtn.dart';

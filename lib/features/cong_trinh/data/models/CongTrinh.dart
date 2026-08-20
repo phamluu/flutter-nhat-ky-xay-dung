@@ -1,3 +1,5 @@
+import '../../../../data/tables/cong_trinh_table.dart';
+
 class CongTrinh {
   final int? id;           // Khóa chính
   final String ten;        // Tên công trình
@@ -27,42 +29,41 @@ class CongTrinh {
   /// Convert object -> Map (dùng để insert/update vào SQLite)
   Map<String, dynamic> toMapInsert() {
     return {
-      'ten': ten,
-      'dia_chi': diaChi,
-      'mo_ta': moTa,
-      'ngay_bat_dau': ngayBatDau,
-      'ngay_ket_thuc': ngayKetThuc,
-      'hinh_anh': hinhAnh,
-      'server_id': server_id,
-      'ngay_tao': DateTime.now().toIso8601String(),
+      CongTrinhTable.ten: ten,
+      CongTrinhTable.diaChi: diaChi,
+      CongTrinhTable.moTa: moTa,
+      CongTrinhTable.ngayBatDau: ngayBatDau,
+      CongTrinhTable.ngayKetThuc: ngayKetThuc,
+      CongTrinhTable.hinhAnh: hinhAnh,
+      CongTrinhTable.serverId: server_id,
+      CongTrinhTable.ngayTao: DateTime.now().toIso8601String(),
     };
   }
 
   Map<String, dynamic> toMapUpdate() {
     return {
-      'ten': ten,
-      'dia_chi': diaChi,
-      'mo_ta': moTa,
-      'ngay_bat_dau': ngayBatDau,
-      'ngay_ket_thuc': ngayKetThuc,
-      'hinh_anh': hinhAnh,
-      'server_id': server_id
+      CongTrinhTable.ten: ten,
+      CongTrinhTable.diaChi: diaChi,
+      CongTrinhTable.moTa: moTa,
+      CongTrinhTable.ngayBatDau: ngayBatDau,
+      CongTrinhTable.ngayKetThuc: ngayKetThuc,
+      CongTrinhTable.hinhAnh: hinhAnh,
+      CongTrinhTable.serverId: server_id
     };
   }
   /// Convert Map -> object (dùng khi đọc từ SQLite)
   factory CongTrinh.fromMap(Map<String, dynamic> map) {
     return CongTrinh(
-        id: map['id'],
-        ten: map['ten'],
-        diaChi: map['dia_chi'],
-        moTa: map['mo_ta'],
-        ngayBatDau: map['ngay_bat_dau'],
-        ngayKetThuc: map['ngay_ket_thuc'],
-        hinhAnh: map['hinh_anh'],
-        ngayTao: map['ngay_tao'],
-        tienDo: map['tienDo'],
-        isSynced: map['is_synced'],
-        server_id: map['server_id']
+        id: map[CongTrinhTable.id],
+        ten: map[CongTrinhTable.ten],
+        diaChi: map[CongTrinhTable.diaChi],
+        moTa: map[CongTrinhTable.moTa],
+        ngayBatDau: map[CongTrinhTable.ngayBatDau],
+        ngayKetThuc: map[CongTrinhTable.ngayKetThuc],
+        hinhAnh: map[CongTrinhTable.hinhAnh],
+        ngayTao: map[CongTrinhTable.ngayTao],
+        isSynced: map[CongTrinhTable.isSynced],
+        server_id: map[CongTrinhTable.serverId]
     );
   }
   // 👉 Thêm copyWith ở đây

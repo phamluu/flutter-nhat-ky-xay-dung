@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/data/repositories/ChotChiLuongRepository.dart';
-import 'package:nhat_ky_xay_dung/services/BangLuongService.dart';
-import 'package:nhat_ky_xay_dung/viewmodel/ChamCongModel.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/services/BangLuongService.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
 
 import '../../core/utils/currencyFormat.dart';
 import '../../core/utils/trang_thai_luong.dart';
-import '../../data/repositories/ChamCongRepository.dart';
-import '../../services/ChotChiLuongService.dart';
-import '../../services/cham_cong_service.dart';
+import '../bang_cham_cong/data/repositories/ChamCongRepository.dart';
+import '../bang_cham_cong/data/services/ChotChiLuongService.dart';
+import '../bang_cham_cong/data/services/cham_cong_service.dart';
 import '../chi_luong/ChiLuongScreen.dart';
 
 class LuongNhanVienScreen extends StatefulWidget {

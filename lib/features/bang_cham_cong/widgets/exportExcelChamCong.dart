@@ -2,7 +2,7 @@ import 'package:excel/excel.dart';
 
 import '../../../core/utils/currencyFormat.dart';
 import '../../../core/utils/trang_thai_luong.dart';
-import '../../../viewmodel/ChamCongModel.dart';
+import '../data/models/ChamCongModel.dart';
 
 Future<void> ChamCongExcel(
     {required Sheet sheet,

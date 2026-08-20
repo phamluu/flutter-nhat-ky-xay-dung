@@ -3,7 +3,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/screens/ThuChiDetailScreen.dart';
 import '../../../core/utils/currencyFormat.dart';
-import '../../../data/models/ThuChi.dart';
+import '../data/models/ThuChi.dart';
 import 'thu_chi_button.dart';
 
 class ThuChiItem extends StatelessWidget {

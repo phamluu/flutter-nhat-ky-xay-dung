@@ -1,11 +1,11 @@
 // Danh sách đã ứng trong 1 tháng của từng nhân viên công trình
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:nhat_ky_xay_dung/data/repositories/ChotChiLuongRepository.dart';
-import 'package:nhat_ky_xay_dung/services/ChotChiLuongService.dart';
-import 'package:nhat_ky_xay_dung/services/ung_luong_service.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/services/ChotChiLuongService.dart';
+import 'package:nhat_ky_xay_dung/features/ung_luong/data/services/ung_luong_service.dart';
 import '../../../core/utils/currencyFormat.dart';
-import '../../../data/models/UngLuong.dart';
+import '../data/models/UngLuong.dart';
 import 'package:intl/intl.dart';
 
 import '🚀 📱 UngLuongFormScreen.dart';

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/data/models/LuongCoBan.dart';
-import 'package:nhat_ky_xay_dung/services/luong_co_ban_service.dart';
-import 'package:nhat_ky_xay_dung/viewmodel/LuongCoBan.dart';
+import 'package:nhat_ky_xay_dung/features/luong_co_ban/data/services/luong_co_ban_service.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/currencyFormat.dart';

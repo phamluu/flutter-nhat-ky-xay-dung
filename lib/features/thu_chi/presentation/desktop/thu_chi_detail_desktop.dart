@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../../../data/models/ThuChi.dart';
+import '../../data/models/ThuChi.dart';
 
 class ThuChiDetailDesktop extends StatelessWidget {
   final ThuChi tc;

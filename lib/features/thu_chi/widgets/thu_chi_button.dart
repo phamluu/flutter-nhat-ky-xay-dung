@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../data/models/ThuChi.dart';
-import '../../../services/thu_chi_service.dart';
+import '../data/models/ThuChi.dart';
+import '../data/services/thu_chi_service.dart';
 import '../screens/them_thu_chi_screen.dart';
 
 Future<void> openThuChiForm(BuildContext context, ThuChi? tc, VoidCallback onUpdated) async {

@@ -4,12 +4,12 @@ import 'package:nhat_ky_xay_dung/features/ung_luong/screens/UngLuongScreen.dart'
 
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
-import '../../../../data/repositories/ChamCongRepository.dart';
-import '../../../../data/repositories/ChotChiLuongRepository.dart';
-import '../../../../services/BangLuongService.dart';
-import '../../../../services/ChotChiLuongService.dart';
-import '../../../../services/cham_cong_service.dart';
-import '../../../../viewmodel/ChamCongModel.dart';
+import '../../data/repositories/ChamCongRepository.dart';
+import '../../data/repositories/ChotChiLuongRepository.dart';
+import '../../data/services/BangLuongService.dart';
+import '../../data/services/ChotChiLuongService.dart';
+import '../../data/services/cham_cong_service.dart';
+import '../../data/models/ChamCongModel.dart';
 import '../../widgets/BangLuongActionCell.dart';
 import '../../widgets/ChamCongFilterState.dart';
 import '../../widgets/setKhoaChamCong.dart';
