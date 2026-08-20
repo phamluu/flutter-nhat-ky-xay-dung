@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/data/repositories/ChiLuongRepository.dart';
+import 'package:nhat_ky_xay_dung/data/repositories/ung_luong_repository.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/services/cong_trinh_service.dart';
 import 'package:nhat_ky_xay_dung/services/danh_muc_thu_chi_service.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,6 +10,7 @@ import '../data/models/DanhMucThuChi.dart';
 import '../data/models/ThuChi.dart';
 import '../data/repositories/CongTrinhReponsitory.dart';
 import 'package:intl/intl.dart';
+
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
   Future<int> insert(ThuChi tc) async {
@@ -52,9 +55,8 @@ class ThuChiService {
       );
     }
 
-    final whereClause = conditions.isNotEmpty
-        ? 'WHERE ${conditions.join(' AND ')}'
-        : '';
+    final whereClause =
+        conditions.isNotEmpty ? 'WHERE ${conditions.join(' AND ')}' : '';
 
     final res = await db.rawQuery(
       '''
@@ -78,16 +80,16 @@ class ThuChiService {
     return res.map((row) {
       final congTrinh = row['ct_id'] != null
           ? CongTrinh(
-        id: row['ct_id'] as int,
-        ten: row['ct_ten'] as String,
-      )
+              id: row['ct_id'] as int,
+              ten: row['ct_ten'] as String,
+            )
           : null;
 
       final danhMuc = row['dm_id'] != null
           ? DanhMucThuChi(
-        id: row['dm_id'] as int,
-        ten: row['dm_ten'] as String,
-      )
+              id: row['dm_id'] as int,
+              ten: row['dm_ten'] as String,
+            )
           : null;
 
       return ThuChi.fromMap(
@@ -99,30 +101,33 @@ class ThuChiService {
   }
 
   // final _thuChiRepo = ThuChiRepository();
-   final _danhMucRepo = DanhMucThuChiService();
-   final _congTrinhRepo = CongtrinhReponsitory();
-
+  final _danhMucRepo = DanhMucThuChiService();
+  final _congTrinhRepo = CongtrinhReponsitory();
+  final _tamUng = UngLuongRepository();
+  final _chiLuong = ChiLuongRepository();
   Future<ThuChiViewModel> loadThuChiViewModel([int? idCongTrinh]) async {
     final allThuChis = await getAllWithDetails(idCongTrinh);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinhs = await _congTrinhRepo.getDanhSachCongTrinh();
 
     // --- Thu chi công ty ---
-    final thuChiCongTyList = allThuChis.where((tc) => tc.idCongTrinh == null).toList();
+    final thuChiCongTyList =
+        allThuChis.where((tc) => tc.idCongTrinh == null).toList();
 
     final List<ThuChiDanhMucViewModel> congTyDanhMucs = [];
     final List<ThuChi> congTyKhac = [];
 
     for (var tc in thuChiCongTyList) {
       final dm = danhMucs.firstWhere(
-            (d) => d.id == tc.idDanhMucThuChi,
+        (d) => d.id == tc.idDanhMucThuChi,
         orElse: () => DanhMucThuChi(id: 0, ten: "Khác"),
       );
 
       if (dm.id == 0) {
         congTyKhac.add(tc);
       } else {
-        var existing = congTyDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
+        var existing =
+            congTyDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
         if (existing.isNotEmpty) {
           existing.first.thuchis?.add(tc);
         } else {
@@ -141,21 +146,23 @@ class ThuChiService {
     final List<ThuChiCongTrinhViewModel> congTrinhVMs = [];
 
     for (var ct in congTrinhs) {
-      final thuChiCtList = allThuChis.where((tc) => tc.idCongTrinh == ct.id).toList();
+      final thuChiCtList =
+          allThuChis.where((tc) => tc.idCongTrinh == ct.id).toList();
 
       final List<ThuChiDanhMucViewModel> ctDanhMucs = [];
       final List<ThuChi> ctKhac = [];
 
       for (var tc in thuChiCtList) {
         final dm = danhMucs.firstWhere(
-              (d) => d.id == tc.idDanhMucThuChi,
+          (d) => d.id == tc.idDanhMucThuChi,
           orElse: () => DanhMucThuChi(id: 0, ten: "Khác"),
         );
 
         if (dm.id == 0) {
           ctKhac.add(tc);
         } else {
-          var existing = ctDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
+          var existing =
+              ctDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
           if (existing.isNotEmpty) {
             existing.first.thuchis?.add(tc);
           } else {
@@ -177,25 +184,33 @@ class ThuChiService {
       ..thuChiCongTrinhs = congTrinhVMs;
   }
 
-  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh, {DateTime? tuNgay, DateTime? denNgay}) async {
+  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh,
+      {DateTime? tuNgay, DateTime? denNgay}) async {
     final allThuChis = await getAllWithDetails(idCongTrinh, tuNgay, denNgay);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinh = await _congTrinhRepo.getCongTrinh(idCongTrinh);
-    final thuChiCtList = allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();
+    final thuChiCtList =
+        allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();
 
     final List<ThuChiDanhMucViewModel> ctDanhMucs = [];
     final List<ThuChi> ctKhac = [];
 
+    ////// Tính lương ///////////
+    final List<Map<String, dynamic>> tamUng = await _tamUng.getUngLuong(
+        idCongTrinh: idCongTrinh!, tuNgay: tuNgay, denNgay: denNgay);
+    final List<Map<String, dynamic>> chiLuong = await _chiLuong.getChiLuong(
+        idCongTrinh: idCongTrinh!, tuNgay: tuNgay, denNgay: denNgay);
     for (var tc in thuChiCtList) {
       final dm = danhMucs.firstWhere(
-            (d) => d.id == tc.idDanhMucThuChi,
+        (d) => d.id == tc.idDanhMucThuChi,
         orElse: () => DanhMucThuChi(id: 0, ten: "Khác"),
       );
 
       if (dm.id == 0) {
         ctKhac.add(tc);
       } else {
-        var existing = ctDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
+        var existing =
+            ctDanhMucs.where((e) => e.danhMucThuChi?.id == dm.id).toList();
         if (existing.isNotEmpty) {
           existing.first.thuchis?.add(tc);
         } else {
@@ -209,7 +224,15 @@ class ThuChiService {
     return ThuChiCongTrinhViewModel()
       ..congTrinh = congTrinh!
       ..thuChiDanhMucs = ctDanhMucs
-      ..thuChiKhacs = (ThuChiKhacViewModel()..thuchis = ctKhac);
+      ..thuChiKhacs = (ThuChiKhacViewModel()..thuchis = ctKhac)
+      ..tamUngLuong = tamUng.fold<double>(
+        0,
+        (sum, item) => sum + (item['soTien'] as num? ?? 0).toDouble(),
+      )
+      ..daChiLuong = chiLuong.fold<double>(
+        0,
+            (sum, item) => sum + (item['soTien'] as num? ?? 0).toDouble(),
+      );
   }
 
   Future<int> update(ThuChi tc) async {
@@ -226,6 +249,7 @@ class ThuChiService {
     final db = await _dbHelper.database;
     return await db.delete('thu_chi', where: 'id = ?', whereArgs: [id]);
   }
+
   Future<int> countByDanhMuc(int idDanhMuc) async {
     final db = await _dbHelper.database;
     final res = await db.rawQuery(
@@ -234,5 +258,4 @@ class ThuChiService {
     );
     return (res.first['c'] as int?) ?? 0;
   }
-
 }

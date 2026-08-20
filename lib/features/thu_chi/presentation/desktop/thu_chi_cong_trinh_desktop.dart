@@ -2,8 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_form_desktop.dart';
 
+import '../../../../core/utils/currencyFormat.dart';
 import '../../../../data/models/ThuChi.dart';
 import '../../../../services/thu_chi_service.dart';
+import '../../widgets/buildInfoRow.dart';
+import '../../widgets/buildLoading.dart';
+import '../../widgets/buildProgressRow.dart';
+import '../../widgets/getYears.dart';
+import 'buildChiLuong.dart';
+import 'buildDropdown.dart';
+import 'buildEmpty.dart';
+import 'buildTopAction.dart';
+import 'buildTransactionHeader.dart';
+import 'summaryCard.dart';
 import 'thu_chi_item_desktop.dart';
 
 class ThuChiCongTrinhDesktop extends StatefulWidget {
@@ -17,23 +28,14 @@ class ThuChiCongTrinhDesktop extends StatefulWidget {
   });
 
   @override
-  State<ThuChiCongTrinhDesktop> createState() =>
-      _ThuChiCongTrinhDesktopState();
+  State<ThuChiCongTrinhDesktop> createState() => _ThuChiCongTrinhDesktopState();
 }
 
-class _ThuChiCongTrinhDesktopState
-    extends State<ThuChiCongTrinhDesktop> {
+class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   final _thuChiService = ThuChiService();
 
   late Future<ThuChiCongTrinhViewModel> _futureThuChi;
 
-  final NumberFormat _currencyFormat = NumberFormat.currency(
-    locale: 'vi_VN',
-    symbol: '₫',
-    decimalDigits: 0,
-  );
-
-  // ============================================================
   // FILTER
   // ============================================================
 
@@ -105,30 +107,30 @@ class _ThuChiCongTrinhDesktopState
         );
 
         return (
-        DateTime(
-          from.year,
-          from.month,
-          from.day,
-        ),
-        DateTime(
-          to.year,
-          to.month,
-          to.day,
-        ),
+          DateTime(
+            from.year,
+            from.month,
+            from.day,
+          ),
+          DateTime(
+            to.year,
+            to.month,
+            to.day,
+          ),
         );
 
       case 'year':
         return (
-        DateTime(
-          _selectedYear,
-          1,
-          1,
-        ),
-        DateTime(
-          _selectedYear,
-          12,
-          31,
-        ),
+          DateTime(
+            _selectedYear,
+            1,
+            1,
+          ),
+          DateTime(
+            _selectedYear,
+            12,
+            31,
+          ),
         );
 
       case 'range':
@@ -137,16 +139,16 @@ class _ThuChiCongTrinhDesktopState
         }
 
         return (
-        DateTime(
-          _fromDate!.year,
-          _fromDate!.month,
-          _fromDate!.day,
-        ),
-        DateTime(
-          _toDate!.year,
-          _toDate!.month,
-          _toDate!.day,
-        ),
+          DateTime(
+            _fromDate!.year,
+            _fromDate!.month,
+            _fromDate!.day,
+          ),
+          DateTime(
+            _toDate!.year,
+            _toDate!.month,
+            _toDate!.day,
+          ),
         );
 
       case 'all':
@@ -172,9 +174,8 @@ class _ThuChiCongTrinhDesktopState
             child: FutureBuilder<ThuChiCongTrinhViewModel>(
               future: _futureThuChi,
               builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return _buildLoading();
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return buildLoading();
                 }
 
                 if (snapshot.hasError) {
@@ -184,7 +185,7 @@ class _ThuChiCongTrinhDesktopState
                 }
 
                 if (!snapshot.hasData) {
-                  return _buildEmpty();
+                  return buildEmpty();
                 }
 
                 return _buildDesktopContent(
@@ -231,9 +232,7 @@ class _ThuChiCongTrinhDesktopState
               size: 22,
             ),
           ),
-
           const SizedBox(width: 14),
-
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,9 +245,7 @@ class _ThuChiCongTrinhDesktopState
                   color: Color(0xff172033),
                 ),
               ),
-
               const SizedBox(height: 3),
-
               Text(
                 widget.tenCongTrinh?.isNotEmpty == true
                     ? widget.tenCongTrinh!
@@ -261,17 +258,13 @@ class _ThuChiCongTrinhDesktopState
               ),
             ],
           ),
-
           const Spacer(),
-
-          _buildTopAction(
+          buildTopAction(
             icon: Icons.refresh,
             label: 'Làm mới',
             onPressed: _refresh,
           ),
-
           const SizedBox(width: 10),
-
           ElevatedButton.icon(
             onPressed: _addThuChi,
             icon: const Icon(
@@ -299,41 +292,13 @@ class _ThuChiCongTrinhDesktopState
     );
   }
 
-  Widget _buildTopAction({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(
-        icon,
-        size: 17,
-      ),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xff475569),
-        side: BorderSide(
-          color: Colors.grey.shade300,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
   // ============================================================
   // DESKTOP CONTENT
   // ============================================================
 
   Widget _buildDesktopContent(
-      ThuChiCongTrinhViewModel vm,
-      ) {
+    ThuChiCongTrinhViewModel vm,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 1100;
@@ -344,21 +309,14 @@ class _ThuChiCongTrinhDesktopState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildPageTitle(),
-
               const SizedBox(height: 16),
-
               _buildFilterBar(),
-
               const SizedBox(height: 22),
-
               _buildSummary(vm),
-
               const SizedBox(height: 28),
-
               if (isCompact)
                 Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildTransactionArea(vm),
                     const SizedBox(height: 20),
@@ -367,16 +325,13 @@ class _ThuChiCongTrinhDesktopState
                 )
               else
                 Row(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 7,
                       child: _buildTransactionArea(vm),
                     ),
-
                     const SizedBox(width: 22),
-
                     Expanded(
                       flex: 3,
                       child: _buildOverviewPanel(vm),
@@ -399,8 +354,7 @@ class _ThuChiCongTrinhDesktopState
       children: [
         Expanded(
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Tổng quan thu chi',
@@ -410,9 +364,7 @@ class _ThuChiCongTrinhDesktopState
                   color: Color(0xff172033),
                 ),
               ),
-
               const SizedBox(height: 5),
-
               Text(
                 _getFilterDescription(),
                 style: TextStyle(
@@ -473,13 +425,10 @@ class _ThuChiCongTrinhDesktopState
         builder: (context, constraints) {
           if (constraints.maxWidth < 750) {
             return Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildFilterTitle(),
-
                 const SizedBox(height: 12),
-
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -502,9 +451,7 @@ class _ThuChiCongTrinhDesktopState
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
                 _buildFilterValueControl(),
               ],
             );
@@ -513,37 +460,27 @@ class _ThuChiCongTrinhDesktopState
           return Row(
             children: [
               _buildFilterTitle(),
-
               const SizedBox(width: 20),
-
               _buildFilterButton(
                 label: 'Tất cả',
                 value: 'all',
               ),
-
               const SizedBox(width: 6),
-
               _buildFilterButton(
                 label: 'Theo tháng',
                 value: 'month',
               ),
-
               const SizedBox(width: 6),
-
               _buildFilterButton(
                 label: 'Theo năm',
                 value: 'year',
               ),
-
               const SizedBox(width: 6),
-
               _buildFilterButton(
                 label: 'Khoảng thời gian',
                 value: 'range',
               ),
-
               const SizedBox(width: 14),
-
               Expanded(
                 child: _buildFilterValueControl(),
               ),
@@ -605,26 +542,18 @@ class _ThuChiCongTrinhDesktopState
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xffeff6ff)
-              : Colors.white,
+          color: selected ? const Color(0xffeff6ff) : Colors.white,
           borderRadius: BorderRadius.circular(7),
           border: Border.all(
-            color: selected
-                ? const Color(0xff2563eb)
-                : Colors.grey.shade300,
+            color: selected ? const Color(0xff2563eb) : Colors.grey.shade300,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: selected
-                ? FontWeight.w600
-                : FontWeight.w500,
-            color: selected
-                ? const Color(0xff2563eb)
-                : const Color(0xff475569),
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? const Color(0xff2563eb) : const Color(0xff475569),
           ),
         ),
       ),
@@ -664,17 +593,16 @@ class _ThuChiCongTrinhDesktopState
   Widget _buildMonthSelector() {
     final months = List.generate(
       12,
-          (index) => index + 1,
+      (index) => index + 1,
     );
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildDropdown<int>(
+        buildDropdown<int>(
           value: _selectedMonth,
           items: months,
-          itemLabel: (month) =>
-          'Tháng ${month.toString().padLeft(2, '0')}',
+          itemLabel: (month) => 'Tháng ${month.toString().padLeft(2, '0')}',
           onChanged: (value) {
             if (value == null) return;
 
@@ -684,12 +612,10 @@ class _ThuChiCongTrinhDesktopState
             });
           },
         ),
-
         const SizedBox(width: 8),
-
-        _buildDropdown<int>(
+        buildDropdown<int>(
           value: _selectedYear,
-          items: _getYears(),
+          items: getYears(),
           itemLabel: (year) => '$year',
           onChanged: (value) {
             if (value == null) return;
@@ -709,9 +635,9 @@ class _ThuChiCongTrinhDesktopState
   // ============================================================
 
   Widget _buildYearSelector() {
-    return _buildDropdown<int>(
+    return buildDropdown<int>(
       value: _selectedYear,
-      items: _getYears(),
+      items: getYears(),
       itemLabel: (year) => 'Năm $year',
       onChanged: (value) {
         if (value == null) return;
@@ -721,68 +647,6 @@ class _ThuChiCongTrinhDesktopState
           _load();
         });
       },
-    );
-  }
-
-  List<int> _getYears() {
-    final currentYear = DateTime.now().year;
-
-    return List.generate(
-      21,
-          (index) => currentYear - 10 + index,
-    );
-  }
-
-  // ============================================================
-  // DROPDOWN
-  // ============================================================
-
-  Widget _buildDropdown<T>({
-    required T value,
-    required List<T> items,
-    required String Function(T) itemLabel,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: Colors.grey.shade300,
-        ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: items.contains(value)
-              ? value
-              : items.first,
-          isDense: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            size: 18,
-          ),
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Color(0xff334155),
-          ),
-          items: items.map(
-                (item) {
-              return DropdownMenuItem<T>(
-                value: item,
-                child: Text(
-                  itemLabel(item),
-                ),
-              );
-            },
-          ).toList(),
-          onChanged: onChanged,
-        ),
-      ),
     );
   }
 
@@ -829,21 +693,17 @@ class _ThuChiCongTrinhDesktopState
               size: 17,
               color: Color(0xff2563eb),
             ),
-
             const SizedBox(width: 8),
-
             Text(
               '${format.format(_fromDate!)} - '
-                  '${format.format(_toDate!)}',
+              '${format.format(_toDate!)}',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Color(0xff2563eb),
               ),
             ),
-
             const SizedBox(width: 6),
-
             const Icon(
               Icons.edit_calendar_outlined,
               size: 15,
@@ -860,20 +720,19 @@ class _ThuChiCongTrinhDesktopState
       context: context,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      initialDateRange: _fromDate != null &&
-          _toDate != null
+      initialDateRange: _fromDate != null && _toDate != null
           ? DateTimeRange(
-        start: _fromDate!,
-        end: _toDate!,
-      )
+              start: _fromDate!,
+              end: _toDate!,
+            )
           : DateTimeRange(
-        start: DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          1,
-        ),
-        end: DateTime.now(),
-      ),
+              start: DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                1,
+              ),
+              end: DateTime.now(),
+            ),
       locale: const Locale(
         'vi',
         'VN',
@@ -897,49 +756,41 @@ class _ThuChiCongTrinhDesktopState
   // ============================================================
 
   Widget _buildSummary(
-      ThuChiCongTrinhViewModel vm,
-      ) {
+    ThuChiCongTrinhViewModel vm,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth =
-            (constraints.maxWidth - 32) / 3;
+        final cardWidth = (constraints.maxWidth - 32) / 3;
 
         if (constraints.maxWidth < 720) {
           return Column(
             children: [
-              _summaryCard(
+              summaryCard(
                 title: 'Tổng thu',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.tongThu,
                 ),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
-                background:
-                const Color(0xffecfdf3),
+                background: const Color(0xffecfdf3),
               ),
-
               const SizedBox(height: 12),
-
-              _summaryCard(
+              summaryCard(
                 title: 'Tổng chi',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.tongChi,
                 ),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
-                background:
-                const Color(0xfffef2f2),
+                background: const Color(0xfffef2f2),
               ),
-
               const SizedBox(height: 12),
-
-              _summaryCard(
+              summaryCard(
                 title: 'Còn lại',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.conLai,
                 ),
-                icon: Icons
-                    .account_balance_wallet_outlined,
+                icon: Icons.account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
                     : const Color(0xffdc2626),
@@ -955,44 +806,37 @@ class _ThuChiCongTrinhDesktopState
           children: [
             SizedBox(
               width: cardWidth,
-              child: _summaryCard(
+              child: summaryCard(
                 title: 'Tổng thu',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.tongThu,
                 ),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
-                background:
-                const Color(0xffecfdf3),
+                background: const Color(0xffecfdf3),
               ),
             ),
-
             const SizedBox(width: 16),
-
             SizedBox(
               width: cardWidth,
-              child: _summaryCard(
+              child: summaryCard(
                 title: 'Tổng chi',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.tongChi,
                 ),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
-                background:
-                const Color(0xfffef2f2),
+                background: const Color(0xfffef2f2),
               ),
             ),
-
             const SizedBox(width: 16),
-
             Expanded(
-              child: _summaryCard(
+              child: summaryCard(
                 title: 'Còn lại',
-                value: _currencyFormat.format(
+                value: currencyFormat.format(
                   vm.conLai,
                 ),
-                icon: Icons
-                    .account_balance_wallet_outlined,
+                icon: Icons.account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
                     : const Color(0xffdc2626),
@@ -1007,93 +851,13 @@ class _ThuChiCongTrinhDesktopState
     );
   }
 
-  Widget _summaryCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-    required Color background,
-  }) {
-    return Container(
-      height: 112,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 18,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.025),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 23,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          Expanded(
-            child: Column(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-
-                const SizedBox(height: 7),
-
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ============================================================
   // TRANSACTION AREA
   // ============================================================
 
   Widget _buildTransactionArea(
-      ThuChiCongTrinhViewModel vm,
-      ) {
+    ThuChiCongTrinhViewModel vm,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1104,12 +868,11 @@ class _ThuChiCongTrinhDesktopState
       ),
       child: Column(
         children: [
-          _buildTransactionHeader(vm),
-
+          buildTransactionHeader(vm.thuChiDanhMucs.length),
           const Divider(
             height: 1,
           ),
-
+          buildTamUngChiLuong(vm),
           if (vm.thuChiDanhMucs.isEmpty &&
               (vm.thuChiKhacs.thuchis == null ||
                   vm.thuChiKhacs.thuchis!.isEmpty))
@@ -1118,11 +881,10 @@ class _ThuChiCongTrinhDesktopState
             Column(
               children: [
                 ...vm.thuChiDanhMucs.map(
-                      (dmVM) => _buildDanhMucCard(
+                  (dmVM) => _buildDanhMucCard(
                     dmVM,
                   ),
                 ),
-
                 if (vm.thuChiKhacs.thuchis != null &&
                     vm.thuChiKhacs.thuchis!.isNotEmpty)
                   _buildKhacCard(vm),
@@ -1133,87 +895,11 @@ class _ThuChiCongTrinhDesktopState
     );
   }
 
-  Widget _buildTransactionHeader(
-      ThuChiCongTrinhViewModel vm,
-      ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 17,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xffeff6ff),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.receipt_long_outlined,
-              color: Color(0xff2563eb),
-              size: 19,
-            ),
-          ),
-
-          const SizedBox(width: 11),
-
-          const Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Các khoản thu chi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xff172033),
-                  ),
-                ),
-                SizedBox(height: 3),
-                Text(
-                  'Chi tiết các giao dịch theo danh mục và thời gian',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xff64748b),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xfff8fafc),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '${vm.thuChiDanhMucs.length} danh mục',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xff475569),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ============================================================
   // CATEGORY CARD
   // ============================================================
 
-  Widget _buildDanhMucCard(
-      dynamic dmVM,
-      ) {
+  Widget _buildDanhMucCard(dynamic dmVM,) {
     final items = dmVM.thuchis ?? [];
 
     return Container(
@@ -1249,8 +935,7 @@ class _ThuChiCongTrinhDesktopState
                   height: 34,
                   decoration: BoxDecoration(
                     color: const Color(0xffeaf2ff),
-                    borderRadius:
-                    BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.folder_outlined,
@@ -1258,13 +943,10 @@ class _ThuChiCongTrinhDesktopState
                     color: Color(0xff2563eb),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: Text(
-                    dmVM.danhMucThuChi?.ten ??
-                        'Chưa phân loại',
+                    dmVM.danhMucThuChi?.ten ?? 'Chưa phân loại',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1272,7 +954,6 @@ class _ThuChiCongTrinhDesktopState
                     ),
                   ),
                 ),
-
                 const Text(
                   'Số dư',
                   style: TextStyle(
@@ -1280,11 +961,9 @@ class _ThuChiCongTrinhDesktopState
                     color: Color(0xff94a3b8),
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 Text(
-                  _currencyFormat.format(
+                  currencyFormat.format(
                     dmVM.conLai,
                   ),
                   style: TextStyle(
@@ -1298,7 +977,6 @@ class _ThuChiCongTrinhDesktopState
               ],
             ),
           ),
-
           if (items.isEmpty)
             Padding(
               padding: const EdgeInsets.all(20),
@@ -1316,9 +994,8 @@ class _ThuChiCongTrinhDesktopState
               child: Column(
                 children: [
                   ...items.map(
-                        (tc) => Padding(
-                      padding:
-                      const EdgeInsets.only(
+                    (tc) => Padding(
+                      padding: const EdgeInsets.only(
                         bottom: 6,
                       ),
                       child: ThuChiItemDesktop(
@@ -1341,11 +1018,8 @@ class _ThuChiCongTrinhDesktopState
   // OTHER
   // ============================================================
 
-  Widget _buildKhacCard(
-      ThuChiCongTrinhViewModel vm,
-      ) {
-    final items =
-        vm.thuChiKhacs.thuchis ?? [];
+  Widget _buildKhacCard(ThuChiCongTrinhViewModel vm,) {
+    final items = vm.thuChiKhacs.thuchis ?? [];
 
     return Container(
       margin: const EdgeInsets.fromLTRB(
@@ -1380,8 +1054,7 @@ class _ThuChiCongTrinhDesktopState
                   height: 34,
                   decoration: BoxDecoration(
                     color: const Color(0xfff1f5f9),
-                    borderRadius:
-                    BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.more_horiz,
@@ -1389,9 +1062,7 @@ class _ThuChiCongTrinhDesktopState
                     color: Color(0xff64748b),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 const Expanded(
                   child: Text(
                     'Khác',
@@ -1402,16 +1073,14 @@ class _ThuChiCongTrinhDesktopState
                     ),
                   ),
                 ),
-
                 Text(
-                  _currencyFormat.format(
+                  currencyFormat.format(
                     vm.thuChiKhacs.conLai,
                   ),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color:
-                    vm.thuChiKhacs.conLai >= 0
+                    color: vm.thuChiKhacs.conLai >= 0
                         ? const Color(0xff2563eb)
                         : const Color(0xffdc2626),
                   ),
@@ -1419,15 +1088,13 @@ class _ThuChiCongTrinhDesktopState
               ],
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(10),
             child: Column(
               children: [
                 ...items.map(
-                      (tc) => Padding(
-                    padding:
-                    const EdgeInsets.only(
+                  (tc) => Padding(
+                    padding: const EdgeInsets.only(
                       bottom: 6,
                     ),
                     child: ThuChiItemDesktop(
@@ -1450,33 +1117,24 @@ class _ThuChiCongTrinhDesktopState
   // RIGHT OVERVIEW
   // ============================================================
 
-  Widget _buildOverviewPanel(
-      ThuChiCongTrinhViewModel vm,
-      ) {
+  Widget _buildOverviewPanel(ThuChiCongTrinhViewModel vm,) {
     return Column(
       children: [
         _buildBalancePanel(vm),
-
         const SizedBox(height: 16),
-
         _buildQuickInfo(vm),
       ],
     );
   }
 
   Widget _buildBalancePanel(
-      ThuChiCongTrinhViewModel vm,
-      ) {
-    final total =
-        vm.tongThu.abs() + vm.tongChi.abs();
+    ThuChiCongTrinhViewModel vm,
+  ) {
+    final total = vm.tongThu.abs() + vm.tongChi.abs();
 
-    final incomePercent = total == 0
-        ? 0.0
-        : vm.tongThu.abs() / total;
+    final incomePercent = total == 0 ? 0.0 : vm.tongThu.abs() / total;
 
-    final expensePercent = total == 0
-        ? 0.0
-        : vm.tongChi.abs() / total;
+    final expensePercent = total == 0 ? 0.0 : vm.tongChi.abs() / total;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1488,8 +1146,7 @@ class _ThuChiCongTrinhDesktopState
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Phân bổ tài chính',
@@ -1499,9 +1156,7 @@ class _ThuChiCongTrinhDesktopState
               color: Color(0xff172033),
             ),
           ),
-
           const SizedBox(height: 5),
-
           Text(
             _getFinancialDescription(),
             style: TextStyle(
@@ -1509,35 +1164,28 @@ class _ThuChiCongTrinhDesktopState
               color: Colors.grey.shade600,
             ),
           ),
-
           const SizedBox(height: 22),
-
-          _buildProgressRow(
+          buildProgressRow(
             title: 'Tổng thu',
             value: vm.tongThu,
             percent: incomePercent,
             color: const Color(0xff16a34a),
           ),
-
           const SizedBox(height: 18),
-
-          _buildProgressRow(
+          buildProgressRow(
             title: 'Tổng chi',
             value: vm.tongChi,
             percent: expensePercent,
             color: const Color(0xffdc2626),
           ),
-
           const SizedBox(height: 22),
-
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: vm.conLai >= 0
                   ? const Color(0xffeff6ff)
                   : const Color(0xfffef2f2),
-              borderRadius:
-              BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(9),
             ),
             child: Row(
               children: [
@@ -1550,42 +1198,33 @@ class _ThuChiCongTrinhDesktopState
                       ? const Color(0xff2563eb)
                       : const Color(0xffdc2626),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        vm.conLai >= 0
-                            ? 'Số dư hiện tại'
-                            : 'Đang âm ngân sách',
+                        vm.conLai >= 0 ? 'Số dư hiện tại' : 'Đang âm ngân sách',
                         style: TextStyle(
                           fontSize: 11,
-                          color:
-                          Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                         ),
                       ),
-
                       const SizedBox(height: 3),
-
                       Text(
-                        _currencyFormat.format(
+                        currencyFormat.format(
                           vm.conLai,
                         ),
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight:
-                          FontWeight.w700,
+                          fontWeight: FontWeight.w700,
                           color: vm.conLai >= 0
                               ? const Color(
-                            0xff2563eb,
-                          )
+                                  0xff2563eb,
+                                )
                               : const Color(
-                            0xffdc2626,
-                          ),
+                                  0xffdc2626,
+                                ),
                         ),
                       ),
                     ],
@@ -1616,66 +1255,9 @@ class _ThuChiCongTrinhDesktopState
     }
   }
 
-  Widget _buildProgressRow({
-    required String title,
-    required num value,
-    required double percent,
-    required Color color,
-  }) {
-    final safePercent =
-    percent.clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xff475569),
-                ),
-              ),
-            ),
-
-            Text(
-              _currencyFormat.format(value),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        ClipRRect(
-          borderRadius:
-          BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: safePercent,
-            minHeight: 7,
-            backgroundColor:
-            const Color(0xfff1f5f9),
-            valueColor:
-            AlwaysStoppedAnimation<Color>(
-              color,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildQuickInfo(
-      ThuChiCongTrinhViewModel vm,
-      ) {
+    ThuChiCongTrinhViewModel vm,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1686,8 +1268,7 @@ class _ThuChiCongTrinhDesktopState
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
@@ -1707,44 +1288,34 @@ class _ThuChiCongTrinhDesktopState
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
-          _buildInfoRow(
+          buildInfoRow(
             'Phạm vi',
             _getFilterLabel(),
           ),
-
           const SizedBox(height: 12),
-
-          _buildInfoRow(
+          buildInfoRow(
             'Danh mục',
             '${vm.thuChiDanhMucs.length}',
           ),
-
           const SizedBox(height: 12),
-
-          _buildInfoRow(
+          buildInfoRow(
             'Tổng thu',
-            _currencyFormat.format(
+            currencyFormat.format(
               vm.tongThu,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          _buildInfoRow(
+          buildInfoRow(
             'Tổng chi',
-            _currencyFormat.format(
+            currencyFormat.format(
               vm.tongChi,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          _buildInfoRow(
+          buildInfoRow(
             'Số dư',
-            _currencyFormat.format(
+            currencyFormat.format(
               vm.conLai,
             ),
             valueColor: vm.conLai >= 0
@@ -1765,10 +1336,8 @@ class _ThuChiCongTrinhDesktopState
         return 'Năm $_selectedYear';
 
       case 'range':
-        if (_fromDate != null &&
-            _toDate != null) {
-          final format =
-          DateFormat('dd/MM/yyyy');
+        if (_fromDate != null && _toDate != null) {
+          final format = DateFormat('dd/MM/yyyy');
 
           return '${format.format(_fromDate!)} - '
               '${format.format(_toDate!)}';
@@ -1780,39 +1349,6 @@ class _ThuChiCongTrinhDesktopState
       default:
         return 'Toàn bộ công trình';
     }
-  }
-
-  Widget _buildInfoRow(
-      String title,
-      String value, {
-        Color? valueColor,
-      }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xff64748b),
-            ),
-          ),
-        ),
-
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: valueColor ??
-                  const Color(0xff334155),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   // ============================================================
@@ -1832,8 +1368,7 @@ class _ThuChiCongTrinhDesktopState
             height: 58,
             decoration: BoxDecoration(
               color: const Color(0xfff1f5f9),
-              borderRadius:
-              BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
               Icons.receipt_long_outlined,
@@ -1841,9 +1376,7 @@ class _ThuChiCongTrinhDesktopState
               color: Color(0xff94a3b8),
             ),
           ),
-
           const SizedBox(height: 15),
-
           const Text(
             'Chưa có khoản thu chi',
             style: TextStyle(
@@ -1852,9 +1385,7 @@ class _ThuChiCongTrinhDesktopState
               color: Color(0xff334155),
             ),
           ),
-
           const SizedBox(height: 6),
-
           Text(
             _filterType == 'all'
                 ? 'Hãy thêm khoản thu hoặc chi đầu tiên cho công trình.'
@@ -1865,9 +1396,7 @@ class _ThuChiCongTrinhDesktopState
               color: Colors.grey.shade500,
             ),
           ),
-
           const SizedBox(height: 18),
-
           if (_filterType == 'all')
             ElevatedButton.icon(
               onPressed: _addThuChi,
@@ -1879,19 +1408,15 @@ class _ThuChiCongTrinhDesktopState
                 'Thêm khoản thu chi',
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                const Color(0xff2563eb),
+                backgroundColor: const Color(0xff2563eb),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding:
-                const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 11,
                 ),
-                shape:
-                RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
@@ -1904,33 +1429,20 @@ class _ThuChiCongTrinhDesktopState
   // LOADING
   // ============================================================
 
-  Widget _buildLoading() {
-    return const Center(
-      child: SizedBox(
-        width: 32,
-        height: 32,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-        ),
-      ),
-    );
-  }
-
   // ============================================================
   // ERROR
   // ============================================================
 
   Widget _buildError(
-      String error,
-      ) {
+    String error,
+  ) {
     return Center(
       child: Container(
         width: 420,
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-          BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Colors.grey.shade200,
           ),
@@ -1943,8 +1455,7 @@ class _ThuChiCongTrinhDesktopState
               height: 56,
               decoration: BoxDecoration(
                 color: const Color(0xfffef2f2),
-                borderRadius:
-                BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.error_outline,
@@ -1952,9 +1463,7 @@ class _ThuChiCongTrinhDesktopState
                 color: Color(0xffdc2626),
               ),
             ),
-
             const SizedBox(height: 16),
-
             const Text(
               'Không thể tải dữ liệu',
               style: TextStyle(
@@ -1962,9 +1471,7 @@ class _ThuChiCongTrinhDesktopState
                 fontWeight: FontWeight.w700,
               ),
             ),
-
             const SizedBox(height: 7),
-
             Text(
               'Đã xảy ra lỗi khi tải thông tin thu chi.',
               textAlign: TextAlign.center,
@@ -1973,9 +1480,7 @@ class _ThuChiCongTrinhDesktopState
                 color: Colors.grey.shade600,
               ),
             ),
-
             const SizedBox(height: 20),
-
             ElevatedButton.icon(
               onPressed: () {
                 setState(_load);
@@ -1988,19 +1493,15 @@ class _ThuChiCongTrinhDesktopState
                 'Thử lại',
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                const Color(0xff2563eb),
+                backgroundColor: const Color(0xff2563eb),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding:
-                const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 12,
                 ),
-                shape:
-                RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
@@ -2013,49 +1514,4 @@ class _ThuChiCongTrinhDesktopState
   // ============================================================
   // EMPTY PAGE
   // ============================================================
-
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xfff1f5f9),
-              borderRadius:
-              BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.receipt_long_outlined,
-              size: 30,
-              color: Color(0xff94a3b8),
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          const Text(
-            'Chưa có dữ liệu thu chi',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Color(0xff334155),
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            'Dữ liệu thu chi của công trình sẽ hiển thị tại đây.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

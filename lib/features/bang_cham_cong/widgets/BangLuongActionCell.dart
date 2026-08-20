@@ -6,6 +6,7 @@ import '../../../core/utils/trang_thai_luong.dart';
 import '../../../services/ChotChiLuongService.dart';
 import '../../../viewmodel/ChamCongModel.dart';
 import '../../chi_luong/ChiLuongScreen.dart';
+import '../../chi_luong/presentation/pages/chi_luong_page.dart';
 import 'chiLuongbtn.dart';
 import 'chot_luong_dialog.dart';
 import 'huyChotLuongBtn.dart';
@@ -14,6 +15,7 @@ class BangLuongActionCell extends StatelessWidget {
   final ChamCongModel nv;
   final int thang;
   final int nam;
+  final String? tenCongTrinh;
   final Chotchiluongservice service;
   final bool daKhoaCC;
   final Future<void> Function() onReload;
@@ -23,6 +25,7 @@ class BangLuongActionCell extends StatelessWidget {
     required this.nv,
     required this.thang,
     required this.nam,
+    this.tenCongTrinh,
     required this.service,
     required this.daKhoaCC,
     required this.onReload,
@@ -31,58 +34,120 @@ class BangLuongActionCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trangthai = TrangThaiLuong.fromValue(nv.trangThai);
+
+    // Đã chốt lương
     if (trangthai == TrangThaiLuong.dachot) {
       if (nv.tongDaChi == 0) {
         return Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             HuyChotLuongButton(
               nv: nv,
               service: service,
               onReload: onReload,
             ),
-            const SizedBox(width: 3,),
+            const SizedBox(width: 3),
             ChiLuongButton(
               nv: nv,
+              thang: thang,
+              tenCongTrinh: tenCongTrinh,
+              nam: nam,
               onReload: onReload,
             ),
           ],
         );
       }
+
       return ChiLuongButton(
         nv: nv,
+        thang: thang,
+        tenCongTrinh: tenCongTrinh,
+        nam: nam,
         onReload: onReload,
       );
     }
 
+    // Chưa khóa chấm công thì không cho chốt lương
+    if (!daKhoaCC) {
+      return ElevatedButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Vui lòng khóa chấm công trước khi chốt lương.',
+              ),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          minimumSize: const Size(0, 20),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: const Text(
+          "Chưa khóa công",
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    // Đã khóa công -> cho phép chốt lương
     return ElevatedButton(
       onPressed: () async {
-        await ChotLuongHelper.showConfirmChot(
-          context: context,
-          nv: nv,
-          thang: thang,
-          nam: nam,
-          service: service,
-          onSuccess: onReload,
-        );
+        try {
+          await ChotLuongHelper.showConfirmChot(
+            context: context,
+            nv: nv,
+            thang: thang,
+            nam: nam,
+            service: service,
+            onSuccess: onReload,
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Lỗi chốt lương: $e',
+              ),
+            ),
+          );
+        }
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.green,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 4,
+        ),
         minimumSize: const Size(0, 20),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: const Text("Chốt", style: TextStyle(color: Colors.white),),
+      child: const Text(
+        "Chốt lương",
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 }
-
 class ChiLuongButton extends StatelessWidget {
   final ChamCongModel nv;
+  final int thang;
+  final int nam;
+  final String? tenCongTrinh;
   final Future<void> Function() onReload;
 
   const ChiLuongButton({
     super.key,
     required this.nv,
+    required this.thang,
+    required this.nam,
+    this.tenCongTrinh,
     required this.onReload,
   });
 
@@ -93,9 +158,12 @@ class ChiLuongButton extends StatelessWidget {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChiLuongScreen(
+            builder: (_) => ChiLuongPage(
               idBangLuong: nv.idBangLuong!,
               tenNhanVien: nv.ten,
+              tenCongTrinh: tenCongTrinh,
+              thang: thang,
+              nam: nam,
               tongPhaiTra: nv.thucNhanHienThi ?? 0,
             ),
           ),
@@ -165,34 +233,48 @@ class ChotLuongHelper {
     required int thang,
     required int nam,
     required Chotchiluongservice service,
-    required VoidCallback onSuccess,
+    required Future<void> Function() onSuccess,
   }) async {
-    final ok = await showDialog(
+    final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text("Xác nhận"),
         content: Text("Chốt lương cho ${nv.ten}?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
             child: const Text("Huỷ"),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
             child: const Text("Chốt"),
           ),
         ],
       ),
     );
 
-    if (ok == true) {
+    if (ok != true) return;
+
+    try {
       await service.chotLuong(
         nv: nv,
         thang: thang,
         nam: nam,
       );
 
-      onSuccess();
+      await onSuccess();
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Chốt lương thất bại: $e"),
+        ),
+      );
     }
   }
 
@@ -200,29 +282,46 @@ class ChotLuongHelper {
     required BuildContext context,
     required int idBangLuong,
     required Chotchiluongservice service,
-    required VoidCallback onSuccess,
+    required Future<void> Function() onSuccess,
   }) async {
-    final ok = await showDialog(
+    final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text("Xác nhận"),
-        content: const Text("Hủy chốt lương"),
+        content: const Text("Bạn có chắc muốn hủy chốt lương?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
             child: const Text("Huỷ"),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
             child: const Text("Hủy chốt"),
           ),
         ],
       ),
     );
 
-    if (ok == true) {
-      await service.huyChot(idBangLuong: idBangLuong);
-      onSuccess();
+    if (ok != true) return;
+
+    try {
+      await service.huyChot(
+        idBangLuong: idBangLuong,
+      );
+
+      await onSuccess();
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Hủy chốt lương thất bại: $e"),
+        ),
+      );
     }
   }
 }

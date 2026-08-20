@@ -7,7 +7,88 @@ class ChiLuongRepository {
     final db = await _dbHelper.database;
     return await db.insert('chi_luong', model.toMap());
   }
+  Future<List<Map<String, dynamic>>> getChiLuong({
+    required int idCongTrinh,
+    DateTime? tuNgay,
+    DateTime? denNgay,
+  }) async {
+    final db = await DBHelper.instance.database;
 
+    final conditions = <String>[
+      'nvc.idCongTrinh = ?',
+      'cl.is_deleted = 0',
+      'bl.is_deleted = 0',
+      'nvc.is_deleted = 0',
+    ];
+
+    final args = <dynamic>[idCongTrinh];
+
+    // Từ ngày
+    if (tuNgay != null) {
+      conditions.add('cl.ngayChi >= ?');
+      args.add(tuNgay.toIso8601String());
+    }
+
+    // Đến ngày
+    if (denNgay != null) {
+      // Nếu denNgay chỉ có ngày (00:00:00), lấy đến hết ngày đó.
+      final denNgayCuoi = DateTime(
+        denNgay.year,
+        denNgay.month,
+        denNgay.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      conditions.add('cl.ngayChi <= ?');
+      args.add(denNgayCuoi.toIso8601String());
+    }
+
+    final sql = '''
+    SELECT
+      cl.id,
+      cl.idBangLuong,
+      cl.soTien,
+      cl.ngayChi,
+      cl.ghiChu,
+      cl.createdAt,
+      cl.server_id,
+      cl.is_synced,
+      cl.updated_at,
+
+      bl.idNhanVienCongTrinh,
+      bl.thang,
+      bl.nam,
+      bl.tongCong,
+      bl.tongLuong,
+      bl.tongUng,
+      bl.thucNhan,
+      bl.trangThai,
+      bl.ngayChot,
+
+      nvc.idNhanVien,
+      nvc.idCongTrinh,
+      nvc.ngayBatDau,
+      nvc.ngayKetThuc,
+      nvc.vaiTro
+
+    FROM chi_luong cl
+
+    INNER JOIN bang_luong bl
+      ON bl.id = cl.idBangLuong
+
+    INNER JOIN nhan_vien_cong_trinh nvc
+      ON nvc.id = bl.idNhanVienCongTrinh
+
+    WHERE ${conditions.join(' AND ')}
+
+    ORDER BY cl.ngayChi DESC, cl.id DESC
+  ''';
+
+    return await db.rawQuery(sql, args);
+  }
   Future<List<ChiLuongModel>> getByBangLuong(int idBangLuong) async {
     final db = await _dbHelper.database;
     final result = await db.query(

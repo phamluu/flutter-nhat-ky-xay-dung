@@ -1,6 +1,9 @@
 import 'package:go_router/go_router.dart';
+import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/presentation/desktop/danh_muc_thu_chi_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/presentation/pages/danh_muc_thu_chi_page.dart';
 import 'package:nhat_ky_xay_dung/features/luong_co_ban/presentation/pages/luong_co_ban_page.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien/presentation/pages/nhan_vien_list_page.dart';
+import 'package:nhat_ky_xay_dung/features/settings/presentation/pages/setting_page.dart';
 import '../../features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../shell/desktop_shell.dart';
@@ -28,6 +31,12 @@ final appRouter = GoRouter(
           },
         ),
         GoRoute(
+          path: '/danh-muc-thu-chi',
+          builder: (context, state) {
+            return const DanhMucThuChiPage();
+          },
+        ),
+        GoRoute(
           path: '/nhan-vien',
           builder: (context, state) {
             return const NhanVienListPage();
@@ -37,6 +46,12 @@ final appRouter = GoRouter(
           path: '/luong-co-ban',
           builder: (context, state) {
             return const LuongCoBanPage();
+          },
+        ),
+        GoRoute(
+          path: '/setting',
+          builder: (context, state) {
+            return const SettingPage();
           },
         ),
       ],

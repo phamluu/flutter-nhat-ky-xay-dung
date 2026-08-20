@@ -111,11 +111,12 @@ class ThuChiCongTrinhViewModel {
       (sum, dm) => sum + dm.tongChi,
     );
     final khacChi = thuChiKhacs.tongChi;
-    return dmChi + khacChi;
+    return dmChi + khacChi + tamUngLuong + daChiLuong;
   }
-
+  late double tamUngLuong;
+  late double daChiLuong;
   /// Còn lại = Tổng thu - Tổng chi
-  double get conLai => tongThu - tongChi;
+  double get conLai => tongThu - tongChi ;
 }
 
 class ThuChiCongTyViewModel {

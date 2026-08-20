@@ -1266,6 +1266,7 @@ class _BangChamCongDesktopState
                 nv: nv,
                 thang: _selectedMonth,
                 nam: _selectedYear,
+                tenCongTrinh: widget.tenCongTrinh,
                 service: _chotService,
                 daKhoaCC: daKhoaCC,
                 onReload: () async {

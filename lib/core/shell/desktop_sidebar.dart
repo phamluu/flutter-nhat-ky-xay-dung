@@ -41,7 +41,13 @@ class DesktopSidebar extends StatelessWidget {
             title: 'Công trình',
             route: '/cong-trinh',
           ),
-
+          _menuItem(
+            context,
+            currentPath,
+            icon: Icons.money,
+            title: 'Hạng mục thu chi',
+            route: '/danh-muc-thu-chi',
+          ),
           _menuItem(
             context,
             currentPath,
@@ -65,7 +71,7 @@ class DesktopSidebar extends StatelessWidget {
             currentPath,
             icon: Icons.settings_outlined,
             title: 'Cài đặt',
-            route: '/cai-dat',
+            route: '/setting',
           ),
 
           const SizedBox(height: 20),

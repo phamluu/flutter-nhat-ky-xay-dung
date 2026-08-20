@@ -8,34 +8,85 @@ Future<void> setkhoaChamCong({
   required int selectedMonth,
   required int selectedYear,
   required bool isKhoa,
-  required bool daChotLuong
+  required bool daChotLuong,
 }) async {
-  final ok = await showDialog(
+  // Nếu đã chốt lương thì không cho mở khóa
+  if (!isKhoa && daChotLuong) {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Không thể mở khóa'),
+        content: const Text(
+          'Tháng này đã chốt lương nên không thể mở chốt công.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  final actionText = isKhoa ? 'khóa' : 'mở khóa';
+
+  final ok = await showDialog<bool>(
     context: context,
-    builder: (_) => daChotLuong ? AlertDialog(content: Text('Không thể mở khóa'),) : AlertDialog(
-      title: Text("Xác nhận ${daChotLuong}"),
-      content: Text(isKhoa ? "Khóa chấm công tháng $selectedMonth/$selectedYear?" :
-      "Mở khóa chấm công tháng $selectedMonth/$selectedYear"),
+    builder: (context) => AlertDialog(
+      title: Text(isKhoa ? 'Xác nhận chốt công' : 'Xác nhận mở chốt công'),
+      content: Text(
+        isKhoa
+            ? 'Bạn có chắc muốn khóa chấm công tháng '
+            '$selectedMonth/$selectedYear?'
+            : 'Bạn có chắc muốn mở khóa chấm công tháng '
+            '$selectedMonth/$selectedYear?',
+      ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Huỷ")),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text(isKhoa ? "Khóa" : "Mở khóa")),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Hủy'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(isKhoa ? 'Khóa' : 'Mở khóa'),
+        ),
       ],
     ),
   );
 
-  if (ok == true) {
-    final thang =
-        "${selectedYear}-${selectedMonth.toString().padLeft(2, '0')}";
-    if(isKhoa){
-      await ChamCongService(ChamCongRepository()).setKhoaChamCong(thang, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Đã khóa chấm công")),
-      );
-    }else{
-      await ChamCongService(ChamCongRepository()).setKhoaChamCong(thang, false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Đã mở khóa chấm công")),
-      );
-    }
+  if (ok != true) return;
+
+  final thang =
+      '$selectedYear-${selectedMonth.toString().padLeft(2, '0')}';
+
+  try {
+    final repository = ChamCongRepository();
+    final service = ChamCongService(repository);
+
+    await service.setKhoaChamCong(thang, isKhoa);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isKhoa
+              ? 'Đã khóa chấm công tháng $selectedMonth/$selectedYear'
+              : 'Đã mở khóa chấm công tháng $selectedMonth/$selectedYear',
+        ),
+      ),
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Không thể $actionText chấm công: $e',
+        ),
+      ),
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_detail_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/thu_chi/presentation/desktop/thu_chi_form_desktop.dart';
 import '../../../../core/utils/currencyFormat.dart';
+import '../../../../core/utils/date_utils.dart';
 import '../../../../data/models/ThuChi.dart';
 import '../../widgets/thu_chi_button.dart';
 
@@ -150,7 +151,13 @@ class _ThuChiItemDesktopState extends State<ThuChiItemDesktop> {
                       ),
 
                       const SizedBox(height: 5),
-
+                      Text(DateUtilsCore.formatDate(tc.ngay),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
                       Text(
                         'Nhấn để xem chi tiết',
                         style: TextStyle(
@@ -198,15 +205,11 @@ class _ThuChiItemDesktopState extends State<ThuChiItemDesktop> {
                       background:
                       const Color(0xffeff6ff),
                       onPressed: () {
-                         Navigator.push(
+                        openThuChiForm(
                           context,
-                          MaterialPageRoute(builder: (_) => ThuChiFormDesktop(thuChi: tc)),
+                          tc,
+                          widget.onRefresh,
                         );
-                        // openThuChiForm(
-                        //   context,
-                        //   tc,
-                        //   widget.onRefresh,
-                        // );
                       },
                     ),
 
@@ -239,7 +242,15 @@ class _ThuChiItemDesktopState extends State<ThuChiItemDesktop> {
   // ============================================================
   // ACTION BUTTON
   // ============================================================
-
+  Future<void> openThuChiForm(BuildContext context, ThuChi? tc, VoidCallback onUpdated) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ThuChiFormDesktop(thuChi: tc)),
+    );
+    if (result == true) {
+      onUpdated();
+    }
+  }
   Widget _buildActionButton({
     required String tooltip,
     required IconData icon,
