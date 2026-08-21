@@ -1,9 +1,9 @@
 import 'package:excel/excel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import 'package:nhat_ky_xay_dung/features/ung_luong/data/models/UngLuong.dart';
 
-import '../../ung_luong/data/services/ung_luong_service.dart';
+import '../../luong/data/models/UngLuong.dart';
+import '../../luong/data/services/ung_luong_service.dart';
 
 Future<void> UngLuongExecl({
   required Sheet sheetUngLuong,

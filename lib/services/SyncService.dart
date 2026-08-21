@@ -1,6 +1,6 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_xoa.dart';
-import 'package:nhat_ky_xay_dung/features/tien_do/data/models/TienDoCongTrinhModel.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/TienDoCongTrinhModel.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVien.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVienCongTrinh.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhatKy.dart';

@@ -1,0 +1,185 @@
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/CongTrinhReponsitory.dart';
+import 'package:sqflite/sqflite.dart';
+
+import '../../../../data/db_helper.dart';
+import '../../../cong_trinh/data/models/CongTrinh.dart';
+import '../../../nhan_vien/data/services/nhan_vien_service.dart';
+import '../../../nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
+import '../../../nhan_vien_cong_trinh/data/services/nhan_vien_cong_trinh_service.dart';
+import '../models/UngLuong.dart';
+import '../repositories/ung_luong_repository.dart';
+
+class UngLuongService {
+  final _dbHelper = DBHelper.instance;
+  final _repo = UngLuongRepository();
+
+  Future<List<Ungluong>> getUngLuongCongTrinh([int? idCongTrinh]) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery(
+      '''
+    SELECT ul.*, 
+           nvct.id AS nvct_id, 
+           nvct.idNhanVien AS nvct_idNhanVien, 
+           nvct.idCongTrinh AS nvct_idCongTrinh,
+           ct.id AS congTrinhId,
+           ct.ten AS congTrinhTen
+    FROM ung_luong ul 
+    LEFT JOIN nhan_vien_cong_trinh nvct ON ul.idNhanVienCongTrinh = nvct.id
+    LEFT JOIN cong_trinh ct ON nvct.idCongTrinh = ct.id
+    ${idCongTrinh != null ? "WHERE nvct.idCongTrinh = ?" : ""}
+    ORDER BY ul.ngayUng DESC
+    ''',
+      idCongTrinh != null ? [idCongTrinh] : [],
+    );
+
+    // load nhân viên
+    final nhanVienService = NhanVienService();
+    final nhanViens = await nhanVienService.getAllNhanVien();
+
+    return result.map((e) {
+      // map CongTrinh (nếu có)
+      CongTrinh? congTrinh;
+      if (e['congTrinhId'] != null) {
+        congTrinh = CongTrinh(
+          id: e['congTrinhId'] as int,
+          ten: e['congTrinhTen'] as String,
+        );
+      }
+
+      // map NhanVienCongTrinh (nếu có)
+      NhanVienCongTrinh? nvct;
+      if (e['nvct_id'] != null) {
+        nvct = NhanVienCongTrinh(
+          id: e['nvct_id'] as int,
+          idNhanVien: e['nvct_idNhanVien'] as int,
+          idCongTrinh: e['nvct_idCongTrinh'] as int?,
+          congTrinh: congTrinh,
+        );
+      }
+
+      return Ungluong.fromMap(
+        e,
+        nhanVienCongTrinhs: nvct != null ? [nvct] : [],
+        congTrinhs: congTrinh != null ? [congTrinh] : [],
+      );
+    }).toList();
+
+  }
+
+  Future<List<Ungluong>> getAllUngLuong() async {
+    final db = await _dbHelper.database;
+
+    final result = await db.query(
+      'ung_luong',
+      orderBy: 'ngayUng DESC',
+    );
+
+    // load nhân viên
+    final nhanVienService = NhanVienService();
+    final nhanViens = await nhanVienService.getAllNhanVien();
+
+    // load nhân viên công trình
+    final nvctService = NhanVienCongTrinhService();
+    final nhanVienCongTrinhs = await nvctService.getAll();
+
+    // load công trình
+    final congTrinhService = CongtrinhReponsitory();
+    final congTrinhs = await congTrinhService.getDanhSachCongTrinh();
+
+    return result.map((e) => Ungluong.fromMap(
+      e,
+      nhanVienCongTrinhs: nhanVienCongTrinhs,
+      congTrinhs: congTrinhs,
+    )).toList();
+  }
+
+  // Thêm ứng lương
+  Future<int> addUngLuong(Ungluong u) async {
+    final db = await _dbHelper.database;
+    return await db.insert('ung_luong', u.toMap());
+  }
+
+  // Sửa ứng lương
+  Future<int> updateUngLuong(Ungluong u) async {
+    final db = await _dbHelper.database;
+    return await db.update(
+      'ung_luong',
+      u.toMap(),
+      where: 'id = ?',
+      whereArgs: [u.id],
+    );
+  }
+
+  // Xóa ứng lương
+  Future<int> deleteUngLuong(int id) async {
+    final db = await _dbHelper.database;
+    return await db.delete(
+      'ung_luong',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  //************* ỨNG LƯƠNG TỪNG NHÂN VIÊN **************
+
+  Future<List<Ungluong>> getUngLuongNhanVien(
+      int idNhanVienCongTrinh, int thang, int nam) async
+  {
+    final db = await _dbHelper.database;
+    final result = await db.query(
+      'ung_luong',
+      where: '''
+      idNhanVienCongTrinh = ?
+      AND strftime('%m', ngayUng) = ?
+      AND strftime('%Y', ngayUng) = ?
+    ''',
+      whereArgs: [
+        idNhanVienCongTrinh,
+        thang.toString().padLeft(2, '0'), // 01, 02...
+        nam.toString(),
+      ],
+      orderBy: 'ngayUng DESC',
+    );
+
+    return result.map((e) => Ungluong.fromMap(e)).toList();
+  }
+
+  // *************** DANH SÁCH NHÂN VIÊN ỨNG LƯƠNG *************
+  Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, int thang, int nam) async {
+    final rows = await _repo.getNhanVienVaUngLuong(
+      idCongTrinh,
+      thang,
+      nam,
+    );
+
+    final Map<int, UngLuongViewModel> map = {};
+
+    for (var row in rows) {
+      final idNVCT = row['idNhanVienCongTrinh'];
+      // 🔹 Nếu chưa có nhân viên → tạo mới
+      if (!map.containsKey(idNVCT)) {
+        map[idNVCT] = UngLuongViewModel(
+          idNhanVienCongTrinh: idNVCT,
+          hoTen: row['ho_ten'],
+          thang: thang,
+          nam: nam,
+          daUngs: [],
+        );
+      }
+
+      // 🔹 Nếu có ứng lương → add vào list
+      if (row['idUngLuong'] != null) {
+        map[idNVCT]!.daUngs!.add(
+          UngLuongItem(
+            soTien: (row['soTien'] as num).toDouble(),
+            ngayUng: row['ngayUng'] != null
+                ? DateTime.tryParse(row['ngayUng'])
+                : null,
+            lyDo: row['lyDo'],
+          ),
+        );
+      }
+    }
+    return map.values.toList();
+  }
+}

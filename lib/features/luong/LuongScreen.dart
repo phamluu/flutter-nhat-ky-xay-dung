@@ -10,7 +10,7 @@ import '../../core/utils/trang_thai_luong.dart';
 import '../bang_cham_cong/data/repositories/ChamCongRepository.dart';
 import '../bang_cham_cong/data/services/ChotChiLuongService.dart';
 import '../bang_cham_cong/data/services/cham_cong_service.dart';
-import '../chi_luong/ChiLuongScreen.dart';
+import 'presentation/chi_luong/ChiLuongScreen.dart';
 
 class LuongNhanVienScreen extends StatefulWidget {
   final int? idCongTrinh;

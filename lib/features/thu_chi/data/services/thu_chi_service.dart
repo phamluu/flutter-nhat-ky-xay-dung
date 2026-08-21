@@ -1,15 +1,13 @@
-import 'package:nhat_ky_xay_dung/features/chi_luong/data/respositories/ChiLuongRepository.dart';
-import 'package:nhat_ky_xay_dung/features/ung_luong/data/repositories/ung_luong_repository.dart';
-import 'package:nhat_ky_xay_dung/features/danh_muc_thu_chi/data/services/danh_muc_thu_chi_service.dart';
-import 'package:sqflite/sqflite.dart';
-
-import '../../../../data/_db_helper.dart';
 import '../../../../data/db_helper.dart';
 import '../../../cong_trinh/data/models/CongTrinh.dart';
-import '../../../danh_muc_thu_chi/data/models/DanhMucThuChi.dart';
+import '../../../luong/data/repositories/ChiLuongRepository.dart';
+import '../../../luong/data/repositories/ung_luong_repository.dart';
+import '../models/DanhMucThuChi.dart';
 import '../models/ThuChi.dart';
 import '../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import 'package:intl/intl.dart';
+
+import 'danh_muc_thu_chi_service.dart';
 
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
@@ -100,7 +98,6 @@ class ThuChiService {
     }).toList();
   }
 
-  // final _thuChiRepo = ThuChiRepository();
   final _danhMucRepo = DanhMucThuChiService();
   final _congTrinhRepo = CongtrinhReponsitory();
   final _tamUng = UngLuongRepository();

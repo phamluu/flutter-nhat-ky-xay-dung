@@ -1,6 +1,6 @@
 import 'package:excel/excel.dart';
-import '../../chi_luong/data/respositories/ChiLuongRepository.dart';
-import '../../chi_luong/data/services/ChiLuongService.dart';
+import '../../luong/data/repositories/ChiLuongRepository.dart';
+import '../../luong/data/services/ChiLuongService.dart';
 Future<void> ChiLuongExcel({
   required Sheet sheetChiLuong,
   required int selectedYear,

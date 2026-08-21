@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
-import 'package:nhat_ky_xay_dung/features/ung_luong/screens/UngLuongScreen.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
+import '../../../luong/presentation/ung_luong/screens/UngLuongScreen.dart';
 import '../../data/repositories/ChamCongRepository.dart';
 import '../../data/repositories/ChotChiLuongRepository.dart';
 import '../../data/services/BangLuongService.dart';
