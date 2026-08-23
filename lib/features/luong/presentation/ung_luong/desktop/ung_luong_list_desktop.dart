@@ -11,10 +11,11 @@ import 'ung_luong_nhan_vien_desktop.dart';
 class UngLuongListDesktop extends StatefulWidget {
   final int idCongTrinh;
   final String? tenCongTrinh;
-
+  final int idBangChamCong;
   const UngLuongListDesktop({
     super.key,
     required this.idCongTrinh,
+    required this.idBangChamCong,
     this.tenCongTrinh,
   });
 
@@ -1018,10 +1019,9 @@ class _UngLuongListDesktopState
           idNhanVienCongTrinh:
           item.idNhanVienCongTrinh,
           hoTen: item.hoTen,
-          congTrinh:
-          widget.tenCongTrinh,
+          congTrinh: widget.tenCongTrinh,
           thang: thang,
-          nam: nam,
+          nam: nam, idBangChamCong: widget.idBangChamCong,
         ),
       ),
     );

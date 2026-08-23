@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/mobile/ChiTietCongTrinhScreen.dart';
-
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
+import 'ChiTietCongTrinhScreen.dart';
 import 'CongTrinhFormScreen.dart';
 
 class CongTrinhListMobile extends StatefulWidget {

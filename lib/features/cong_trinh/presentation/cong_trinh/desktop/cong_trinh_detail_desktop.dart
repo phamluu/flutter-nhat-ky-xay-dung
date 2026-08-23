@@ -1,42 +1,79 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bang_cham_cong_desktop.dart';
-import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/presentation/desktop/nhan_vien_cong_trinh_list_desktop.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bang_cham_cong_list_desktop.dart';
 import 'package:provider/provider.dart';
 import '../../../../../controllers/thong_ke_controller.dart';
+import '../../../../../services/thong_ke_service.dart';
+import '../../../../bang_cham_cong/presentation/desktop/bang_cham_cong_desktop.dart';
 import '../../../../luong/presentation/ung_luong/desktop/ung_luong_list_desktop.dart';
-import '../../../../nhat_ky_cong_trinh/presentation/desktop/nhat_ky_list_desktop.dart';
 import '../../../../thu_chi/presentation/thu_chi/desktop/thu_chi_cong_trinh_desktop.dart';
 import '../../../data/models/CongTrinh.dart';
+import '../../nhan_vien_cong_trinh/desktop/nhan_vien_cong_trinh_list_desktop.dart';
+import '../../nhat_ky_cong_trinh/desktop/nhat_ky_list_desktop.dart';
 import '../../tien_do_cong_trinh/desktop/tien_do_desktop.dart';
+import 'moduleCard.dart';
 
-class CongTrinhDetailDesktop extends StatelessWidget {
+class CongTrinhDetailDesktop extends StatefulWidget {
   final CongTrinh congTrinh;
-
   const CongTrinhDetailDesktop({
     super.key,
     required this.congTrinh,
   });
 
   @override
+  State<CongTrinhDetailDesktop> createState() =>
+      _CongTrinhDetailDesktopState();
+}
+
+class _CongTrinhDetailDesktopState extends State<CongTrinhDetailDesktop> {
+  int countNhanVien = 0;
+  int countTienDo = 0;
+  int countNhatKy= 0;
+  int countBangChamCong= 0;
+  int countThuChi= 0;
+  int countUngLuong= 0;
+  late final ThongKeService _service;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final service = ThongKeService();
+    final idCongTrinh = widget.congTrinh.id;
+    final _countNhanVien =await service.getSoLuongNhanVienCongTrinh(idCongTrinh);
+    final _countNhatKy =await service.getSoLuongNhatKy(idCongTrinh);
+    final _countThuChi =await service.getSoLanThuChi(idCongTrinh);
+    final _countUngLuong =await service.getSoLuongUngLuong(idCongTrinh);
+    final _countBangChamCong = await service.getSoLuongBangChamCong(idCongTrinh);
+    final _countTienDo =await service.getSoLuongKeHoach(idCongTrinh);
+    if (!mounted) return;
+    setState(() {
+      this.countNhanVien = _countNhanVien;
+      this.countNhatKy = _countNhatKy;
+      this.countThuChi = _countThuChi;
+      this.countUngLuong = _countUngLuong;
+      this.countBangChamCong = _countBangChamCong;
+      this.countTienDo = _countTienDo;
+    });
+  }
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) {
-        final controller = ThongKeController(
-          idCongTrinh: congTrinh.id,
-        );
-
-        controller.loadCounts();
-
-        return controller;
       },
-      child: Consumer<ThongKeController>(
+      child: Consumer(
         builder: (context, controller, _) {
           return Scaffold(
             backgroundColor: const Color(0xFFF5F6F8),
             appBar: AppBar(
-              title: Text(congTrinh.ten),
+              title: Text(widget.congTrinh.ten),
               elevation: 0,
             ),
             body: SingleChildScrollView(
@@ -50,9 +87,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildPageHeader(),
-
                       const SizedBox(height: 20),
-
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -67,11 +102,15 @@ class CongTrinhDetailDesktop extends StatelessWidget {
 
                           Expanded(
                             flex: 6,
-                            child: _buildModules(
-                              context,
-                              controller,
+                            child: Column(
+                              children: [
+                                _buildModules(context,),
+                                const SizedBox(height: 20),
+                                _buildProgressCard()
+                              ],
                             ),
                           ),
+
                         ],
                       ),
 
@@ -89,6 +128,128 @@ class CongTrinhDetailDesktop extends StatelessWidget {
     );
   }
 
+  Widget _buildModules(
+      BuildContext context
+      ) {
+    return _WhiteCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Quản lý công trình',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Text(
+            'Truy cập nhanh các chức năng của công trình',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade600,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+
+              final crossAxisCount = width > 700 ? 4 : 3;
+
+              return GridView.count(
+                crossAxisCount: crossAxisCount,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 1.9,
+                children: [
+                  moduleCard(
+                    context,
+                    icon: Icons.people_outline,
+                    title: 'Nhân viên',
+                    value: countNhanVien.toString(),
+                    color: const Color(0xFF27AE60),
+                    page: NhanVienCongTrinhListDesktop(
+                      idCongTrinh: widget.congTrinh.id,
+                      tenCongTrinh: widget.congTrinh.ten,
+                    ),
+                  ),
+
+                  moduleCard(
+                    context,
+                    icon: Icons.timeline,
+                    title: 'Kế hoạch',
+                    value: countTienDo.toString(),
+                    color: Colors.orange,
+                    page: TienDoDesktop(
+                      idCongTrinh: widget.congTrinh.id!,
+                      tenCongTrinh: widget.congTrinh.ten,
+                    ),
+                  ),
+
+                  moduleCard(
+                    context,
+                    icon: Icons.menu_book_outlined,
+                    title: 'Nhật ký',
+                    value: countNhatKy.toString(),
+                    color: Colors.blue,
+                    page: NhatKyListDesktop(
+                      idCongTrinh: widget.congTrinh.id,
+                      tenCongTrinh: widget.congTrinh.ten,
+                    ),
+                  ),
+
+                  moduleCard(
+                    context,
+                    icon: Icons.access_time,
+                    title: 'Bảng chấm công',
+                    value: countBangChamCong.toString(),
+                    color: Colors.indigo,
+                    page: BangChamCongListDesktop(
+                      idCongTrinh: widget.congTrinh.id,
+                    ),
+                  ),
+
+                  moduleCard(
+                    context,
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'Thu chi',
+                    value: countThuChi.toString(),
+                    color: Colors.teal,
+                    page: ThuChiCongTrinhDesktop(
+                      idCongTrinh: widget.congTrinh.id,
+                      tenCongTrinh: widget.congTrinh.ten,
+                    ),
+                  ),
+
+                  // moduleCard(
+                  //   context,
+                  //   icon: Icons.payments_outlined,
+                  //   title: 'Ứng lương',
+                  //   value: countUngLuong.toString(),
+                  //   color: Colors.deepOrange,
+                  //   page: UngLuongListDesktop(
+                  //     idCongTrinh: widget.congTrinh.id!,
+                  //     tenCongTrinh: widget.congTrinh.ten,
+                  //   ),
+                  // ),
+
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
   // ============================================================
   // HEADER
   // ============================================================
@@ -101,7 +262,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                congTrinh.ten,
+                widget.congTrinh.ten,
                 style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -128,11 +289,9 @@ class CongTrinhDetailDesktop extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    final progress = congTrinh.tienDo ?? 0;
-
+    final progress = widget.congTrinh.tienDo ?? 0;
     String text;
     IconData icon;
-
     if (progress >= 100) {
       text = 'Hoàn thành';
       icon = Icons.check_circle;
@@ -143,7 +302,6 @@ class CongTrinhDetailDesktop extends StatelessWidget {
       text = 'Chưa bắt đầu';
       icon = Icons.schedule;
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 14,
@@ -182,14 +340,8 @@ class CongTrinhDetailDesktop extends StatelessWidget {
     return Column(
       children: [
         _buildImageCard(),
-
         const SizedBox(height: 16),
-
         _buildInfoCard(),
-
-        const SizedBox(height: 16),
-
-        _buildProgressCard(),
       ],
     );
   }
@@ -210,11 +362,11 @@ class CongTrinhDetailDesktop extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: congTrinh.hinhAnh != null &&
-          congTrinh.hinhAnh!.isNotEmpty &&
-          File(congTrinh.hinhAnh!).existsSync()
+      child: widget.congTrinh.hinhAnh != null &&
+          widget.congTrinh.hinhAnh!.isNotEmpty &&
+          File(widget.congTrinh.hinhAnh!).existsSync()
           ? Image.file(
-        File(congTrinh.hinhAnh!),
+        File(widget.congTrinh.hinhAnh!),
         fit: BoxFit.cover,
       )
           : Image.asset(
@@ -243,7 +395,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
           _infoRow(
             Icons.location_on_outlined,
             'Địa chỉ',
-            congTrinh.diaChi ?? 'Chưa có địa chỉ',
+            widget.congTrinh.diaChi ?? 'Chưa có địa chỉ',
           ),
 
           const SizedBox(height: 16),
@@ -251,16 +403,16 @@ class CongTrinhDetailDesktop extends StatelessWidget {
           _infoRow(
             Icons.calendar_today_outlined,
             'Ngày bắt đầu',
-            congTrinh.ngayBatDau ?? 'Chưa có',
+            widget.congTrinh.ngayBatDau ?? 'Chưa có',
           ),
 
-          if (congTrinh.ngayKetThuc != null &&
-              congTrinh.ngayKetThuc!.isNotEmpty) ...[
+          if (widget.congTrinh.ngayKetThuc != null &&
+              widget.congTrinh.ngayKetThuc!.isNotEmpty) ...[
             const SizedBox(height: 16),
             _infoRow(
               Icons.event_available_outlined,
               'Ngày kết thúc',
-              congTrinh.ngayKetThuc!,
+              widget.congTrinh.ngayKetThuc!,
             ),
           ],
         ],
@@ -326,8 +478,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
   // ============================================================
 
   Widget _buildProgressCard() {
-    final progress = (congTrinh.tienDo ?? 0).clamp(0, 100);
-
+    final progress = (widget.congTrinh.tienDo ?? 0).clamp(0, 100);
     return _WhiteCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +495,6 @@ class CongTrinhDetailDesktop extends StatelessWidget {
                   ),
                 ),
               ),
-
               Text(
                 '${progress.toStringAsFixed(1)}%',
                 style: const TextStyle(
@@ -355,9 +505,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
@@ -367,9 +515,7 @@ class CongTrinhDetailDesktop extends StatelessWidget {
               backgroundColor: Colors.grey.shade200,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
             progress >= 100
                 ? 'Công trình đã hoàn thành'
@@ -383,165 +529,6 @@ class CongTrinhDetailDesktop extends StatelessWidget {
       ),
     );
   }
-
-  // ============================================================
-  // MODULES
-  // ============================================================
-
-  Widget _buildModules(
-      BuildContext context,
-      ThongKeController controller,
-      ) {
-    return _WhiteCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quản lý công trình',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C3E50),
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            'Truy cập nhanh các chức năng của công trình',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade600,
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-
-              final crossAxisCount = width > 700 ? 4 : 3;
-
-              return GridView.count(
-                crossAxisCount: crossAxisCount,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 1.9,
-                children: [
-                  _moduleCard(
-                    context,
-                    icon: Icons.people_outline,
-                    title: 'Nhân viên',
-                    value: controller
-                        .soLuongNhanVienCongTrinh
-                        .toString(),
-                    color: const Color(0xFF27AE60),
-                    page: NhanVienCongTrinhListDesktop(
-                      idCongTrinh: congTrinh.id,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                  _moduleCard(
-                    context,
-                    icon: Icons.timeline,
-                    title: 'Tiến độ',
-                    value: controller.soLuongKeHoach.toString(),
-                    color: Colors.orange,
-                    page: TienDoDesktop(
-                      idCongTrinh: congTrinh.id!,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                  _moduleCard(
-                    context,
-                    icon: Icons.menu_book_outlined,
-                    title: 'Nhật ký',
-                    value: controller.soLuongNhatKy.toString(),
-                    color: Colors.blue,
-                    page: NhatKyListDesktop(
-                      idCongTrinh: congTrinh.id,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                  _moduleCard(
-                    context,
-                    icon: Icons.access_time,
-                    title: 'Bảng chấm công',
-                    value: controller.soLuongCoMat.toString(),
-                    color: Colors.indigo,
-                    page: BangChamCongDesktop(
-                      idCongTrinh: congTrinh.id,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                  _moduleCard(
-                    context,
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: 'Thu chi',
-                    value: controller.soLanThuChi.toString(),
-                    color: Colors.teal,
-                    page: ThuChiCongTrinhDesktop(
-                      idCongTrinh: congTrinh.id,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                  _moduleCard(
-                    context,
-                    icon: Icons.payments_outlined,
-                    title: 'Ứng lương',
-                    value: controller.soLuongUngLuong.toString(),
-                    color: Colors.deepOrange,
-                    page: UngLuongListDesktop(
-                      idCongTrinh: congTrinh.id!,
-                      tenCongTrinh: congTrinh.ten,
-                    ),
-                  ),
-
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _moduleCard(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required String value,
-        required Color color,
-        required Widget page,
-      }) {
-    return _DesktopModuleCard(
-      icon: icon,
-      title: title,
-      value: value,
-      color: color,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => page,
-          ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // MÔ TẢ
-  // ============================================================
 
   Widget _buildDescription() {
     return _WhiteCard(
@@ -560,8 +547,8 @@ class CongTrinhDetailDesktop extends StatelessWidget {
           const SizedBox(height: 12),
 
           Text(
-            congTrinh.moTa?.isNotEmpty == true
-                ? congTrinh.moTa!
+            widget.congTrinh.moTa?.isNotEmpty == true
+                ? widget.congTrinh.moTa!
                 : 'Chưa có mô tả cho công trình này.',
             style: TextStyle(
               fontSize: 14,
@@ -608,147 +595,6 @@ class _WhiteCard extends StatelessWidget {
         ],
       ),
       child: child,
-    );
-  }
-}
-
-// ============================================================
-// MODULE CARD
-// ============================================================
-
-class _DesktopModuleCard extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _DesktopModuleCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  State<_DesktopModuleCard> createState() =>
-      _DesktopModuleCardState();
-}
-
-class _DesktopModuleCardState
-    extends State<_DesktopModuleCard> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-
-      onEnter: (_) {
-        setState(() {
-          _hover = true;
-        });
-      },
-
-      onExit: (_) {
-        setState(() {
-          _hover = false;
-        });
-      },
-
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          color: _hover
-              ? widget.color.withOpacity(.06)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _hover
-                ? widget.color.withOpacity(.35)
-                : Colors.grey.shade200,
-          ),
-        ),
-
-        child: Material(
-          color: Colors.transparent,
-
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: widget.onTap,
-
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-
-                    decoration: BoxDecoration(
-                      color: widget.color.withOpacity(.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-
-                    child: Icon(
-                      widget.icon,
-                      color: widget.color,
-                      size: 22,
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-
-                      children: [
-                        Text(
-                          widget.title,
-                          maxLines: 1,
-                          overflow:
-                          TextOverflow.ellipsis,
-
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C3E50),
-                          ),
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        Text(
-                          widget.value,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: widget.color,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: _hover
-                        ? widget.color
-                        : Colors.grey.shade400,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

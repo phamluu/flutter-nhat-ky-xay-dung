@@ -14,12 +14,6 @@ class ChiLuongDesktop extends StatefulWidget {
   /// Tổng tiền phải trả
   final double tongPhaiTra;
 
-  /// Tháng lương
-  final int thang;
-
-  /// Năm lương
-  final int nam;
-
   /// Tên công trình
   final String? tenCongTrinh;
 
@@ -28,8 +22,6 @@ class ChiLuongDesktop extends StatefulWidget {
     required this.idBangLuong,
     this.tenNhanVien,
     required this.tongPhaiTra,
-    required this.thang,
-    required this.nam,
     this.tenCongTrinh,
   });
 
@@ -464,9 +456,7 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
 
                 children: [
                   Text(
-                    "CHI LƯƠNG THÁNG "
-                        "${widget.thang}/${widget.nam}",
-
+                    "CHI LƯƠNG THÁNG ",
                     style:
                     const TextStyle(
                       fontSize: 22,

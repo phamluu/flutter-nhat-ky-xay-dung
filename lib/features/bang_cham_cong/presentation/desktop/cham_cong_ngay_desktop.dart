@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/cham_cong_chi_tiet.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_cham_cong.dart';
@@ -8,7 +11,10 @@ import '../../data/models/ChamCongModel.dart';
 import '../../widgets/radioCompact.dart';
 
 class ChamCongNgayDesktop extends StatefulWidget {
+  final int? id;
   final int? idNhanVienCongTrinh;
+  final int? idBangChamCong;
+  final int? idCongTrinh;
   final String? ngay;
   final String? hoTen;
   final String? tenCongTrinh;
@@ -16,7 +22,10 @@ class ChamCongNgayDesktop extends StatefulWidget {
 
   const ChamCongNgayDesktop({
     super.key,
+    this.id,
     this.idNhanVienCongTrinh,
+    this.idBangChamCong,
+    this.idCongTrinh,
     this.ngay,
     this.hoTen,
     this.tenCongTrinh,
@@ -29,48 +38,22 @@ class ChamCongNgayDesktop extends StatefulWidget {
 }
 
 class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
-  // ============================================================
-  // SERVICE
-  // ============================================================
-
   late final ChamCongService _service;
-
-  // ============================================================
-  // CONTROLLER
-  // ============================================================
-
+  late final ChamCongChiTietRepo _repo;
   final TextEditingController ghiChuCtrl =
   TextEditingController();
-
-  // ============================================================
-  // STATE
-  // ============================================================
-
   ChamCongNgayLuong? data;
-
   bool isLoading = true;
   bool isSaving = false;
-
   TrangThaiChamCong? _sang;
   TrangThaiChamCong? _chieu;
-
   bool _isEdit = false;
-
-  // ============================================================
-  // INIT
-  // ============================================================
-
   @override
   void initState() {
     super.initState();
-
-    _service = ChamCongService(
-      ChamCongRepository(),
-    );
-
+    _repo = ChamCongChiTietRepo();
     _load();
   }
-
   @override
   void dispose() {
     ghiChuCtrl.dispose();
@@ -100,11 +83,11 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     }
 
     try {
-      final result =
-      await _service.getChamCongNgayLuong(
-        widget.idNhanVienCongTrinh!,
-        widget.ngay!,
-      );
+      final result = await _repo.getChamCongNgayLuongById(widget.id);
+      // await _service.getChamCongNgayLuong(
+      //   widget.idNhanVienCongTrinh!,
+      //   widget.ngay!,
+      // );
 
       if (!mounted) return;
 
@@ -157,14 +140,17 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     });
 
     try {
-      await _service.updateChamCong(
-        idNhanVienCongTrinh:
-        widget.idNhanVienCongTrinh!,
-        ngay: widget.ngay!,
-        sang: _sang,
-        chieu: _chieu,
-        ghiChu: ghiChuCtrl.text.trim(),
+      // thêm hoặc sửa
+      UpsertChamCongNgayParam param = UpsertChamCongNgayParam(
+        idBangChamCong: widget.idBangChamCong,
+        idCongTrinh: widget.idCongTrinh,
+        idNhanVienCongTrinh: widget.idNhanVienCongTrinh ?? 0,
+        ngay: widget.ngay ?? '',
+        trangThaiSang: _sang?.value,
+        trangThaiChieu: _chieu?.value,
+        ghiChu: ghiChuCtrl.text.trim()
       );
+      await _repo.upsertChamCong(param);
 
       if (!mounted) return;
 

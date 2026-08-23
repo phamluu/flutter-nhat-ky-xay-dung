@@ -16,7 +16,7 @@ class UngLuongNhanVienDesktop extends StatefulWidget {
   final String? congTrinh;
   final int thang;
   final int nam;
-
+  final int idBangChamCong;
   const UngLuongNhanVienDesktop({
     Key? key,
     this.idNhanVienCongTrinh,
@@ -24,6 +24,7 @@ class UngLuongNhanVienDesktop extends StatefulWidget {
     this.congTrinh,
     required this.thang,
     required this.nam,
+    required this.idBangChamCong
   }) : super(key: key);
 
   @override
@@ -57,8 +58,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
   Future<void> _loadChotLuong() async {
     final chot = await _chotLuong.isDaChotLuong(
       widget.idNhanVienCongTrinh!,
-      widget.thang,
-      widget.nam,
+      widget.idBangChamCong,
     );
 
     if (!mounted) return;
@@ -71,8 +71,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
   Future<void> _reload() async {
     final chot = await _chotLuong.isDaChotLuong(
       widget.idNhanVienCongTrinh!,
-      widget.thang,
-      widget.nam,
+      widget.idBangChamCong,
     );
 
     if (!mounted) return;

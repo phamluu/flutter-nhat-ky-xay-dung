@@ -11,7 +11,7 @@ import '../../../core/utils/trang_thai_luong.dart';
 import 'exportExcelUngLuong.dart';
 Future<void> exportExcelFull({
   required BuildContext context,
-  required List<ChamCongModel> data,
+  required List<ChamCongNhanVienModel> data,
   required int soNgay,
   required int selectedYear,
   required int selectedMonth,

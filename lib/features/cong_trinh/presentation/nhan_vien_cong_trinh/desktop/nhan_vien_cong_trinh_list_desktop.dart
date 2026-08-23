@@ -488,7 +488,7 @@ class _NhanVienCongTrinhListDesktopState
       int index,
       ) {
     final hoTen =
-        item.nhanVien?.hoTen ?? "Chưa đặt tên";
+        item?.tenNhanVien ?? "Chưa đặt tên";
 
     final vaiTro =
     item.vaiTro?.isNotEmpty == true
@@ -496,8 +496,8 @@ class _NhanVienCongTrinhListDesktopState
         : "-";
 
     final phone =
-    item.nhanVien?.soDienThoai?.isNotEmpty == true
-        ? item.nhanVien!.soDienThoai!
+    item.soDienThoai?.isNotEmpty == true
+        ? item.soDienThoai!
         : "N/A";
 
     return Container(

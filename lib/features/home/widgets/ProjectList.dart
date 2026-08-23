@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/mobile/ChiTietCongTrinhScreen.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/pages/cong_trinh_list_page.dart';
 import '../../../core/utils/AuthHelper.dart';
 import '../../../core/utils/SyncColor.dart';
 import '../../cong_trinh/data/models/CongTrinh.dart';
 import '../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
+import '../../cong_trinh/presentation/cong_trinh/mobile/ChiTietCongTrinhScreen.dart';
+import '../../cong_trinh/presentation/cong_trinh/pages/cong_trinh_list_page.dart';
 import '_SectionHeader.dart';
 
 class ProjectList extends StatefulWidget {

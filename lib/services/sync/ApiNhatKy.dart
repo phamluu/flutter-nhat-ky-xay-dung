@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/NhatKyCongTrinh.dart';
+
 import '../../core/services/ApiClient.dart';
 import '../../features/cong_trinh/data/models/CongTrinh.dart';
-import '../../features/nhat_ky_cong_trinh/data/models/NhatKy.dart';
 
 class ApiNhatKy {
 
-  Future<Map<String, dynamic>> create(NhatKy nhatKy) async {
+  Future<Map<String, dynamic>> create(NhatKyCongTrinh nhatKy) async {
     final response = await ApiClient.post(
       "nhatky",
       nhatKy.toMap(),
@@ -14,7 +15,7 @@ class ApiNhatKy {
     final data = jsonDecode(response.body);
     return data;
   }
-  Future<void> update(NhatKy nhatKy) async {
+  Future<void> update(NhatKyCongTrinh nhatKy) async {
     final response = await ApiClient.put(
       "nhatky/${nhatKy.id}",
       nhatKy.toMap(),

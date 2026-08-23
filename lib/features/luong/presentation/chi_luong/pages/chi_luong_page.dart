@@ -9,8 +9,6 @@ class ChiLuongPage extends StatelessWidget {
   final String? tenNhanVien;
   final String? tenCongTrinh;
   final double tongPhaiTra;
-  final int thang;
-  final int nam;
 
   const ChiLuongPage({
     super.key,
@@ -18,8 +16,6 @@ class ChiLuongPage extends StatelessWidget {
     this.tenNhanVien,
     this.tenCongTrinh,
     required this.tongPhaiTra,
-    required this.thang,
-    required this.nam
   });
 
   @override
@@ -29,8 +25,6 @@ class ChiLuongPage extends StatelessWidget {
       desktop: ChiLuongDesktop(idBangLuong: idBangLuong, tenNhanVien: tenNhanVien,
           tongPhaiTra: tongPhaiTra,
           tenCongTrinh: tenCongTrinh,
-          thang:thang,
-          nam:nam,
       ),
     );
   }

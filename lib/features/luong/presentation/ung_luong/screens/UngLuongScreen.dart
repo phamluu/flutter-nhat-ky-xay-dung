@@ -14,15 +14,17 @@ class UngLuongScreen extends StatefulWidget {
   final int? idNhanVienCongTrinh;
   final String? hoTen;
   final String? congTrinh;
-  final int thang;
-  final int nam;
+  final int? thang;
+  final int? nam;
+  final int? idBangChamCong;
   const UngLuongScreen({
     Key? key,
     this.idNhanVienCongTrinh,
     this.hoTen,
     this.congTrinh,
-    required this.thang,
-    required this.nam,
+    this.thang,
+    this.nam,
+    required this.idBangChamCong
   }) : super(key: key);
   @override
   State<UngLuongScreen> createState() => _UngLuongScreenState();
@@ -40,23 +42,23 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
     super.initState();
     _chotLuong = Chotchiluongservice(ChotChiLuongRepository());
     _future = _service.getUngLuongNhanVien(
-        widget.idNhanVienCongTrinh!, widget.thang, widget.nam);
+        widget.idNhanVienCongTrinh!, widget.thang!, widget.nam!);
     _loadChotLuong();
   }
   void _reload() async {
     final chot = await _chotLuong.isDaChotLuong(
-        widget.idNhanVienCongTrinh!, widget.thang, widget.nam);
+        widget.idNhanVienCongTrinh!, widget.idBangChamCong!);
 
     setState(() {
       _future = _service.getUngLuongNhanVien(
-          widget.idNhanVienCongTrinh!, widget.thang, widget.nam);
+          widget.idNhanVienCongTrinh!, widget.thang!, widget.nam!);
 
       daChotLuong = chot;
     });
   }
   void _loadChotLuong() async {
     final chot = await _chotLuong.isDaChotLuong(
-        widget.idNhanVienCongTrinh!, widget.thang, widget.nam);
+        widget.idNhanVienCongTrinh!, widget.idBangChamCong!);
 
     setState(() {
       daChotLuong = chot;

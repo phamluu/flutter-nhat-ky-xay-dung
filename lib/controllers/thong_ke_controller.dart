@@ -26,7 +26,7 @@ class ThongKeController extends ChangeNotifier {
     soLuongDMThuChi = await _service.getSoLuongDMThuChi();
     soLuongCoBan = await _service.getSoLuongCoBan();
     soLuongUngLuong = await _service.getSoLuongUngLuong();
-    soLuongCoMat = await _service.getSoLuongCoMat(idCongTrinh);
+    // soLuongCoMat = await _service.getSoLuongCoMat(idCongTrinh);
     soLanThuChi = await _service.getSoLanThuChi(idCongTrinh);
     soLanUngLuong = await _service.getSoLuongUngLuong(idCongTrinh);
     soLuongKeHoach = await _service.getSoLuongKeHoach(idCongTrinh);
@@ -61,10 +61,10 @@ class ThongKeController extends ChangeNotifier {
     soLuongNhatKy = await _service.getSoLuongDMThuChi();
     notifyListeners();
   }
-  Future<void> updateSoLuongCoMat() async {
-    soLuongNhatKy = await _service.getSoLuongCoMat(idCongTrinh);
-    notifyListeners();
-  }
+  // Future<void> updateSoLuongCoMat() async {
+  //   soLuongNhatKy = await _service.getSoLuongCoMat(idCongTrinh);
+  //   notifyListeners();
+  // }
   Future<void> updateSoLanThuChi() async {
     soLuongNhatKy = await _service.getSoLanThuChi(idCongTrinh);
     notifyListeners();

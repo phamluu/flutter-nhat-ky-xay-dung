@@ -9,8 +9,10 @@ import 'UngLuongScreen.dart';
 class UngLuongListScreen extends StatefulWidget {
   final int idCongTrinh;
   final String? tenCongTrinh;
+  final int idBangChamCong;
   const UngLuongListScreen({super.key, required this.idCongTrinh,
-    this.tenCongTrinh});
+    this.tenCongTrinh, required this.idBangChamCong
+  });
 
   @override
   State<UngLuongListScreen> createState() => _UngLuongListScreenState();
@@ -83,7 +85,7 @@ class _UngLuongListScreenState extends State<UngLuongListScreen> {
                  hoTen: item.hoTen,
                  congTrinh: widget.tenCongTrinh,
                  thang: thang,
-                 nam: nam,
+                 nam: nam, idBangChamCong: null,
                ),
              ),
            );

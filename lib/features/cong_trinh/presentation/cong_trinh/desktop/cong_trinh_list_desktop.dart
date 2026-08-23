@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_trinh_form_desktop.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
 import 'cong_trinh_detail_desktop.dart';
+import 'cong_trinh_form_desktop.dart';
 
 class CongTrinhListDesktop extends StatefulWidget {
   const CongTrinhListDesktop({super.key});

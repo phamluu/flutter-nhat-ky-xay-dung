@@ -5,9 +5,8 @@ import '../data/services/ChotChiLuongService.dart';
 import '../data/models/ChamCongModel.dart';
 
 class BangLuongActionCell extends StatelessWidget {
-  final ChamCongModel nv;
-  final int thang;
-  final int nam;
+  final ChamCongNhanVienModel nv;
+  final int? idBangChamCong;
   final String? tenCongTrinh;
   final Chotchiluongservice service;
   final bool daKhoaCC;
@@ -16,8 +15,7 @@ class BangLuongActionCell extends StatelessWidget {
   const BangLuongActionCell({
     super.key,
     required this.nv,
-    required this.thang,
-    required this.nam,
+    this.idBangChamCong,
     this.tenCongTrinh,
     required this.service,
     required this.daKhoaCC,
@@ -26,7 +24,7 @@ class BangLuongActionCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trangthai = TrangThaiLuong.fromValue(nv.trangThai);
+    final trangthai = TrangThaiLuong.fromValue(nv.trangThaiChotLuong);
 
     // Đã chốt lương
     if (trangthai == TrangThaiLuong.dachot) {
@@ -42,9 +40,8 @@ class BangLuongActionCell extends StatelessWidget {
             const SizedBox(width: 3),
             ChiLuongButton(
               nv: nv,
-              thang: thang,
+              idBangChamCong: idBangChamCong!,
               tenCongTrinh: tenCongTrinh,
-              nam: nam,
               onReload: onReload,
             ),
           ],
@@ -53,9 +50,8 @@ class BangLuongActionCell extends StatelessWidget {
 
       return ChiLuongButton(
         nv: nv,
-        thang: thang,
+        idBangChamCong: idBangChamCong!,
         tenCongTrinh: tenCongTrinh,
-        nam: nam,
         onReload: onReload,
       );
     }
@@ -95,8 +91,7 @@ class BangLuongActionCell extends StatelessWidget {
           await ChotLuongHelper.showConfirmChot(
             context: context,
             nv: nv,
-            thang: thang,
-            nam: nam,
+            idBangChamCong: idBangChamCong!,
             service: service,
             onSuccess: onReload,
           );
@@ -129,17 +124,15 @@ class BangLuongActionCell extends StatelessWidget {
   }
 }
 class ChiLuongButton extends StatelessWidget {
-  final ChamCongModel nv;
-  final int thang;
-  final int nam;
+  final ChamCongNhanVienModel nv;
+  final int idBangChamCong;
   final String? tenCongTrinh;
   final Future<void> Function() onReload;
 
   const ChiLuongButton({
     super.key,
     required this.nv,
-    required this.thang,
-    required this.nam,
+    required this.idBangChamCong,
     this.tenCongTrinh,
     required this.onReload,
   });
@@ -155,8 +148,6 @@ class ChiLuongButton extends StatelessWidget {
               idBangLuong: nv.idBangLuong!,
               tenNhanVien: nv.ten,
               tenCongTrinh: tenCongTrinh,
-              thang: thang,
-              nam: nam,
               tongPhaiTra: nv.thucNhanHienThi ?? 0,
             ),
           ),
@@ -181,7 +172,7 @@ class ChiLuongButton extends StatelessWidget {
 }
 
 class HuyChotLuongButton extends StatelessWidget {
-  final ChamCongModel nv;
+  final ChamCongNhanVienModel nv;
   final Chotchiluongservice service;
   final Future<void> Function() onReload;
 
@@ -222,9 +213,8 @@ class HuyChotLuongButton extends StatelessWidget {
 class ChotLuongHelper {
   static Future<void> showConfirmChot({
     required BuildContext context,
-    required ChamCongModel nv,
-    required int thang,
-    required int nam,
+    required ChamCongNhanVienModel nv,
+    required int idBangChamCong,
     required Chotchiluongservice service,
     required Future<void> Function() onSuccess,
   }) async {
@@ -255,8 +245,7 @@ class ChotLuongHelper {
     try {
       await service.chotLuong(
         nv: nv,
-        thang: thang,
-        nam: nam,
+        idBangChamCong: idBangChamCong
       );
 
       await onSuccess();

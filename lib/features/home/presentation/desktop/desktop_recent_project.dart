@@ -2,10 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/desktop/cong_trinh_detail_desktop.dart';
-
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
+import '../../../cong_trinh/presentation/cong_trinh/desktop/cong_trinh_detail_desktop.dart';
 
 class DesktopRecentProjects extends StatefulWidget {
   const DesktopRecentProjects({

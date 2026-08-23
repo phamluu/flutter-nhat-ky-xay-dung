@@ -1,5 +1,4 @@
-import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
-import 'package:nhat_ky_xay_dung/features/nhan_vien_cong_trinh/data/models/NhanVienCongTrinh.dart';
+import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';import '../../../cong_trinh/data/models/NhanVienCongTrinh.dart';
 import '../../../nhan_vien/data/models/NhanVien.dart';
 
 class Ungluong {

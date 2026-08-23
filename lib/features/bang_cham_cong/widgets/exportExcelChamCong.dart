@@ -6,7 +6,7 @@ import '../data/models/ChamCongModel.dart';
 
 Future<void> ChamCongExcel(
     {required Sheet sheet,
-    required List<ChamCongModel> data,
+    required List<ChamCongNhanVienModel> data,
     required int selectedYear,
     required int selectedMonth,
     required int idCongTrinh,
@@ -102,7 +102,7 @@ Future<void> ChamCongExcel(
     row.add(formatCurrency(nv.tongUngHienThi ?? 0));
     row.add(formatCurrency(nv.thucNhanHienThi ?? 0));
 
-    final trangthai = TrangThaiLuong.fromValue(nv.trangThai);
+    final trangthai = TrangThaiLuong.fromValue(nv.trangThaiChotLuong);
     row.add(trangthai == TrangThaiLuong.dachot ? "Đã chốt" : "Chưa chốt");
 
     sheet.appendRow(row);

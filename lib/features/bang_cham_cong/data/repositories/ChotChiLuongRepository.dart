@@ -1,4 +1,7 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
+import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/bang_luong.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../../data/_db_helper.dart';
 import '../../../../data/db_helper.dart';
@@ -7,54 +10,58 @@ class ChotChiLuongRepository {
   final _dbHelper = DBHelper.instance;
 
   /// 👉 insert hoặc update bảng lương (chốt)
-  Future<int> upsertBangLuong({
-    required int idNhanVienCongTrinh,
-    required int thang,
-    required int nam,
-    required double tongCong,
-    required double tongLuong,
-    required double tongUng,
-    required double thucNhan,
-  }) async
+  Future<int> insertBangLuong(BangLuong bangLuong) async {
+    final db = await _dbHelper.database;
+    return await db.insert(BangLuongTable.tableName, bangLuong.toMapInsert());
+  }
+  Future<void> updateBangLuong(BangLuong bangLuong) async {
+    final db = await _dbHelper.database;
+    await db.update(
+      BangLuongTable.tableName,
+      bangLuong.toMapUpdate(),
+      where: '${BangLuongTable.id} = ?',
+      whereArgs: [bangLuong.id],
+    );
+  }
+  Future<int> upsertBangLuong(BangLuong bangLuong) async
   {
     final db = await _dbHelper.database;
-    final data = {
-      'idNhanVienCongTrinh': idNhanVienCongTrinh,
-      'thang': thang,
-      'nam': nam,
-      'tongCong': tongCong,
-      'tongLuong': tongLuong,
-      'tongUng': tongUng,
-      'thucNhan': thucNhan,
-    };
-    final existing = await db.query(
-      'bang_luong',
-      where: 'idNhanVienCongTrinh = ? AND thang = ? AND nam = ?',
-      whereArgs: [idNhanVienCongTrinh, thang, nam],
+    // final data = {
+    //   'idNhanVienCongTrinh': idNhanVienCongTrinh,
+    //   'thang': thang,
+    //   'nam': nam,
+    //   'tongCong': tongCong,
+    //   'tongLuong': tongLuong,
+    //   'tongUng': tongUng,
+    //   'thucNhan': thucNhan,
+    // };
+    final existing = await db.query(BangLuongTable.tableName,
+      where: '${BangLuongTable.idNhanVienCongTrinh} = ? AND ${BangLuongTable.idBangChamCong}',
+      whereArgs: [bangLuong.idNhanVienCongTrinh, bangLuong.idBangChamCong],
     );
     if (existing.isNotEmpty) {
-      final id = existing.first['id'] as int;
+      final id = existing.first[BangLuongTable.id] as int;
       await db.update(
-        'bang_luong',
-        data,
-        where: 'id = ?',
+        BangLuongTable.tableName,
+        bangLuong.toMapUpdate(),
+        where: '${BangLuongTable.id} = ?',
         whereArgs: [id],
       );
       return id;
     } else {
-      return await db.insert('bang_luong', data);
+      return await insertBangLuong(bangLuong);
     }
   }
   Future<void> chotLuong(int id) async
   {
     final db = await _dbHelper.database;
     await db.update(
-      'bang_luong',
+      BangLuongTable.tableName,
       {
-        'trangThai': TrangThaiLuong.dachot.value,
-        'ngayChot': DateTime.now().toIso8601String(),
+        BangLuongTable.trangThai: TrangThaiLuong.dachot.value,
+        BangLuongTable.ngayChot: DateTime.now().toIso8601String(),
       },
-      where: 'id = ?',
+      where: '${BangLuongTable.id} = ?',
       whereArgs: [id],
     );
   }
@@ -62,25 +69,24 @@ class ChotChiLuongRepository {
   {
     final db = await _dbHelper.database;
     await db.update(
-      'bang_luong',
+      BangLuongTable.tableName,
       {
-        'trangThai': TrangThaiLuong.chuachot.value,
-        'ngayChot': null,
+        BangLuongTable.trangThai: TrangThaiLuong.chuachot.value,
+        BangLuongTable.ngayChot: null,
       },
-      where: 'id = ?',
+      where: '${BangLuongTable.id} = ?',
       whereArgs: [id],
     );
   }
 
   /// 👉 lấy bảng lương đã chốt
-  Future<Map<String, dynamic>?> getBangLuong(
-      int idNvct, int thang, int nam) async
+  Future<Map<String, dynamic>?> getBangLuong(int idNvct, int idBangChamCong) async
   {
     final db = await _dbHelper.database;
     final result = await db.query(
-      'bang_luong',
-      where: 'idNhanVienCongTrinh = ? AND thang = ? AND nam = ? AND trangThai',
-      whereArgs: [idNvct, thang, nam, TrangThaiLuong.dachot],
+      BangLuongTable.tableName,
+      where: '${BangLuongTable.idNhanVienCongTrinh} = ? AND ${BangLuongTable.idBangChamCong} = ? AND trangThai',
+      whereArgs: [idNvct, idBangChamCong, TrangThaiLuong.dachot],
       limit: 1,
     );
 
@@ -104,17 +110,16 @@ class ChotChiLuongRepository {
     });
   }
 
-  Future<Set<int>> getDanhSachDaChot(
-      int idCongTrinh, int thang, int nam) async
+  Future<Set<int>> getDanhSachDaChot( int idCongTrinh, int idBangChamCong) async
   {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
-    SELECT idNhanVienCongTrinh
-    FROM bang_luong
-    WHERE thang = ? AND nam = ?
-  ''', [thang, nam]);
+    SELECT ${BangLuongTable.idNhanVienCongTrinh}
+    FROM ${BangLuongTable.tableName}
+    WHERE ${BangLuongTable.idBangChamCong} = ?
+  ''', [idBangChamCong]);
     return result
-        .map((e) => (e['idNhanVienCongTrinh'] as num).toInt())
+        .map((e) => (e['${BangLuongTable.idNhanVienCongTrinh}'] as num).toInt())
         .toSet();
   }
   /// 👉 tổng đã chi
@@ -129,19 +134,17 @@ class ChotChiLuongRepository {
     return (result.first['tong'] as num?)?.toDouble() ?? 0;
   }
 
-  Future<List<Map<String, dynamic>>> getBangLuongByCongTrinh(
-      int idCongTrinh, int thang, int nam) async
+  Future<List<Map<String, dynamic>>> getBangLuongByCongTrinh( int idCongTrinh, int idBangChamCong) async
   {
     final db = await _dbHelper.database;
     return await db.rawQuery('''
     SELECT bl.*, nvct.idCongTrinh
-    FROM bang_luong bl
-    INNER JOIN nhan_vien_cong_trinh nvct
+    FROM ${BangLuongTable.tableName} bl
+    INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct
       ON bl.idNhanVienCongTrinh = nvct.id
     WHERE nvct.idCongTrinh = ?
-      AND bl.thang = ?
-      AND bl.nam = ?
-  ''', [idCongTrinh, thang, nam]);
+      AND bl.${BangLuongTable.idBangChamCong} = ?
+  ''', [idCongTrinh, idBangChamCong]);
   }
 
   Future<int> delete(int id) async {
@@ -153,27 +156,26 @@ class ChotChiLuongRepository {
     );
   }
 
-  Future<bool> checkDaChotLuong(int thang, int nam, int idNhanVienCongTrinh) async {
+  Future<bool> checkDaChotLuong(int idBangChamCong, int idNhanVienCongTrinh) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'bang_luong',
-      where: 'idNhanVienCongTrinh = ? AND thang = ? AND nam = ? AND trangThai = ?',
+      where: 'idNhanVienCongTrinh = ? AND ${BangLuongTable.idBangChamCong} = ? AND trangThai = ?',
       whereArgs: [
         idNhanVienCongTrinh,
-        thang,
-        nam,
+        idBangChamCong,
         TrangThaiLuong.dachot.value
       ],
     );
     return result.isNotEmpty;
   }
 
-  Future<bool> tonTaiDaChotLuong(int thang, int nam) async {
+  Future<bool> tonTaiDaChotLuong(int? idBangChamCong) async {
     final db = await _dbHelper.database;
     final result = await db.query(
         'bang_luong',
-        where: 'thang = ? AND nam = ? AND trangThai = ?',
-        whereArgs: [thang, nam, TrangThaiLuong.dachot.value]
+        where: '${BangLuongTable.idBangChamCong} = ? AND trangThai = ?',
+        whereArgs: [idBangChamCong, TrangThaiLuong.dachot.value]
     );
     if (result.isEmpty) return false;
     return true;

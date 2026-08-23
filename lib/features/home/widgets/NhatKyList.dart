@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../nhat_ky_cong_trinh/data/models/NhatKy.dart';
-import '../../nhat_ky_cong_trinh/data/services/nhat_ky_service.dart';
-import '../../nhat_ky_cong_trinh/presentation/mobile/DanhSachNhatKyScreen.dart';
-import '../../nhat_ky_cong_trinh/presentation/mobile/XemChiTietNhatKyScreen.dart';
+import '../../cong_trinh/data/models/NhatKyCongTrinh.dart';
+import '../../cong_trinh/data/services/nhat_ky_service.dart';
+import '../../cong_trinh/presentation/nhat_ky_cong_trinh/mobile/DanhSachNhatKyScreen.dart';
+import '../../cong_trinh/presentation/nhat_ky_cong_trinh/mobile/XemChiTietNhatKyScreen.dart';
 import '_SectionHeader.dart';
 
 class NhatKyList extends StatefulWidget {

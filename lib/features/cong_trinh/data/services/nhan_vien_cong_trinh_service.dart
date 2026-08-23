@@ -1,8 +1,7 @@
-import 'package:nhat_ky_xay_dung/features/nhan_vien/data/models/NhanVien.dart';
-import 'package:sqflite/sqflite.dart';
-
+import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import '../../../../data/db_helper.dart';
-import '../models/CongTrinh.dart';
 import '../models/NhanVienCongTrinh.dart';
 
 class NhanVienCongTrinhService {
@@ -16,9 +15,9 @@ class NhanVienCongTrinhService {
   Future<int> update(NhanVienCongTrinh item) async {
     final db = await _dbHelper.database;
     return await db.update(
-      'nhan_vien_cong_trinh',
+      NhanVienCongTrinhTable.tableName,
       item.toMap(),
-      where: 'id = ?',
+      where: '${NhanVienCongTrinhTable.id} = ?',
       whereArgs: [item.id],
     );
   }
@@ -45,83 +44,60 @@ class NhanVienCongTrinhService {
 
   Future<List<NhanVienCongTrinh>> getAll() async {
     final db = await _dbHelper.database;
-
     final maps = await db.rawQuery('''
-    SELECT nvct.*,
-           nv.id AS nv_id, nv.ho_ten AS nv_ten, nv.so_dien_thoai AS nv_sdt,
-           ct.id AS ct_id, ct.ten AS ct_ten, ct.dia_chi AS ct_diaChi
-    FROM nhan_vien_cong_trinh nvct
-    LEFT JOIN nhan_vien nv ON nvct.idNhanVien = nv.id
-    LEFT JOIN cong_trinh ct ON nvct.idCongTrinh = ct.id
-    ORDER BY nvct.id DESC
-  ''');
-
+                SELECT 
+                  nvct.${NhanVienCongTrinhTable.id},
+                  nvct.${NhanVienCongTrinhTable.idNhanVien},
+                  nvct.${NhanVienCongTrinhTable.idCongTrinh},
+                  nvct.${NhanVienCongTrinhTable.ngayBatDau},
+                  nvct.${NhanVienCongTrinhTable.ngayKetThuc},
+                  nvct.${NhanVienCongTrinhTable.vaiTro},
+                  nv.${NhanVienTable.hoTen},
+                  nv.${NhanVienTable.soDienThoai}
+                FROM ${NhanVienCongTrinhTable.tableName} nvct
+                LEFT JOIN ${NhanVienTable.tableName} nv 
+                  ON nvct.${NhanVienCongTrinhTable.idNhanVien} = nv.id
+                LEFT JOIN ${CongTrinhTable.tableName} ct 
+                  ON nvct.${NhanVienCongTrinhTable.idCongTrinh} = ct.id
+                ORDER BY nvct.${NhanVienCongTrinhTable.id} DESC
+        ''');
     return maps.map((e) {
-      final nhanVien = e['nv_id'] != null
-          ? NhanVien(
-        id: e['nv_id'] as int,
-        hoTen: e['nv_ten'] as String,
-        soDienThoai: e['nv_sdt'] as String?,
-      )
-          : null;
-
-      final congTrinh = e['ct_id'] != null
-          ? CongTrinh(
-        id: e['ct_id'] as int,
-        ten: e['ct_ten'] as String,
-        diaChi: e['ct_diaChi'] as String?,
-      )
-          : null;
-
-      return NhanVienCongTrinh.fromMap(
-        e,
-        nhanVien: nhanVien,
-        congTrinh: congTrinh,
-      );
+      return NhanVienCongTrinh.fromMap(e);
     }).toList();
   }
-
-
+  Future<List<NhanVienCongTrinh>> getByCongTrinh(int? idCongTrinh) async {
+    final db = await _dbHelper.database;
+    final maps = await db.rawQuery('''
+                SELECT 
+                  nvct.${NhanVienCongTrinhTable.id},
+                  nvct.${NhanVienCongTrinhTable.idNhanVien},
+                  nvct.${NhanVienCongTrinhTable.idCongTrinh},
+                  nvct.${NhanVienCongTrinhTable.ngayBatDau},
+                  nvct.${NhanVienCongTrinhTable.ngayKetThuc},
+                  nvct.${NhanVienCongTrinhTable.vaiTro},
+                  nv.${NhanVienTable.hoTen},
+                  nv.${NhanVienTable.soDienThoai}
+                FROM ${NhanVienCongTrinhTable.tableName} nvct
+                LEFT JOIN ${NhanVienTable.tableName} nv 
+                  ON nvct.${NhanVienCongTrinhTable.idNhanVien} = nv.${NhanVienTable.id}
+                LEFT JOIN ${CongTrinhTable.tableName} ct 
+                  ON nvct.${NhanVienCongTrinhTable.idCongTrinh} = ct.${CongTrinhTable.id}
+                WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
+                ORDER BY nvct.${NhanVienCongTrinhTable.id} DESC
+        ''',[idCongTrinh]);
+    return maps.map((e) {
+      return NhanVienCongTrinh.fromMap(e);
+    }).toList();
+  }
   Future<List<NhanVienCongTrinh>> getByNhanVien(int idNhanVien) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
-      'nhan_vien_cong_trinh',
-      where: 'idNhanVien = ?',
+      NhanVienCongTrinhTable.tableName,
+      where: '${NhanVienCongTrinhTable.idNhanVien} = ?',
       whereArgs: [idNhanVien],
     );
     return maps.map((e) => NhanVienCongTrinh.fromMap(e)).toList();
   }
 
-  Future<List<NhanVienCongTrinh>> getByCongTrinh(int? idCongTrinh) async {
-    final db = await _dbHelper.database;
 
-    // 1. Lấy tất cả công trình
-    final congTrinhMaps = await db.query('cong_trinh');
-    final congTrinhList = congTrinhMaps.map((e) => CongTrinh.fromMap(e)).toList();
-    final congTrinhMap = {for (var c in congTrinhList) c.id: c};
-
-    //2. Lấy tất cả nhân viên
-    final nhanVienMaps = await db.query('nhan_vien');
-    final nhanVienList = nhanVienMaps.map((e) => NhanVien.fromMap(e)).toList();
-    final nhanVienMap = {for (var c in nhanVienList) c.id: c};
-
-    List<Map<String, dynamic>> maps;
-    if (idCongTrinh != null) {
-      maps = await db.query(
-        'nhan_vien_cong_trinh',
-        where: 'idCongTrinh = ?',
-        whereArgs: [idCongTrinh]
-      );
-    } else {
-      maps = await db.query(
-        'nhan_vien_cong_trinh'
-      );
-    }
-    // 3. Map idCongTrinh sang CongTrinh
-    return maps.map((e) {
-      final ct = congTrinhMap[e['idCongTrinh']];
-      final nv = nhanVienMap[e['idNhanVien']];
-      return NhanVienCongTrinh.fromMap(e, congTrinh: ct, nhanVien: nv);
-    }).toList();
-  }
 }

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/services/cham_cong_service.dart';
 
+import '../../cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
 import '../data/repositories/ChamCongRepository.dart';
+import '../data/repositories/cham_cong_chi_tiet_repo.dart';
 
 Future<void> setkhoaChamCong({
   required BuildContext context,
-  required int selectedMonth,
-  required int selectedYear,
+  int? selectedMonth,
+  int? selectedYear,
   required bool isKhoa,
   required bool daChotLuong,
+  int? idBangChamCong,
 }) async {
   // Nếu đã chốt lương thì không cho mở khóa
   if (!isKhoa && daChotLuong) {
@@ -62,11 +66,8 @@ Future<void> setkhoaChamCong({
       '$selectedYear-${selectedMonth.toString().padLeft(2, '0')}';
 
   try {
-    final repository = ChamCongRepository();
-    final service = ChamCongService(repository);
-
-    await service.setKhoaChamCong(thang, isKhoa);
-
+    final _bangChamCongRepo = BangChamCongRepository();
+    await _bangChamCongRepo.setKhoaChamCong(idBangChamCong: idBangChamCong, daKhoa: isKhoa);
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
