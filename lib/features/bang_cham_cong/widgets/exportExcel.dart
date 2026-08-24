@@ -13,10 +13,9 @@ Future<void> exportExcelFull({
   required BuildContext context,
   required List<ChamCongNhanVienModel> data,
   required int soNgay,
-  required int selectedYear,
-  required int selectedMonth,
+  int? idBangChamCong,
   required int idCongTrinh,
-  String? tenCongTrinh
+  String? tenCongTrinh,
 }) async {
   var excel = Excel.createExcel();
   // Bổ sung
@@ -29,17 +28,12 @@ Future<void> exportExcelFull({
   await ChamCongExcel(
       sheet: sheet,
       data: data,
-      selectedYear: selectedYear,
-      selectedMonth: selectedMonth,
-      idCongTrinh: idCongTrinh);
+      idCongTrinh: idCongTrinh, idBangChamCong: idBangChamCong!);
   await UngLuongExecl(sheetUngLuong: sheetUngLuong,
-      selectedYear: selectedYear,
-      selectedMonth: selectedMonth,
       idCongTrinh: idCongTrinh
   );
   await ChiLuongExcel(sheetChiLuong: sheetChiLuong,
-      selectedYear: selectedYear,
-      selectedMonth: selectedMonth,
+
       idCongTrinh: idCongTrinh);
   /// ===== SAVE FILE =====
   Directory? dir;
@@ -51,7 +45,7 @@ Future<void> exportExcelFull({
   }
 
   String path =
-      "${dir!.path}/ChamCong_FULL_${selectedMonth}_$selectedYear.xlsx";
+      "${dir!.path}/ChamCong_FULL_${idBangChamCong}.xlsx";
 
   File file = File(path)
     ..createSync(recursive: true)

@@ -5,6 +5,7 @@ import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/chi_tiet_doi_tru_ung_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/khoa_cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
@@ -70,12 +71,12 @@ class DBHelper{
     final path = await _getDatabasePath();
     return openDatabase(
       path,
-      version: 4,
+      version: 6,
       onCreate: (db, version) async {
         await _createAllTables(db);
       },
       onUpgrade: (db, int oldVersion, int newVersion )async{
-        if (oldVersion < 4) {
+        if (oldVersion < 6) {
           await _dropAllTables(db);
           await _createAllTables(db);
         }
@@ -91,6 +92,7 @@ class DBHelper{
     await db.execute(NhatKyTable.createTable);
     await db.execute(NhatKyHinhAnhTable.createTable);
     await db.execute(BangLuongTable.createTable);
+    await db.execute(ChiTietDoiTruUngLuongTable.createTable);
     await db.execute(ChiLuongTable.createTable);
     await db.execute(DanhMucThuChiTable.createTable);
     await db.execute(KhoaChamCongTable.createTable);

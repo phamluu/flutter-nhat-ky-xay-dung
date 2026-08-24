@@ -7,7 +7,7 @@ import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
 import 'package:intl/intl.dart';
 
-import '../../../data/services/ung_luong_service.dart';
+import '../../../data/repositories/ung_luong_repository.dart';
 import '🚀 📱 UngLuongFormScreen.dart';
 
 class UngLuongScreen extends StatefulWidget {
@@ -31,7 +31,7 @@ class UngLuongScreen extends StatefulWidget {
 }
 
 class _UngLuongScreenState extends State<UngLuongScreen> {
-  final _service = UngLuongService();
+  final _service = UngLuongRepository();
   late final Chotchiluongservice _chotLuong;
   late bool daChotLuong = false;
   late Future<List<Ungluong>> _future;
@@ -41,18 +41,14 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
   void initState() {
     super.initState();
     _chotLuong = Chotchiluongservice(ChotChiLuongRepository());
-    _future = _service.getUngLuongNhanVien(
-        widget.idNhanVienCongTrinh!, widget.thang!, widget.nam!);
+    _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!);
     _loadChotLuong();
   }
   void _reload() async {
     final chot = await _chotLuong.isDaChotLuong(
         widget.idNhanVienCongTrinh!, widget.idBangChamCong!);
-
     setState(() {
-      _future = _service.getUngLuongNhanVien(
-          widget.idNhanVienCongTrinh!, widget.thang!, widget.nam!);
-
+      _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!);
       daChotLuong = chot;
     });
   }

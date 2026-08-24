@@ -3,15 +3,15 @@ import '../../luong/data/repositories/ChiLuongRepository.dart';
 import '../../luong/data/services/ChiLuongService.dart';
 Future<void> ChiLuongExcel({
   required Sheet sheetChiLuong,
-  required int selectedYear,
-  required int selectedMonth,
+  String? kyLuong,
+  int? idBangChamCong,
   required int idCongTrinh,
 }) async {
   ChiLuongService service = ChiLuongService(ChiLuongRepository());
   final chiLuongs = await service.getByCongTrinhThangNam(
     idCongTrinh,
-    selectedMonth,
-    selectedYear,
+    idBangChamCong: idBangChamCong,
+    kyLuong: kyLuong,
   );
 
   // STYLE
@@ -35,7 +35,7 @@ Future<void> ChiLuongExcel({
   );
 
   // TITLE
-  String title = "CHI LƯƠNG THÁNG $selectedMonth/$selectedYear";
+  String title = "CHI LƯƠNG THÁNG $kyLuong";
   sheetChiLuong
       .cell(CellIndex.indexByString("A1"))
       .value = title;

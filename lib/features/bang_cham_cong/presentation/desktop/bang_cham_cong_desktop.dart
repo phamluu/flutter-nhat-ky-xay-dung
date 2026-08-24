@@ -327,6 +327,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         badgeCell(nv.tongSoCong.toString(), Colors.blue),
         textCell(formatCurrency(nv.tongLuongHienThi), isBold: true),
         _ungLuongCell(nv),
+        textCell('', color: Colors.green.shade700, isBold: true),
         textCell(formatCurrency(nv.thucNhanHienThi), color: Colors.green.shade700, isBold: true),
         DataCell(buildTrangThai(TrangThaiLuong.fromValue(nv.trangThaiChotLuong))),
         _actionCell(nv),

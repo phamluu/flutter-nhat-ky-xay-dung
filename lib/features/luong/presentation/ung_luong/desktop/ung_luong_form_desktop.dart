@@ -1,42 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
-import '../../../data/services/ung_luong_service.dart';
 
 class UngLuongFormDesktop extends StatefulWidget {
   final Ungluong? ul;
-
   final int? idNhanVienCongTrinh;
-
   final String? tenCongTrinh;
-
   final String? hoTen;
-
-  // ==========================================
-  // KỲ LƯƠNG
-  // ==========================================
-
-  final int thang;
-
-  final int nam;
-
+  final String? kyLuong;
   const UngLuongFormDesktop({
     Key? key,
-
     this.ul,
-
     this.idNhanVienCongTrinh,
-
     this.tenCongTrinh,
-
     this.hoTen,
-
-    required this.thang,
-
-    required this.nam,
+    this.kyLuong,
   }) : super(key: key);
 
   @override
@@ -46,192 +28,53 @@ class UngLuongFormDesktop extends StatefulWidget {
 
 class _UngLuongFormScreenState
     extends State<UngLuongFormDesktop> {
-  final _formKey =
-  GlobalKey<FormState>();
-
-  final _service =
-  UngLuongService();
-
-  final soTienCtrl =
-  TextEditingController();
-
-  final ngayCtrl =
-  TextEditingController();
-
-  final lyDoCtrl =
-  TextEditingController();
-
+  final _formKey =GlobalKey<FormState>();
+  final _service =UngLuongRepository();
+  final soTienCtrl =TextEditingController();
+  final ngayCtrl =TextEditingController();
+  final lyDoCtrl =TextEditingController();
   DateTime? selectedDate;
-
   bool isLoading = false;
-
-  // ============================================================
-  // NGÀY ĐẦU THÁNG
-  // ============================================================
-
-  DateTime get firstDayOfMonth {
-    return DateTime(
-      widget.nam,
-      widget.thang,
-      1,
-    );
-  }
-
-  // ============================================================
-  // NGÀY CUỐI THÁNG
-  // ============================================================
-
-  DateTime get lastDayOfMonth {
-    return DateTime(
-      widget.nam,
-      widget.thang + 1,
-      0,
-    );
-  }
-
-  // ============================================================
-  // INIT
-  // ============================================================
-
   @override
   void initState() {
     super.initState();
-
     if (widget.ul != null) {
-      // ==========================================
-      // EDIT
-      // ==========================================
-
       if (widget.ul!.soTien != null) {
-        soTienCtrl.text =
-            formatCurrency(
-              widget.ul!.soTien!,
-            );
+        soTienCtrl.text =formatCurrency( widget.ul!.soTien!);
       }
-
-      lyDoCtrl.text =
-          widget.ul!.lyDo ?? '';
-
+      lyDoCtrl.text = widget.ul!.lyDo ?? '';
       if (widget.ul!.ngayUng != null) {
-        selectedDate =
-            widget.ul!.ngayUng;
-
-        ngayCtrl.text =
-            DateFormat(
-              'dd/MM/yyyy',
-            ).format(
-              widget.ul!.ngayUng!,
-            );
+        selectedDate = widget.ul!.ngayUng;
+        ngayCtrl.text =DateFormat( 'dd/MM/yyyy').format(widget.ul!.ngayUng!);
       }
     } else {
-      // ==========================================
-      // ADD
-      // ==========================================
-
-      final today =
-      DateTime.now();
-
-      // Nếu hôm nay thuộc tháng đang quản lý
-      // thì mặc định hôm nay.
-      //
-      // Nếu không thì mặc định ngày đầu tháng.
-
-      if (today.year == widget.nam &&
-          today.month == widget.thang) {
-        selectedDate = today;
-      } else {
-        selectedDate =
-            firstDayOfMonth;
-      }
-
-      ngayCtrl.text =
-          DateFormat(
-            'dd/MM/yyyy',
-          ).format(
-            selectedDate!,
-          );
+      final today =DateTime.now();
+      selectedDate = today;
+      ngayCtrl.text =DateFormat('dd/MM/yyyy' ).format( selectedDate!);
     }
   }
-
-  // ============================================================
-  // DISPOSE
-  // ============================================================
-
   @override
   void dispose() {
     soTienCtrl.dispose();
     ngayCtrl.dispose();
     lyDoCtrl.dispose();
-
     super.dispose();
   }
-
-  // ============================================================
-  // CHỌN NGÀY
-  // ============================================================
-
   Future<void> _pickDate() async {
-    DateTime initialDate =
-        selectedDate ??
-            firstDayOfMonth;
-
-    // ------------------------------------------
-    // Nếu ngày hiện tại nằm ngoài tháng
-    // thì đưa về ngày đầu/cuối tháng
-    // ------------------------------------------
-
-    if (initialDate.isBefore(
-      firstDayOfMonth,
-    )) {
-      initialDate =
-          firstDayOfMonth;
-    }
-
-    if (initialDate.isAfter(
-      lastDayOfMonth,
-    )) {
-      initialDate =
-          lastDayOfMonth;
-    }
-
-    final picked =
-    await showDatePicker(
+    final initialDate = selectedDate ?? DateTime.now();
+    final picked = await showDatePicker(
       context: context,
-
-      // Chỉ được chọn trong tháng/năm này
-      firstDate:
-      firstDayOfMonth,
-
-      lastDate:
-      lastDayOfMonth,
-
-      initialDate:
-      initialDate,
-
-      helpText:
-      'Chọn ngày ứng lương',
-
-      cancelText:
-      'Hủy',
-
-      confirmText:
-      'Chọn',
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      helpText: 'Chọn ngày ứng lương',
+      cancelText: 'Hủy',
+      confirmText: 'Chọn',
     );
-
-    if (picked == null) {
-      return;
-    }
-
+    if (picked == null) return;
     setState(() {
-      selectedDate =
-          picked;
-
-      ngayCtrl.text =
-          DateFormat(
-            'dd/MM/yyyy',
-          ).format(
-            picked,
-          );
+      selectedDate = picked;
+      ngayCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
     });
   }
 
@@ -239,16 +82,16 @@ class _UngLuongFormScreenState
   // KIỂM TRA NGÀY
   // ============================================================
 
-  bool _isDateInCurrentPeriod(
-      DateTime date,
-      ) {
-    return !date.isBefore(
-      firstDayOfMonth,
-    ) &&
-        !date.isAfter(
-          lastDayOfMonth,
-        );
-  }
+  // bool _isDateInCurrentPeriod(
+  //     DateTime date,
+  //     ) {
+  //   return !date.isBefore(
+  //     firstDayOfMonth,
+  //   ) &&
+  //       !date.isAfter(
+  //         lastDayOfMonth,
+  //       );
+  // }
 
   // ============================================================
   // SAVE
@@ -279,23 +122,23 @@ class _UngLuongFormScreenState
       return;
     }
 
-    if (!_isDateInCurrentPeriod(
-      selectedDate!,
-    )) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content: Text(
-            'Ngày ứng phải thuộc tháng '
-                '${widget.thang}/${widget.nam}',
-          ),
-          backgroundColor:
-          Colors.red,
-        ),
-      );
-
-      return;
-    }
+    // if (!_isDateInCurrentPeriod(
+    //   selectedDate!,
+    // )) {
+    //   ScaffoldMessenger.of(context)
+    //       .showSnackBar(
+    //     SnackBar(
+    //       content: Text(
+    //         'Ngày ứng phải thuộc tháng '
+    //             '${widget.thang}/${widget.nam}',
+    //       ),
+    //       backgroundColor:
+    //       Colors.red,
+    //     ),
+    //   );
+    //
+    //   return;
+    // }
 
     setState(() {
       isLoading = true;
@@ -457,18 +300,18 @@ class _UngLuongFormScreenState
                 ),
               ),
 
-              child: Text(
-                'Tháng ${widget.thang}/${widget.nam}',
-
-                style:
-                TextStyle(
-                  fontSize: 13,
-                  color:
-                  Colors.blue.shade700,
-                  fontWeight:
-                  FontWeight.w600,
-                ),
-              ),
+              // child: Text(
+              //   'Tháng ${widget.thang}/${widget.nam}',
+              //
+              //   style:
+              //   TextStyle(
+              //     fontSize: 13,
+              //     color:
+              //     Colors.blue.shade700,
+              //     fontWeight:
+              //     FontWeight.w600,
+              //   ),
+              // ),
             ),
           ],
         ),
@@ -693,17 +536,17 @@ class _UngLuongFormScreenState
                   width: 6,
                 ),
 
-                Text(
-                  'Tháng ${widget.thang}/${widget.nam}',
-
-                  style:
-                  const TextStyle(
-                    color:
-                    Colors.blue,
-                    fontWeight:
-                    FontWeight.w600,
-                  ),
-                ),
+                // Text(
+                //   'Tháng ${widget.thang}/${widget.nam}',
+                //
+                //   style:
+                //   const TextStyle(
+                //     color:
+                //     Colors.blue,
+                //     fontWeight:
+                //     FontWeight.w600,
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -770,22 +613,22 @@ class _UngLuongFormScreenState
               height: 6,
             ),
 
-            Text(
-              'Khoản ứng thuộc kỳ lương '
-                  'tháng ${widget.thang}/${widget.nam}',
-
-              style:
-              TextStyle(
-                fontSize: 13,
-                color:
-                Colors.grey
-                    .shade600,
-              ),
-            ),
-
-            const SizedBox(
-              height: 24,
-            ),
+            // Text(
+            //   'Khoản ứng thuộc kỳ lương '
+            //       'tháng ${widget.thang}/${widget.nam}',
+            //
+            //   style:
+            //   TextStyle(
+            //     fontSize: 13,
+            //     color:
+            //     Colors.grey
+            //         .shade600,
+            //   ),
+            // ),
+            //
+            // const SizedBox(
+            //   height: 24,
+            // ),
 
             // ==========================================
             // SỐ TIỀN + NGÀY
@@ -1050,22 +893,14 @@ class _UngLuongFormScreenState
     return TextFormField(
       controller:
       ngayCtrl,
-
       readOnly: true,
-
-      onTap:
-      isLoading
-          ? null
-          : _pickDate,
-
+      onTap: isLoading ? null: _pickDate,
       decoration:
       InputDecoration(
         labelText:
         'Ngày ứng',
-
         hintText:
         'Chọn ngày ứng',
-
         prefixIcon:
         const Icon(
           Icons
@@ -1144,14 +979,11 @@ class _UngLuongFormScreenState
     return TextFormField(
       controller:
       lyDoCtrl,
-
       maxLines: 4,
-
       decoration:
       InputDecoration(
         labelText:
         'Lý do ứng lương',
-
         hintText:
         'Nhập lý do ứng lương...',
 

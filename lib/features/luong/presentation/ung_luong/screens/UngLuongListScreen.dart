@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
-import '../../../data/services/ung_luong_service.dart';
+import '../../../data/repositories/ung_luong_repository.dart';
 import 'UngLuongScreen.dart';
 
 class UngLuongListScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class UngLuongListScreen extends StatefulWidget {
 }
 
 class _UngLuongListScreenState extends State<UngLuongListScreen> {
-  final service = UngLuongService();
+  final service = UngLuongRepository();
 
   int thang = DateTime.now().month;
   int nam = DateTime.now().year;
@@ -34,7 +34,7 @@ class _UngLuongListScreenState extends State<UngLuongListScreen> {
 
   Future<void> loadData() async {
     final result =
-    await service.getDanhSach(widget.idCongTrinh, thang, nam);
+    await service.getDanhSach(widget.idCongTrinh, thang: thang, nam: nam);
     setState(() => data = result);
   }
 

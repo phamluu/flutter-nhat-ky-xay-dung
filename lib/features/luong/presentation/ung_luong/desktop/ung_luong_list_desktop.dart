@@ -2,101 +2,66 @@
 // của tất cả nhân viên công trình - Desktop
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
-import '../../../data/services/ung_luong_service.dart';
 import 'ung_luong_nhan_vien_desktop.dart';
 
 class UngLuongListDesktop extends StatefulWidget {
   final int idCongTrinh;
   final String? tenCongTrinh;
-  final int idBangChamCong;
+  final int? idBangChamCong;
   const UngLuongListDesktop({
     super.key,
     required this.idCongTrinh,
-    required this.idBangChamCong,
+    this.idBangChamCong,
     this.tenCongTrinh,
   });
-
   @override
   State<UngLuongListDesktop> createState() =>
       _UngLuongListDesktopState();
 }
 
-class _UngLuongListDesktopState
-    extends State<UngLuongListDesktop> {
-  // ============================================================
-  // SERVICE
-  // ============================================================
-
-  final UngLuongService service = UngLuongService();
-
-  // ============================================================
-  // STATE
-  // ============================================================
-
-  int thang = DateTime.now().month;
-  int nam = DateTime.now().year;
-
+class _UngLuongListDesktopState extends State<UngLuongListDesktop> {
+  final UngLuongRepository service = UngLuongRepository();
+  // int thang = DateTime.now().month;
+  // int nam = DateTime.now().year;
   List<UngLuongViewModel> data = [];
-
+  String? kyLuong;
+  List<Map<String, dynamic>> kyLuongs = [];
   bool _isLoading = false;
-
-  // ============================================================
-  // SCROLL
-  // ============================================================
-
   final ScrollController _verticalScrollController =
   ScrollController();
-
-  // ============================================================
-  // INIT
-  // ============================================================
-
   @override
   void initState() {
     super.initState();
     loadData();
   }
-
   @override
   void dispose() {
     _verticalScrollController.dispose();
     super.dispose();
   }
-
-  // ============================================================
-  // LOAD DATA
-  // ============================================================
-
   Future<void> loadData() async {
     if (!mounted) return;
-
     setState(() {
       _isLoading = true;
     });
-
     try {
-      final result = await service.getDanhSach(
-        widget.idCongTrinh,
-        thang,
-        nam,
-      );
-
+      final result = await service.getDanhSach(widget.idCongTrinh, kyLuong: kyLuong);
+      final search = await service.getKyLuongs(widget.idCongTrinh);
       if (!mounted) return;
-
       setState(() {
         data = result;
+        kyLuongs = search;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _isLoading = false;
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -107,22 +72,12 @@ class _UngLuongListDesktopState
       );
     }
   }
-
-  // ============================================================
-  // TỔNG TIỀN ỨNG
-  // ============================================================
-
   num get tongTienUng {
     return data.fold<num>(
       0,
           (sum, item) => sum + (item?.tongUng ?? 0),
     );
   }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,15 +96,9 @@ class _UngLuongListDesktopState
       ),
     );
   }
-
-  // ============================================================
-  // HEADER
-  // ============================================================
-
   Widget _buildHeader() {
     final tenCongTrinh =
     widget.tenCongTrinh?.trim();
-
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 28,
@@ -180,25 +129,20 @@ class _UngLuongListDesktopState
               size: 27,
             ),
           ),
-
           const SizedBox(width: 14),
-
-          // TITLE
           Expanded(
             child: Column(
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Danh sách ứng lương",
+                  "Danh sách ứng lương công trình",
                   style: TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   tenCongTrinh?.isNotEmpty == true
                       ? tenCongTrinh!
@@ -232,7 +176,7 @@ class _UngLuongListDesktopState
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "Tháng $thang/$nam",
+                  "Tháng $kyLuong",
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -258,11 +202,6 @@ class _UngLuongListDesktopState
       ),
     );
   }
-
-  // ============================================================
-  // BODY
-  // ============================================================
-
   Widget _buildBody() {
     return Column(
       children: [
@@ -304,11 +243,6 @@ class _UngLuongListDesktopState
       ],
     );
   }
-
-  // ============================================================
-  // FILTER CARD
-  // ============================================================
-
   Widget _buildFilterCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -323,83 +257,47 @@ class _UngLuongListDesktopState
       child: Row(
         children: [
           // ICON
-          Container(
-            width: 40,
-            height: 40,
+          Container(width: 40,height: 40,
             decoration: BoxDecoration(
               color: Colors.blue.withOpacity(.08),
-              borderRadius:
-              BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(9),
             ),
-            child: Icon(
-              Icons.filter_alt_outlined,
-              color: Colors.blue.shade700,
-            ),
+            child: Icon( Icons.filter_alt_outlined,color: Colors.blue.shade700),
           ),
-
           const SizedBox(width: 12),
-
-          const Text(
-            "Bộ lọc",
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
+          const Text("Bộ lọc", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15 ),
           ),
-
           const SizedBox(width: 24),
-
-          // MONTH
-          _buildDropdown<int>(
-            width: 180,
+          _buildDropdown<String?>(
+            width: 260,
             icon: Icons.calendar_month_outlined,
-            label: "Tháng",
-            value: thang,
-            items: List.generate(
-              12,
-                  (index) => index + 1,
-            ),
-            itemLabel: (value) =>
-            "Tháng $value",
+            label: "Kỳ lương",
+            value: kyLuong,
+            items: [
+              null,
+              ...kyLuongs
+                  .map((e) => e['value']?.toString())
+                  .whereType<String>(),
+            ],
+            itemLabel: (value) {
+              if (value == null) {
+                return "Tất cả kỳ lương";
+              }
+              for (final item in kyLuongs) {
+                if (item['value']?.toString() == value) {
+                  return item['label']?.toString() ?? value;
+                }
+              }
+              return value;
+            },
             onChanged: (value) {
-              if (value == null) return;
-
               setState(() {
-                thang = value;
+                kyLuong = value;
               });
-
               loadData();
             },
           ),
-
-          const SizedBox(width: 12),
-
-          // YEAR
-          _buildDropdown<int>(
-            width: 180,
-            icon: Icons.event_outlined,
-            label: "Năm",
-            value: nam,
-            items: List.generate(
-              7,
-                  (index) =>
-              DateTime.now().year - 3 + index,
-            ),
-            itemLabel: (value) =>
-            "Năm $value",
-            onChanged: (value) {
-              if (value == null) return;
-
-              setState(() {
-                nam = value;
-              });
-
-              loadData();
-            },
-          ),
-
           const Spacer(),
-
           // THÔNG TIN THỜI GIAN
           Container(
             padding: const EdgeInsets.symmetric(
@@ -420,7 +318,7 @@ class _UngLuongListDesktopState
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  "Kỳ ứng: $thang/$nam",
+                  "Kỳ ứng: ${kyLuong ?? 'Cả công trình'}",
                   style: TextStyle(
                     color: Colors.orange.shade800,
                     fontWeight: FontWeight.w600,
@@ -540,7 +438,7 @@ class _UngLuongListDesktopState
           child: _summaryCard(
             icon: Icons.calendar_month_outlined,
             title: "Kỳ lương",
-            value: "$thang/$nam",
+            value: '${kyLuong ?? 'Cả công trình'}',
             subtitle:
             "Tháng đang xem dữ liệu",
             iconColor: Colors.green,
@@ -848,7 +746,17 @@ class _UngLuongListDesktopState
                   ),
                 ),
               ),
-
+              DataColumn(
+                numeric: true,
+                label: Text(
+                  "ĐÃ ĐỐI TRỪ",
+                  style: TextStyle(
+                    fontWeight:
+                    FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
               DataColumn(
                 label: Text(
                   "THAO TÁC",
@@ -877,7 +785,6 @@ class _UngLuongListDesktopState
       data.length,
           (index) {
         final item = data[index];
-
         return DataRow(
           color:
           MaterialStateProperty.resolveWith(
@@ -968,9 +875,7 @@ class _UngLuongListDesktopState
                   BorderRadius.circular(7),
                 ),
                 child: Text(
-                  formatCurrency(
-                    item.tongUng,
-                  ),
+                  formatCurrency(item.tongUng),
                   style: TextStyle(
                     color:
                     Colors.orange.shade800,
@@ -981,7 +886,29 @@ class _UngLuongListDesktopState
                 ),
               ),
             ),
-
+            // ĐÃ ĐỐI TRỪ
+            DataCell(
+              item.daDoiTru != null && item.daDoiTru != 0
+                  ? Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(.08),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Text(
+                  formatCurrency(item.daDoiTru!),
+                  style: TextStyle(
+                    color: Colors.orange.shade800,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              )
+                  : const SizedBox.shrink(),
+            ),
             // ACTION
             DataCell(
               OutlinedButton.icon(
@@ -1020,8 +947,8 @@ class _UngLuongListDesktopState
           item.idNhanVienCongTrinh,
           hoTen: item.hoTen,
           congTrinh: widget.tenCongTrinh,
-          thang: thang,
-          nam: nam, idBangChamCong: widget.idBangChamCong,
+          idBangChamCong: widget.idBangChamCong,
+          kyLuong: kyLuong,
         ),
       ),
     );
@@ -1080,7 +1007,6 @@ class _UngLuongListDesktopState
           ),
 
           const SizedBox(height: 14),
-
           const Text(
             "Chưa có dữ liệu ứng lương",
             style: TextStyle(
@@ -1089,12 +1015,9 @@ class _UngLuongListDesktopState
               FontWeight.w700,
             ),
           ),
-
           const SizedBox(height: 6),
-
           Text(
-            "Không tìm thấy dữ liệu ứng lương "
-                "cho tháng $thang/$nam.",
+            "Không tìm thấy dữ liệu ứng lương ",
             style: TextStyle(
               color: Colors.grey.shade600,
               fontSize: 13,

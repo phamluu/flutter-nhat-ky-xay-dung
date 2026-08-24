@@ -100,8 +100,6 @@ class HeaderChamCong extends StatelessWidget {
                       context: context,
                       data: data,
                       soNgay: soNgay,
-                      selectedMonth: selectedMonth,
-                      selectedYear: selectedYear,
                       idCongTrinh: idCongTrinh,
                       tenCongTrinh: tenCongTrinh
                     );

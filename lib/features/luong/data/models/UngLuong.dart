@@ -1,3 +1,4 @@
+import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';import '../../../cong_trinh/data/models/NhanVienCongTrinh.dart';
 import '../../../nhan_vien/data/models/NhanVien.dart';
 
@@ -6,6 +7,7 @@ class Ungluong {
     int? idNhanVienCongTrinh;
     double? soTien;
     DateTime? ngayUng;
+    int? trangThai;
    NhanVien? nhanVien;
    NhanVienCongTrinh? nhanVienCongTrinh;
     String? lyDo;
@@ -16,6 +18,7 @@ class Ungluong {
     this.idNhanVienCongTrinh,
     this.soTien,
     this.ngayUng,
+    this.trangThai,
     this.nhanVien,
     this.nhanVienCongTrinh,
     this.lyDo,
@@ -24,11 +27,11 @@ class Ungluong {
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
-      'id': id,
-      'idNhanVienCongTrinh': idNhanVienCongTrinh,
-      'soTien': soTien,
-      'ngayUng': ngayUng?.toIso8601String(),
-      'lyDo': lyDo,
+      UngLuongTable.idNhanVienCongTrinh: idNhanVienCongTrinh,
+      UngLuongTable.soTien: soTien,
+      UngLuongTable.trangThai: trangThai,
+      UngLuongTable.ngayUng: ngayUng?.toIso8601String(),
+      UngLuongTable.lyDo: lyDo,
     };
     return map;
   }
@@ -70,15 +73,16 @@ class Ungluong {
     }
 
     return Ungluong(
-      id: map['id'] as int?,
-      idNhanVienCongTrinh: map['idNhanVienCongTrinh'] as int?,
-      soTien: (map['soTien'] is int)
-          ? (map['soTien'] as int).toDouble()
-          : map['soTien'] as double?,
-      ngayUng: map['ngayUng'] != null
-          ? DateTime.tryParse(map['ngayUng'].toString())
+      id: map[UngLuongTable.id] as int?,
+      idNhanVienCongTrinh: map[UngLuongTable.idNhanVienCongTrinh] as int?,
+      soTien: (map[UngLuongTable.soTien] is int)
+          ? (map[UngLuongTable.soTien] as int).toDouble()
+          : map[UngLuongTable.soTien] as double?,
+      ngayUng: map[UngLuongTable.ngayUng] != null
+          ? DateTime.tryParse(map[UngLuongTable.ngayUng].toString())
           : null,
-      lyDo: map['lyDo'] as String?,
+      lyDo: map[UngLuongTable.lyDo] as String?,
+      trangThai: map[UngLuongTable.trangThai] as int?,
       nhanVienCongTrinh: nvct,
     );
   }
@@ -87,6 +91,7 @@ class Ungluong {
     int? id,
     int? idNhanVienCongTrinh,
     double? soTien,
+    int? trangThai,
     DateTime? ngayUng,
     NhanVien? nhanVien,
     NhanVienCongTrinh? nhanVienCongTrinh,
@@ -97,6 +102,7 @@ class Ungluong {
       idNhanVienCongTrinh: idNhanVienCongTrinh ?? this.idNhanVienCongTrinh,
       soTien: soTien ?? this.soTien,
       ngayUng: ngayUng ?? this.ngayUng,
+      trangThai: trangThai ?? this.trangThai,
       nhanVien: nhanVien ?? this.nhanVien,
       nhanVienCongTrinh: nhanVienCongTrinh ?? this.nhanVienCongTrinh,
       lyDo: lyDo ?? this.lyDo,
@@ -105,7 +111,6 @@ class Ungluong {
 }
 
 // Theo danh sách nhân viên
-
 
 class UngLuongItem{
   double soTien;
@@ -120,16 +125,17 @@ class UngLuongItem{
 
 class UngLuongViewModel{
   int idNhanVienCongTrinh;
-  int thang;
-  int nam;
+  int? thang;
+  int? nam;
   final String? hoTen;
   final List<UngLuongItem> daUngs;
   UngLuongViewModel({
     required this.idNhanVienCongTrinh,
     this.hoTen,
-    required this.thang,
-    required this.nam,
+    this.thang,
+    this.nam,
     required this.daUngs,
+    this.daDoiTru
   });
   double get tongUng {
     return daUngs.fold(
@@ -137,4 +143,5 @@ class UngLuongViewModel{
           (sum, item) => sum! + item.soTien,
     ) ?? 0.0;
   }
+  double? daDoiTru;
 }

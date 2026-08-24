@@ -3,19 +3,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 import '../../luong/data/models/UngLuong.dart';
-import '../../luong/data/services/ung_luong_service.dart';
+import '../../luong/data/repositories/ung_luong_repository.dart';
 
 Future<void> UngLuongExecl({
   required Sheet sheetUngLuong,
-  required int selectedYear,
-  required int selectedMonth,
+  String? kyLuong,
+  int? idBangChamCong,
   required int idCongTrinh,
 }) async {
   // 🔹 Lấy dữ liệu
   List<UngLuongViewModel> ungLuongs = [];
-  UngLuongService service = UngLuongService();
+  UngLuongRepository service = UngLuongRepository();
   ungLuongs =
-  await service.getDanhSach(idCongTrinh, selectedMonth, selectedYear);
+  await service.getDanhSach(idCongTrinh, kyLuong: kyLuong);
 
   /// ===== STYLE =====
   final headerStyle = CellStyle(
@@ -52,7 +52,7 @@ Future<void> UngLuongExecl({
   sheetUngLuong
       .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
       .value =
-  "DANH SÁCH ỨNG LƯƠNG THÁNG $selectedMonth/$selectedYear";
+  "DANH SÁCH ỨNG LƯƠNG $kyLuong";
 
   /// ===== HEADER =====
   List<String> headerUng = [

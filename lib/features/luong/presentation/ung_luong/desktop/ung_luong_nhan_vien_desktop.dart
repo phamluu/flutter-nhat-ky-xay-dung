@@ -7,24 +7,26 @@ import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/ung_luong_form_desktop.dart';
 
 import '../../../data/models/UngLuong.dart';
-import '../../../data/services/ung_luong_service.dart';
+import '../../../data/repositories/ung_luong_repository.dart';
 import '../screens/🚀 📱 UngLuongFormScreen.dart';
 
 class UngLuongNhanVienDesktop extends StatefulWidget {
   final int? idNhanVienCongTrinh;
   final String? hoTen;
   final String? congTrinh;
-  final int thang;
-  final int nam;
-  final int idBangChamCong;
+  final int? thang;
+  final int? nam;
+  final int? idBangChamCong;
+  final String? kyLuong;
   const UngLuongNhanVienDesktop({
     Key? key,
     this.idNhanVienCongTrinh,
     this.hoTen,
     this.congTrinh,
-    required this.thang,
-    required this.nam,
-    required this.idBangChamCong
+    this.thang,
+    this.nam,
+    this.idBangChamCong,
+    this.kyLuong
   }) : super(key: key);
 
   @override
@@ -32,7 +34,7 @@ class UngLuongNhanVienDesktop extends StatefulWidget {
 }
 
 class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
-  final _service = UngLuongService();
+  final _service = UngLuongRepository();
 
   late final Chotchiluongservice _chotLuong;
   late bool daChotLuong = false;
@@ -47,9 +49,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
     );
 
     _future = _service.getUngLuongNhanVien(
-      widget.idNhanVienCongTrinh!,
-      widget.thang,
-      widget.nam,
+      widget.idNhanVienCongTrinh!, kyLuong: widget.kyLuong
     );
 
     _loadChotLuong();
@@ -80,9 +80,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
       daChotLuong = chot;
 
       _future = _service.getUngLuongNhanVien(
-        widget.idNhanVienCongTrinh!,
-        widget.thang,
-        widget.nam,
+        widget.idNhanVienCongTrinh!, kyLuong: widget.kyLuong
       );
     });
   }
@@ -93,16 +91,13 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
 
   void _openAddForm() {
     if (daChotLuong) return;
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => UngLuongFormDesktop(
-          idNhanVienCongTrinh:
-          widget.idNhanVienCongTrinh,
+          idNhanVienCongTrinh:widget.idNhanVienCongTrinh,
           hoTen: widget.hoTen,
           tenCongTrinh: widget.congTrinh,
-          thang: widget.thang, nam: widget.nam,
         ),
       ),
     ).then((_) => _reload());
@@ -114,14 +109,14 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
 
   void _openEditForm(Ungluong ul) {
     if (daChotLuong) return;
-
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => UngLuongFormScreen(
+        builder: (_) => UngLuongFormDesktop(
           ul: ul,
-          idNhanVienCongTrinh:
-          widget.idNhanVienCongTrinh,
+          idNhanVienCongTrinh:widget.idNhanVienCongTrinh,
+          hoTen: widget.hoTen,
+          tenCongTrinh: widget.congTrinh,
         ),
       ),
     ).then((_) => _reload());
@@ -135,44 +130,25 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-
-      // ========================================================
-      // HEADER DESKTOP
-      // ========================================================
-
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1F2937),
         titleSpacing: 24,
-
         title: Row(
           children: [
             const Icon(
               Icons.payments_outlined,
               color: Colors.blue,
             ),
-
             const SizedBox(width: 10),
-
             Text(
-              'Quản lý ứng lương tháng ${widget.thang}',
+              'Quản lý ứng lương ${widget.kyLuong ?? ''}',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
-            ),
-
-            const SizedBox(width: 10),
-
-            Text(
-              '/ ${widget.nam}',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            )
           ],
         ),
 
@@ -578,7 +554,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
             Icons.calendar_month_outlined,
             title: 'Kỳ lương',
             value:
-            'Tháng ${widget.thang}/${widget.nam}',
+            '${widget.kyLuong ?? 'Cả công trình'}',
           ),
         ),
       ],
@@ -707,7 +683,6 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
               children: [
                 const Text(
                   'Lịch sử ứng lương',
-
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight:
@@ -716,12 +691,9 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
                     Color(0xFF111827),
                   ),
                 ),
-
                 const Spacer(),
-
                 Text(
                   '${data.length} bản ghi',
-
                   style: TextStyle(
                     color:
                     Colors.grey.shade600,
@@ -757,19 +729,14 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
     return SingleChildScrollView(
       scrollDirection:
       Axis.horizontal,
-
       child: SizedBox(
         width: 900,
-
         child: DataTable(
           headingRowHeight: 48,
-
           dataRowMinHeight: 62,
           dataRowMaxHeight: 72,
-
           horizontalMargin: 20,
           columnSpacing: 28,
-
           headingTextStyle:
           const TextStyle(
             fontWeight:
@@ -783,19 +750,18 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
             DataColumn(
               label: Text('#'),
             ),
-
             DataColumn(
               label: Text('Ngày ứng'),
             ),
-
             DataColumn(
               label: Text('Số tiền'),
             ),
-
             DataColumn(
               label: Text('Lý do'),
             ),
-
+            DataColumn(
+              label: Text('Trạng thái'),
+            ),
             DataColumn(
               label: Text('Thao tác'),
             ),
@@ -889,17 +855,22 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
                       ),
                     ),
                   ),
-
+                  // Trạng thái
+                  DataCell(
+                    SizedBox(
+                      child: Text(
+                        ''
+                      ),
+                    ),
+                  ),
                   // THAO TÁC
                   DataCell(
                     Row(
                       mainAxisSize:
                       MainAxisSize.min,
-
                       children: [
                         IconButton(
                           tooltip: 'Sửa',
-
                           onPressed:
                           daChotLuong
                               ? null
@@ -907,19 +878,15 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
                               _openEditForm(
                                 ul,
                               ),
-
                           icon: const Icon(
                             Icons
                                 .edit_outlined,
                             size: 20,
                           ),
-
                           color: Colors.blue,
                         ),
-
                         IconButton(
                           tooltip: 'Xóa',
-
                           onPressed:
                           daChotLuong
                               ? null
@@ -927,13 +894,11 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
                               _deleteUngLuong(
                                 ul,
                               ),
-
                           icon: const Icon(
                             Icons
                                 .delete_outline,
                             size: 20,
                           ),
-
                           color: Colors.red,
                         ),
                       ],

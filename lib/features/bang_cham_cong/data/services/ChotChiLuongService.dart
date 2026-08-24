@@ -25,7 +25,10 @@ class Chotchiluongservice {
   }
 
   /// 👉 kiểm tra đã chốt chưa
-  Future<bool> isDaChotLuong(int idNvct, int idBangChamCong) async {
+  Future<bool> isDaChotLuong(int idNvct, int? idBangChamCong) async {
+    if(idBangChamCong == null){
+      return false;
+    }
     final data = await repo.checkDaChotLuong(idBangChamCong, idNvct);
     return data;
   }

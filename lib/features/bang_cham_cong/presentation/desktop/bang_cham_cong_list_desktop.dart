@@ -208,7 +208,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
                 ),
                 itemBuilder:
                     (context, index) {
-                  return _buildTableRow(
+                  return _buildTableRow(index,
                     data[index],
                   );
                 },
@@ -228,10 +228,28 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
       color: Colors.grey.shade50,
       child: Row(
         children: [
+          const SizedBox(
+            width: 150,
+            child: Text(
+              'STT',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           const Expanded(
             flex: 3,
             child: Text(
               'Bảng chấm công',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 150,
+            child: Text(
+              'Trạng thái',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -251,7 +269,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     );
   }
 
-  Widget _buildTableRow( BangChamCong ct) {
+  Widget _buildTableRow(int index, BangChamCong ct) {
     return InkWell(
       onDoubleTap: () {
         _openChiTiet(ct);
@@ -267,6 +285,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         ),
         child: Row(
           children: [
+            SizedBox(width: 50, child: Text((index + 1).toString())),
             // TÊN
             Expanded(
               flex: 3,
@@ -292,6 +311,8 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
                 ],
               ),
             ),
+            // Tranng thái
+            Text(ct.daKhoa != null ? ct.daKhoa.toString() : ''),
             // THAO TÁC
             SizedBox(
               width: 150,

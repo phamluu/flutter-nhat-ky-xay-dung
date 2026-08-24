@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
-import '../../../data/services/ung_luong_service.dart';
+import '../../../data/repositories/ung_luong_repository.dart';
 
 class UngLuongFormScreen extends StatefulWidget {
   final Ungluong? ul;
@@ -24,7 +24,7 @@ class UngLuongFormScreen extends StatefulWidget {
 
 class _UngLuongFormScreenState extends State<UngLuongFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _service = UngLuongService();
+  final _service = UngLuongRepository();
 
   final soTienCtrl = TextEditingController();
   final ngayCtrl = TextEditingController();

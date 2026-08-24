@@ -1,3 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
+
 import '../../../../data/db_helper.dart';
 import '../models/ChiLuong.dart';
 
@@ -5,7 +8,7 @@ class ChiLuongRepository {
   final _dbHelper = DBHelper.instance;
   Future<int> insert(ChiLuongModel model) async {
     final db = await _dbHelper.database;
-    return await db.insert('chi_luong', model.toMap());
+    return await db.insert(ChiLuongTable.tableName, model.toMap());
   }
   Future<List<Map<String, dynamic>>> getChiLuong({
     required int idCongTrinh,
@@ -20,15 +23,12 @@ class ChiLuongRepository {
       'bl.is_deleted = 0',
       'nvc.is_deleted = 0',
     ];
-
     final args = <dynamic>[idCongTrinh];
-
     // Từ ngày
     if (tuNgay != null) {
       conditions.add('cl.ngayChi >= ?');
       args.add(tuNgay.toIso8601String());
     }
-
     // Đến ngày
     if (denNgay != null) {
       // Nếu denNgay chỉ có ngày (00:00:00), lấy đến hết ngày đó.
@@ -41,11 +41,9 @@ class ChiLuongRepository {
         59,
         999,
       );
-
       conditions.add('cl.ngayChi <= ?');
       args.add(denNgayCuoi.toIso8601String());
     }
-
     final sql = '''
     SELECT
       cl.id,
@@ -59,8 +57,7 @@ class ChiLuongRepository {
       cl.updated_at,
 
       bl.idNhanVienCongTrinh,
-      bl.thang,
-      bl.nam,
+      bl.${BangLuongTable.idBangChamCong},
       bl.tongCong,
       bl.tongLuong,
       bl.tongUng,
@@ -100,7 +97,7 @@ class ChiLuongRepository {
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
   Future<List<ChiLuongModel>> getByCongTrinhThangNamWithNhanVien(
-      int idCongTrinh, int thang, int nam) async {
+      int idCongTrinh, {String? kyLuong, int? idBangChamCong}) async {
     final db = await _dbHelper.database;
 
     final result = await db.rawQuery('''
@@ -114,10 +111,9 @@ class ChiLuongRepository {
     INNER JOIN nhan_vien nv 
         ON nvct.idNhanVien = nv.id
     WHERE nvct.idCongTrinh = ?
-      AND bl.thang = ?
-      AND bl.nam = ?
+      AND bl.${BangLuongTable.idBangChamCong} = ?
     ORDER BY cl.ngayChi DESC
-  ''', [idCongTrinh, thang, nam]);
+  ''', [idCongTrinh, idBangChamCong]);
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
   Future<double> getTongDaChi(int idBangLuong) async {

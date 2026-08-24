@@ -7,8 +7,7 @@ import '../data/models/ChamCongModel.dart';
 Future<void> ChamCongExcel(
     {required Sheet sheet,
     required List<ChamCongNhanVienModel> data,
-    required int selectedYear,
-    required int selectedMonth,
+    required int idBangChamCong,
     required int idCongTrinh,
     String? tenCongTrinh}) async {
   /// ===== LẤY NGÀY CÓ CHẤM CÔNG =====
@@ -38,7 +37,7 @@ Future<void> ChamCongExcel(
   );
 
   /// ===== TITLE =====
-  String title = "BẢNG CHẤM CÔNG THÁNG $selectedMonth/$selectedYear";
+  String title = "BẢNG CHẤM CÔNG";
   String congTrinh = tenCongTrinh != null && tenCongTrinh.isNotEmpty
       ? "Công trình: $tenCongTrinh"
       : "";

@@ -34,8 +34,8 @@ class ChiLuongService {
     await repo.delete(id);
   }
 
-  Future<List<ChiLuongModel>> getByCongTrinhThangNam(int idCongTrinh, int thang, int nam)
+  Future<List<ChiLuongModel>> getByCongTrinhThangNam(int idCongTrinh, {String? kyLuong, int?idBangChamCong})
   {
-    return repo.getByCongTrinhThangNamWithNhanVien(idCongTrinh, thang, nam);
+    return repo.getByCongTrinhThangNamWithNhanVien(idCongTrinh, kyLuong: kyLuong, idBangChamCong: idBangChamCong);
   }
 }

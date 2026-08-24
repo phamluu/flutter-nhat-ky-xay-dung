@@ -101,6 +101,17 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     const DataColumn(
       label: Text(
+        "ĐÃ ĐỐI TRỪ",
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
+    ),
+  );
+  columns.add(
+    const DataColumn(
+      label: Text(
         "THỰC NHẬN",
         style: TextStyle(
           fontWeight: FontWeight.w700,

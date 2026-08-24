@@ -300,8 +300,8 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 1100;
-
+        // final isCompact = constraints.maxWidth < 1300;
+        final isCompact = false;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Column(
@@ -517,7 +517,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     required String value,
   }) {
     final selected = _filterType == value;
-
     return InkWell(
       borderRadius: BorderRadius.circular(7),
       onTap: () async {

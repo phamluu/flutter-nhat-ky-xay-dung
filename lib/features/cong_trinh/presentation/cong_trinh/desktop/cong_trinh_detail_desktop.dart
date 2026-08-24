@@ -230,17 +230,17 @@ class _CongTrinhDetailDesktopState extends State<CongTrinhDetailDesktop> {
                     ),
                   ),
 
-                  // moduleCard(
-                  //   context,
-                  //   icon: Icons.payments_outlined,
-                  //   title: 'Ứng lương',
-                  //   value: countUngLuong.toString(),
-                  //   color: Colors.deepOrange,
-                  //   page: UngLuongListDesktop(
-                  //     idCongTrinh: widget.congTrinh.id!,
-                  //     tenCongTrinh: widget.congTrinh.ten,
-                  //   ),
-                  // ),
+                  moduleCard(
+                    context,
+                    icon: Icons.payments_outlined,
+                    title: 'Ứng lương',
+                    value: countUngLuong.toString(),
+                    color: Colors.deepOrange,
+                    page: UngLuongListDesktop(
+                      idCongTrinh: widget.congTrinh.id!,
+                      tenCongTrinh: widget.congTrinh.ten,
+                    ),
+                  ),
 
                 ],
               );
