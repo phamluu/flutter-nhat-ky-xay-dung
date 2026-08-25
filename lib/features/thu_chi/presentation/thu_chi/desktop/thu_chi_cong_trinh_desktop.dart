@@ -19,58 +19,68 @@ import 'thu_chi_item_desktop.dart';
 class ThuChiCongTrinhDesktop extends StatefulWidget {
   final int? idCongTrinh;
   final String? tenCongTrinh;
-
   const ThuChiCongTrinhDesktop({
     super.key,
     this.idCongTrinh,
     this.tenCongTrinh,
   });
-
   @override
   State<ThuChiCongTrinhDesktop> createState() => _ThuChiCongTrinhDesktopState();
 }
-
 class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   final _thuChiService = ThuChiService();
-
   late Future<ThuChiCongTrinhViewModel> _futureThuChi;
-
+  List<int> _years = [];
+  List<int> _months = [];
   // FILTER
   // ============================================================
-
   String _filterType = 'all';
-
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month;
-
   DateTime? _fromDate;
   DateTime? _toDate;
-
   @override
   void initState() {
     super.initState();
     _load();
   }
-
   // ============================================================
   // LOAD DATA
   // ============================================================
-
   void _load() {
     final range = _getFilterDateRange();
-
     _futureThuChi = _thuChiService.loadThuChiCongTrinh(
       widget.idCongTrinh,
       tuNgay: range?.$1,
       denNgay: range?.$2,
     );
+    _loadYears();
+    _loadMonths();
   }
-
+  Future<void> _loadYears() async {
+    final listYear = await _thuChiService.getYears(widget.idCongTrinh!);
+    if (!mounted) return;
+    setState(() {
+      _years = listYear;
+      if (_selectedYear == null && _years.isNotEmpty) {
+        _selectedYear = _years.first;
+      }
+    });
+  }
+  Future<void> _loadMonths() async {
+    final listMonth = await _thuChiService.getMonths(widget.idCongTrinh!);
+    if (!mounted) return;
+    setState(() {
+      _months = listMonth;
+      if (_selectedMonth == null && _months.isNotEmpty) {
+        _selectedMonth = _months.first;
+      }
+    });
+  }
   Future<void> _refresh() async {
     setState(_load);
     await _futureThuChi;
   }
-
   Future<void> _addThuChi() async {
     final result = await Navigator.push(
       context,
@@ -80,7 +90,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
         ),
       ),
     );
-
     if (result == true && mounted) {
       setState(_load);
     }
@@ -98,7 +107,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
           _selectedMonth,
           1,
         );
-
         final to = DateTime(
           _selectedYear,
           _selectedMonth + 1,
@@ -117,7 +125,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             to.day,
           ),
         );
-
       case 'year':
         return (
           DateTime(
@@ -136,7 +143,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
         if (_fromDate == null || _toDate == null) {
           return null;
         }
-
         return (
           DateTime(
             _fromDate!.year,
@@ -593,17 +599,15 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       12,
       (index) => index + 1,
     );
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         buildDropdown<int>(
           value: _selectedMonth,
-          items: months,
+          items: _months,
           itemLabel: (month) => 'Tháng ${month.toString().padLeft(2, '0')}',
           onChanged: (value) {
             if (value == null) return;
-
             setState(() {
               _selectedMonth = value;
               _load();
@@ -613,15 +617,14 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
         const SizedBox(width: 8),
         buildDropdown<int>(
           value: _selectedYear,
-          items: getYears(),
+          items: _years,
           itemLabel: (year) => '$year',
           onChanged: (value) {
             if (value == null) return;
-
             setState(() {
               _selectedYear = value;
-              _load();
             });
+            _load();
           },
         ),
       ],
@@ -635,7 +638,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   Widget _buildYearSelector() {
     return buildDropdown<int>(
       value: _selectedYear,
-      items: getYears(),
+      items: _years,
       itemLabel: (year) => 'Năm $year',
       onChanged: (value) {
         if (value == null) return;

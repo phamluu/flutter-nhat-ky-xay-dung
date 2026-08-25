@@ -53,12 +53,13 @@ class ChamCongNhanVienModel {
 
   // Cột Đã ứng
   final List<DaUng>? daUng;
-  double get tongUng {
-    return daUng?.fold(
-      0.0,
-          (sum, item) => sum! + item.tienUng,
-    ) ?? 0.0;
-  }
+  double tongUng;
+  // double get tongUng {
+  //   return daUng?.fold(
+  //     0.0,
+  //         (sum, item) => sum! + item.tienUng,
+  //   ) ?? 0.0;
+  // }
   double? tongUngChot;
   double get tongUngHienThi {
     if (trangThaiChotLuong == TrangThaiLuong.dachot.value && tongUngChot != null) {
@@ -89,6 +90,7 @@ class ChamCongNhanVienModel {
     this.chucVu,
     required this.data,
     this.daUng,
+    required this.tongUng,
     required this.trangThaiChotLuong,
     this.idBangLuong,
     this.tongLuongChot,

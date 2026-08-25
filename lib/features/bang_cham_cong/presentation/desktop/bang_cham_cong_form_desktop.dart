@@ -13,8 +13,7 @@ class BangChamCongFormDesktop extends StatefulWidget {
       _BangChamCongFormDesktopState();
 }
 
-class _BangChamCongFormDesktopState
-    extends State<BangChamCongFormDesktop> {
+class _BangChamCongFormDesktopState extends State<BangChamCongFormDesktop> {
   final _formKey = GlobalKey<FormState>();
   final _repo = BangChamCongRepository();
   bool _isSaving = false;
@@ -24,7 +23,6 @@ class _BangChamCongFormDesktopState
   @override
   void initState() {
     super.initState();
-
     if (isEdit) {
       final ct = widget.bangChamCong!;
       _selectedMonth = ct.thang;

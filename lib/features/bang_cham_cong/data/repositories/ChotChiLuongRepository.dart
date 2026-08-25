@@ -2,8 +2,6 @@ import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/bang_luong.dart';
-import 'package:sqflite/sqflite.dart';
-import '../../../../data/_db_helper.dart';
 import '../../../../data/db_helper.dart';
 
 class ChotChiLuongRepository {

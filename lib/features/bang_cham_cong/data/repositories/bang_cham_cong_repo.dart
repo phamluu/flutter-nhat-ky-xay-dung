@@ -82,20 +82,15 @@ class BangChamCongRepository {
       return result.first[ChamCongTable.id] as int;
     }
 
-  Future<void> setKhoaChamCong( {int? idBangChamCong, int? idCongTrinh, int? thang, int? nam, required bool daKhoa} ) async
+  Future<void> setKhoaChamCong( {int? idBangChamCong, required bool daKhoa} ) async
     {
           final db = await _dbHelper.database;
-          final thangKey = '$nam-${thang.toString().padLeft(2, '0')}';
-          final trangThai = daKhoa
-              ? TrangThaiKhoaChamCong.dakhoa.value
-              : TrangThaiKhoaChamCong.chuakhoa.value;
-
+          final trangThai = daKhoa ? TrangThaiKhoaChamCong.dakhoa.value: TrangThaiKhoaChamCong.chuakhoa.value;
           final data = {
             ChamCongTable.daKhoa: trangThai,
             ChamCongTable.updatedAt: DateTime.now().toIso8601String(),
             ChamCongTable.isSynced: 0,
           };
-
           if (idBangChamCong != null) {
             await db.update(
               ChamCongTable.tableName,
@@ -105,43 +100,6 @@ class BangChamCongRepository {
             );
             return;
           }
-
-          final result = await db.query(
-            ChamCongTable.tableName,
-            columns: [ChamCongTable.id],
-            where: '${ChamCongTable.idCongTrinh} = ? AND ${ChamCongTable.thang} = ?',
-            whereArgs: [idCongTrinh, thangKey],
-            limit: 1,
-          );
-
-          if (result.isNotEmpty) {
-            await db.update(
-              ChamCongTable.tableName,
-              data,
-              where: '${ChamCongTable.id} = ?',
-              whereArgs: [result.first[ChamCongTable.id]],
-            );
-            return;
-          }
-
-          if (idCongTrinh == null || thang == null || nam == null) {
-            throw ArgumentError(
-              'idCongTrinh, thang, nam là bắt buộc khi không có idBangChamCong',
-            );
-          }
-          await db.insert(
-            ChamCongTable.tableName,
-            BangChamCong(
-              idCongTrinh: idCongTrinh,
-              thang: thang,
-              nam: nam,
-              daKhoa: trangThai,
-              ngayTao: DateTime.now().toIso8601String(),
-              updatedAt: DateTime.now().toIso8601String(),
-              isSynced: 0,
-              isDeleted: 0,
-            ).toMapInsert(),
-          );
     }
   Future<bool> checkKhoaChamCong({int? idBangChamCong}) async {
     final db = await _dbHelper.database;
@@ -154,12 +112,9 @@ class BangChamCongRepository {
       whereArgs: [idBangChamCong],
       limit: 1,
     );
-
     if (result.isEmpty) {
       return false;
     }
-
-    return result.first[ChamCongTable.daKhoa] ==
-        TrangThaiKhoaChamCong.dakhoa.value;
+    return result.first[ChamCongTable.daKhoa] == TrangThaiKhoaChamCong.dakhoa.value;
   }
 }

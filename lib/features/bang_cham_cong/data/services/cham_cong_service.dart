@@ -1,8 +1,10 @@
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
+import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
 import '../../../../core/utils/trang_thai_cham_cong.dart';
+import '../../../luong/data/enums.dart';
 import '../models/bang_cham_cong.dart';
 import '../repositories/ChamCongRepository.dart';
 import '../models/ChamCongModel.dart';
@@ -11,7 +13,8 @@ class ChamCongService {
   final ChamCongChiTietRepo repo;
   final BangChamCongRepository bangChamCongrepo;
   final NhanVienCongTrinhRepo _nhanVienCongTrinhRepo;
-  ChamCongService(this.repo, this.bangChamCongrepo, this._nhanVienCongTrinhRepo);
+  final UngLuongRepository _ungLuongRepo;
+  ChamCongService(this.repo, this.bangChamCongrepo, this._nhanVienCongTrinhRepo, this._ungLuongRepo);
   /// Dành cho bảng chấm công
   /// Nếu chưa có bảng chấm công vẫn load danh sách nhân viên oông trình
 
@@ -138,9 +141,7 @@ class ChamCongService {
     final danhSachNhanVien = await _nhanVienCongTrinhRepo.getDanhSachNhanVien(idCongTrinh);
     final dataChamCong = await repo.chamCongs(idBangChamCong: idBangChamCong);
     // final dataUngLuong = await _ungLuongRepo.getDanhSachUngLuong(idBangChamCong: idBangChamCong);
-
     final List<ChamCongNhanVienModel> result = [];
-
     for (var nv in danhSachNhanVien) {
       // 1. Lấy danh sách ứng lương của NV
       // final listUng = dataUngLuong
@@ -149,6 +150,7 @@ class ChamCongService {
       //     .toList();
 
       // 2. Map dữ liệu chấm công theo ngày ('YYYY-MM-DD')
+
       final Map<String, ChamCongNgayLuong> mapData = {};
       for (var c in dataChamCong.where((c) => c.idNhanVienCongTrinh == nv.id)) {
         if (c.ngay != null) {
@@ -159,12 +161,11 @@ class ChamCongService {
               chieu: TrangThaiChamCong.fromValue(c.trangThaiChieu),
               ghiChu: c.ghiChu ?? '',
             ),
-             // luongNgay: c.luongNgay ?? 0.0,
-            luongNgay: 0.0
+             luongNgay: await repo.luongNgayForNhanVien(idnhanVienCongTrinh: c.idNhanVienCongTrinh, ngay: c.ngay),
           );
         }
       }
-
+      final ungLuongs = await _ungLuongRepo.tongTienUngLuongForNhanVien(idNhanVienCongTrinh: nv.id!, loai: LoaiTongUngLuong.chuaDoiTru);
       // 3. Gán vào model nhân viên
       result.add(
         ChamCongNhanVienModel(
@@ -172,7 +173,8 @@ class ChamCongService {
           ten: nv.tenNhanVien,
           chucVu: nv.vaiTro ?? '',
           data: mapData,
-          // daUng: listUng,
+          // Toàn bộ số tiền đã ứng mà chưa trừ
+          tongUng: ungLuongs,
           trangThaiChotLuong: 0,
           tongDaChi: 0.0,
         ),

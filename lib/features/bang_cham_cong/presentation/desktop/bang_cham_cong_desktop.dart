@@ -3,6 +3,7 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
+import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
 import '../../../luong/presentation/ung_luong/screens/UngLuongScreen.dart';
@@ -20,6 +21,7 @@ import '_buildColumns.dart';
 import 'buildChuaKhoaAction.dart';
 import 'buildDesktopHeader.dart';
 import 'buildEmptyTable.dart';
+import 'buildLegend.dart';
 import 'buildSummary.dart';
 import 'buildTrangThai.dart';
 import 'getChamCongColor.dart';
@@ -52,9 +54,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   bool _isLoading = false;
   final ScrollController _horizontalScrollController = ScrollController();
   final ScrollController _verticalScrollController = ScrollController();
-
   int get soNgay => DateUtils.getDaysInMonth(widget.bangChamCong!.nam!, widget.bangChamCong!.thang!);
-
   @override
   void initState() {
     super.initState();
@@ -66,16 +66,15 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     _chamCongService = ChamCongService(
       ChamCongChiTietRepo(),
       BangChamCongRepository(),
-      NhanVienCongTrinhRepo()
+      NhanVienCongTrinhRepo(),
+      UngLuongRepository()
     );
     _bangChamCongRepository = BangChamCongRepository();
     _initAndLoad();
   }
-
   Future<void> _initAndLoad() async {
     _load();
   }
-
   @override
   void dispose() {
     _horizontalScrollController.dispose();
@@ -205,9 +204,9 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               ],
             ),
           ),
-          _buildLegend("Chưa khóa", Colors.orange),
+          buildLegend("Chưa khóa", Colors.orange),
           const SizedBox(width: 8),
-          _buildLegend("Đã khóa", Colors.green),
+          buildLegend("Đã khóa", Colors.green),
           const SizedBox(width: 12),
           PopupMenuButton<String>(
             tooltip: "Tùy chọn hiển thị",
@@ -237,23 +236,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegend(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(.08),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(width: 7, height: 7, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
-          Text(text, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
         ],
       ),
     );

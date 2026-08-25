@@ -14,6 +14,7 @@ class ChamCongChiTiet {
   int? isSynced ;
   String? updatedAt ;
   int? isDeleted ;
+  // Load thêm không có trong table
   ChamCongChiTiet({
     required this.id,
     required this.idBangChamCong,

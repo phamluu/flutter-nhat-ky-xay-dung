@@ -139,11 +139,89 @@ class ChamCongChiTietRepo {
     );
     return maps.map((map) => ChamCongChiTiet.fromMap(map)).toList();
   }
-
-  // idChamCong là id trong table chấm công chi tiết
-  Future<ChamCongNgayLuong?> getChamCongNgayLuongById(int? idChamCong) async {
-    if (idChamCong == null) return null;
+  // Lấy lương cơ bản trong 1 ngày cụ thể của 1 nhân viên
+  Future<double> luongNgayForNhanVien({ int? idNhanVien, int? idnhanVienCongTrinh, String? ngay,
+  }) async {
+    if (idNhanVien == null && idnhanVienCongTrinh == null) {
+      return 0.0;
+    }
     final db = await _dbHelper.database;
+    final where = <String>[];
+    final args = <dynamic>[];
+    // Xác định nhân viên
+    if (idNhanVien != null) {
+      where.add(
+        'lcb.${LuongCoBanTable.idNhanVien} = ?',
+      );
+      args.add(idNhanVien);
+    } else {
+      where.add(
+        'nvct.${NhanVienCongTrinhTable.id} = ?',
+      );
+      args.add(idnhanVienCongTrinh);
+    }
+    // Nếu có ngày thì chỉ lấy mức lương đã áp dụng gần nhất
+    if (ngay != null && ngay.isNotEmpty) {
+      where.add('''
+      (
+        lcb.${LuongCoBanTable.ngayApDung} IS NULL
+        OR lcb.${LuongCoBanTable.ngayApDung} <= ?
+      )
+    ''');
+      args.add(ngay);
+    }
+    final results = await db.rawQuery(
+      '''
+    SELECT
+      lcb.${LuongCoBanTable.mucLuong} AS mucLuong,
+      lcb.${LuongCoBanTable.ngayApDung} AS ngayApDung
+    FROM ${LuongCoBanTable.tableName} lcb
+    LEFT JOIN ${NhanVienCongTrinhTable.tableName} nvct ON nvct.${NhanVienCongTrinhTable.idNhanVien} = lcb.${LuongCoBanTable.idNhanVien}
+    WHERE ${where.join(' AND ')}
+    ORDER BY
+      CASE
+        WHEN lcb.${LuongCoBanTable.ngayApDung} IS NULL
+        THEN 0
+        ELSE 1
+      END DESC,
+      lcb.${LuongCoBanTable.ngayApDung} DESC
+    LIMIT 1
+    ''',
+      args,
+    );
+    if (results.isEmpty) {
+      return 0.0;
+    }
+    final mucLuong = results.first['mucLuong'];
+    return (mucLuong as num).toDouble();
+  }
+  // idChamCong là id trong table chấm công chi tiết
+  // Load chấm công 1 ngày của 1 nhân viên
+  Future<ChamCongNgayLuong?> getChamCongNgayLuongForNhanVien({int? idChamCong, int? idBangChamCong,
+    int? idNhanVienCongTrinh, String? ngay}) async {
+    if (idChamCong == null &&
+        (idBangChamCong == null ||
+            idNhanVienCongTrinh == null ||
+            ngay == null)) {
+      return null;
+    }
+    final db = await _dbHelper.database;
+    final whereConditions = <String>[];
+    final whereArgs = <dynamic>[];
+
+    // Có idChamCong thì ưu tiên tìm chính xác theo ID
+    if (idChamCong != null) {
+      whereConditions.add('cc.${ChamCongChiTietTable.id} = ?',);
+      whereArgs.add(idChamCong);
+    } else {
+      whereConditions.add( 'cc.${ChamCongChiTietTable.idChamCong} = ?',);
+      whereArgs.add(idBangChamCong);
+      whereConditions.add( 'cc.${ChamCongChiTietTable.idNhanVienCongTrinh} = ?',);
+      whereArgs.add(idNhanVienCongTrinh);
+      whereConditions.add( 'cc.${ChamCongChiTietTable.ngay} = ?',);
+      whereArgs.add(ngay);
+    }
+
     final results = await db.rawQuery('''
     SELECT 
       cc.${ChamCongChiTietTable.id},
@@ -159,10 +237,10 @@ class ChamCongChiTietRepo {
     LEFT JOIN ${LuongCoBanTable.tableName} lcb 
       ON lcb.${LuongCoBanTable.idNhanVien} = nvct.${NhanVienCongTrinhTable.idNhanVien}
      AND (lcb.${LuongCoBanTable.ngayApDung} IS NULL OR lcb.${LuongCoBanTable.ngayApDung} <= cc.${ChamCongChiTietTable.ngay})
-    WHERE cc.${ChamCongChiTietTable.id} = ?
+    WHERE ${whereConditions.join(' AND ')}
     ORDER BY lcb.${LuongCoBanTable.ngayApDung} DESC
     LIMIT 1
-  ''', [idChamCong]);
+  ''', whereArgs);
     if (results.isEmpty) return null;
     final row = results.first;
     // 1. Tạo ChamCongNgay từ dòng dữ liệu

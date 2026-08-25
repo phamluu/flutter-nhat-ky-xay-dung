@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
+
 import '../../../../data/db_helper.dart';
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../luong/data/repositories/ChiLuongRepository.dart';
@@ -11,6 +13,61 @@ import 'danh_muc_thu_chi_service.dart';
 
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
+
+  /*********** DROPDOWN *//////////////
+  Future<List<int>> getYears(int idCongTrinh) async {
+    final db = await _dbHelper.database;
+    final rs = await db.rawQuery('''
+    SELECT
+      MIN(strftime('%Y', ${ThuChiTable.ngay})) AS nam_bat_dau,
+      MAX(strftime('%Y', ${ThuChiTable.ngay})) AS nam_ket_thuc
+    FROM ${ThuChiTable.tableName}
+    WHERE ${ThuChiTable.id_cong_trinh} = ?
+      AND ${ThuChiTable.ngay} IS NOT NULL
+  ''', [idCongTrinh]);
+    final namBatDau = int.tryParse(
+      rs.first['nam_bat_dau']?.toString() ?? '',
+    );
+    final namKetThuc = int.tryParse(
+      rs.first['nam_ket_thuc']?.toString() ?? '',
+    );
+    if (namBatDau == null || namKetThuc == null) {
+      return [];
+    }
+    final result = <int>[];
+    for (int nam = namKetThuc; nam >= namBatDau; nam--) {
+      result.add(nam);
+    }
+    return result;
+  }
+
+  Future<List<int>> getMonths(int idCongTrinh) async {
+    final db = await _dbHelper.database;
+    final rs = await db.rawQuery('''
+    SELECT
+      MIN(strftime('%m', ${ThuChiTable.ngay})) AS thang_bat_dau,
+      MAX(strftime('%m', ${ThuChiTable.ngay})) AS thang_ket_thuc
+    FROM ${ThuChiTable.tableName}
+    WHERE ${ThuChiTable.id_cong_trinh} = ?
+      AND ${ThuChiTable.ngay} IS NOT NULL
+  ''', [idCongTrinh]);
+    final thangBatDau = int.tryParse(
+      rs.first['thang_bat_dau']?.toString() ?? '',
+    );
+    final thangKetThuc = int.tryParse(
+      rs.first['thang_ket_thuc']?.toString() ?? '',
+    );
+    if (thangBatDau == null || thangKetThuc == null) {
+      return [];
+    }
+    final result = <int>[];
+    for (int thang = thangKetThuc; thang >= thangBatDau; thang--) {
+      result.add(thang);
+    }
+    return result;
+  }
+  /**************** ***************/
+
   Future<int> insert(ThuChi tc) async {
     final db = await _dbHelper.database;
     return await db.insert('thu_chi', tc.toMap());
@@ -28,23 +85,19 @@ class ThuChiService {
     DateTime? denNgay,
   ]) async {
     final db = await _dbHelper.database;
-
     final conditions = <String>[];
     final args = <dynamic>[];
-
     if (idCongTrinh != null) {
-      conditions.add('tc.id_cong_trinh = ?');
+      conditions.add('tc.${ThuChiTable.id_cong_trinh} = ?');
       args.add(idCongTrinh);
     }
-
     // Lọc từ ngày
     if (tuNgay != null) {
-      conditions.add('date(tc.ngay) >= date(?)');
+      conditions.add('date(tc.${ThuChiTable.ngay}) >= date(?)');
       args.add(
         DateFormat('yyyy-MM-dd').format(tuNgay),
       );
     }
-
     // Lọc đến ngày
     if (denNgay != null) {
       conditions.add('date(tc.ngay) <= date(?)');
@@ -52,10 +105,8 @@ class ThuChiService {
         DateFormat('yyyy-MM-dd').format(denNgay),
       );
     }
-
     final whereClause =
         conditions.isNotEmpty ? 'WHERE ${conditions.join(' AND ')}' : '';
-
     final res = await db.rawQuery(
       '''
     SELECT 
@@ -74,7 +125,6 @@ class ThuChiService {
     ''',
       args,
     );
-
     return res.map((row) {
       final congTrinh = row['ct_id'] != null
           ? CongTrinh(
@@ -82,14 +132,12 @@ class ThuChiService {
               ten: row['ct_ten'] as String,
             )
           : null;
-
       final danhMuc = row['dm_id'] != null
           ? DanhMucThuChi(
               id: row['dm_id'] as int,
               ten: row['dm_ten'] as String,
             )
           : null;
-
       return ThuChi.fromMap(
         row,
         congTrinh: congTrinh,
@@ -97,7 +145,6 @@ class ThuChiService {
       );
     }).toList();
   }
-
   final _danhMucRepo = DanhMucThuChiService();
   final _congTrinhRepo = CongtrinhReponsitory();
   final _tamUng = UngLuongRepository();
@@ -106,20 +153,16 @@ class ThuChiService {
     final allThuChis = await getAllWithDetails(idCongTrinh);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinhs = await _congTrinhRepo.getDanhSachCongTrinh();
-
     // --- Thu chi công ty ---
     final thuChiCongTyList =
         allThuChis.where((tc) => tc.idCongTrinh == null).toList();
-
     final List<ThuChiDanhMucViewModel> congTyDanhMucs = [];
     final List<ThuChi> congTyKhac = [];
-
     for (var tc in thuChiCongTyList) {
       final dm = danhMucs.firstWhere(
         (d) => d.id == tc.idDanhMucThuChi,
         orElse: () => DanhMucThuChi(id: 0, ten: "Khác"),
       );
-
       if (dm.id == 0) {
         congTyKhac.add(tc);
       } else {

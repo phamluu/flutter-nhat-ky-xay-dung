@@ -4,12 +4,12 @@ import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/UngLuongDataModel.dart';
 import 'package:path/path.dart';
 import '../../../../data/db_helper.dart';
+import '../../../../data/tables/chi_tiet_doi_tru_ung_luong.dart';
 import '../../../../data/tables/ung_luong_table.dart';
 import '../models/UngLuong.dart';
-
+import '../enums.dart';
 class UngLuongRepository {
   final _dbHelper = DBHelper.instance;
-
   // group theo nhân viên trong chi tiết công trình
   Future<List<Map<String, dynamic>>> getKyLuongs(int idCongTrinh) async {
     final db = await _dbHelper.database;
@@ -38,21 +38,118 @@ class UngLuongRepository {
     }).toList();
   }
 
-  Future<List<UngLuongViewModel>> getDanhSach(
-      int idCongTrinh, {
-        int? thang,
-        int? nam,
-        String? kyLuong,
-      }) async {
+  Future<double> tongTienUngLuongForNhanVien({required int idNhanVienCongTrinh,LoaiTongUngLuong loai = LoaiTongUngLuong.tatCa,}) async {
+      final db = await _dbHelper.database;
+      String condition = '';
+      switch (loai) {
+          case LoaiTongUngLuong.tatCa:
+          condition = '';
+          case LoaiTongUngLuong.chuaDoiTru:
+          condition = '''
+                AND (
+                  COALESCE(ul.${UngLuongTable.soTien}, 0)
+                  -
+                  COALESCE((
+                    SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru})
+                    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+                    WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
+                          = ul.${UngLuongTable.id}
+                      AND COALESCE(
+                        ct.${ChiTietDoiTruUngLuongTable.isDeleted},
+                        0
+                      ) = 0
+                  ), 0)
+                ) > 0
+              ''';
+          case LoaiTongUngLuong.daDoiTru:
+          condition = '''
+                AND COALESCE((
+                  SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru})
+                  FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+                  WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
+                        = ul.${UngLuongTable.id}
+                    AND COALESCE(
+                      ct.${ChiTietDoiTruUngLuongTable.isDeleted},
+                      0
+                    ) = 0
+                ), 0) > 0
+              ''';
+          }
+      final results = await db.rawQuery(
+      '''
+        SELECT
+          COALESCE(
+            SUM(
+              CASE
+                WHEN ? = 0 THEN
+                  COALESCE(ul.${UngLuongTable.soTien}, 0)
+                WHEN ? = 1 THEN
+                  MAX(
+                    COALESCE(ul.${UngLuongTable.soTien}, 0)
+                    -
+                    COALESCE((
+                      SELECT SUM(
+                        ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}
+                      )
+                      FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+                      WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
+                            = ul.${UngLuongTable.id}
+                        AND COALESCE(
+                          ct.${ChiTietDoiTruUngLuongTable.isDeleted},
+                          0
+                        ) = 0
+                    ), 0),
+                    0
+                  )
+                ELSE
+                  COALESCE((
+                    SELECT SUM(
+                      ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}
+                    )
+                    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+                    WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
+                          = ul.${UngLuongTable.id}
+                      AND COALESCE(
+                        ct.${ChiTietDoiTruUngLuongTable.isDeleted},
+                        0
+                      ) = 0
+                  ), 0)
+              END
+            ),
+            0
+          ) AS tongTien
+        FROM ${UngLuongTable.tableName} ul
+        WHERE ul.${UngLuongTable.idNhanVienCongTrinh} = ?
+          AND COALESCE(
+            ul.${UngLuongTable.is_deleted},
+            0
+          ) = 0
+          $condition
+        ''',
+        [
+            loai == LoaiTongUngLuong.tatCa
+            ? 0
+                : loai == LoaiTongUngLuong.chuaDoiTru
+            ? 1
+                : 2,
+            loai == LoaiTongUngLuong.tatCa
+            ? 0
+                : loai == LoaiTongUngLuong.chuaDoiTru
+            ? 1
+                : 2,
+            idNhanVienCongTrinh,
+        ],
+      );
+      if (results.isEmpty) {
+      return 0;
+      }
+      return (results.first['tongTien'] as num?)?.toDouble() ?? 0;
+  }
+
+  Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, {int? thang,int? nam, String? kyLuong, }) async {
     final db = await _dbHelper.database;
-
-    // =========================
-    // 1. Điều kiện kỳ lương
-    // =========================
-
     final ulWhere = <String>[];
     final ulArgs = <dynamic>[];
-
     if (kyLuong != null && kyLuong.isNotEmpty) {
       ulWhere.add(
         "strftime('%Y-%m', ul.ngayUng) = ?",
@@ -65,7 +162,6 @@ class UngLuongRepository {
       ulArgs.add(
         thang.toString().padLeft(2, '0'),
       );
-
       ulWhere.add(
         "strftime('%Y', ul.ngayUng) = ?",
       );
@@ -83,21 +179,17 @@ class UngLuongRepository {
       );
       ulArgs.add(nam.toString());
     }
-
     // Nếu có is_deleted
     ulWhere.add(
       'ul.${UngLuongTable.is_deleted} = 0',
     );
-
     final ulCondition = ulWhere.isEmpty
         ? ''
         : 'AND ${ulWhere.join(' AND ')}';
-
     // =========================
     // 2. Lấy nhân viên công trình
     //    + LEFT JOIN ứng lương
     // =========================
-
     final result = await db.rawQuery(
       '''
     SELECT

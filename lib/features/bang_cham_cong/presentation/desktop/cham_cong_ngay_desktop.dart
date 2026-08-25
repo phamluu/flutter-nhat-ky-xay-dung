@@ -19,7 +19,6 @@ class ChamCongNgayDesktop extends StatefulWidget {
   final String? hoTen;
   final String? tenCongTrinh;
   final bool daKhoa;
-
   const ChamCongNgayDesktop({
     super.key,
     this.id,
@@ -31,17 +30,13 @@ class ChamCongNgayDesktop extends StatefulWidget {
     this.tenCongTrinh,
     required this.daKhoa,
   });
-
   @override
   State<ChamCongNgayDesktop> createState() =>
       _ChamCongNgayDesktopState();
 }
-
 class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
-  late final ChamCongService _service;
   late final ChamCongChiTietRepo _repo;
-  final TextEditingController ghiChuCtrl =
-  TextEditingController();
+  final TextEditingController ghiChuCtrl = TextEditingController();
   ChamCongNgayLuong? data;
   bool isLoading = true;
   bool isSaving = false;
@@ -59,46 +54,29 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     ghiChuCtrl.dispose();
     super.dispose();
   }
-
-  // ============================================================
-  // LOAD
-  // ============================================================
-
   Future<void> _load() async {
-    if (widget.idNhanVienCongTrinh == null ||
-        widget.ngay == null) {
+    if (widget.idNhanVienCongTrinh == null || widget.ngay == null || widget.idBangChamCong == null) {
       if (!mounted) return;
-
       setState(() {
         isLoading = false;
       });
-
       return;
     }
-
     if (mounted) {
       setState(() {
         isLoading = true;
       });
     }
-
     try {
-      final result = await _repo.getChamCongNgayLuongById(widget.id);
-      // await _service.getChamCongNgayLuong(
-      //   widget.idNhanVienCongTrinh!,
-      //   widget.ngay!,
-      // );
-
+      final result = await _repo.getChamCongNgayLuongForNhanVien(idBangChamCong: widget.idBangChamCong,
+          idNhanVienCongTrinh: widget.idNhanVienCongTrinh, ngay: widget.ngay);
       if (!mounted) return;
-
       setState(() {
         data = result;
         isLoading = false;
-
         if (result != null) {
           _sang = result.chamCong.sang;
           _chieu = result.chamCong.chieu;
-
           ghiChuCtrl.text =
               result.chamCong.ghiChu ?? "";
         } else {
@@ -109,39 +87,28 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         isLoading = false;
       });
-
       _showError(
         "Không thể tải dữ liệu chấm công: $e",
       );
     }
   }
-
-  // ============================================================
-  // SAVE
-  // ============================================================
-
   Future<void> _save() async {
-    if (widget.idNhanVienCongTrinh == null ||
-        widget.ngay == null) {
+    if (widget.idNhanVienCongTrinh == null || widget.ngay == null || widget.idBangChamCong == null) {
       return;
     }
-
     if (_sang == null && _chieu == null) {
       _showError("Bạn chưa chọn trạng thái chấm công.");
       return;
     }
-
     setState(() {
       isSaving = true;
     });
-
     try {
-      // thêm hoặc sửa
       UpsertChamCongNgayParam param = UpsertChamCongNgayParam(
+        idChamCongNgay: widget.id,
         idBangChamCong: widget.idBangChamCong,
         idCongTrinh: widget.idCongTrinh,
         idNhanVienCongTrinh: widget.idNhanVienCongTrinh ?? 0,
@@ -151,14 +118,11 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
         ghiChu: ghiChuCtrl.text.trim()
       );
       await _repo.upsertChamCong(param);
-
       if (!mounted) return;
-
       setState(() {
         _isEdit = false;
         isSaving = false;
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -168,28 +132,22 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
           duration: Duration(seconds: 2),
         ),
       );
-
       await _load();
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         isSaving = false;
       });
-
       _showError(
         "Không thể lưu chấm công: $e",
       );
     }
   }
-
   // ============================================================
   // ERROR
   // ============================================================
-
   void _showError(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -228,13 +186,9 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
               CrossAxisAlignment.stretch,
               children: [
                 _buildPageHeader(),
-
                 const SizedBox(height: 20),
-
                 _buildMainContent(),
-
                 const SizedBox(height: 20),
-
                 _buildSalaryCard(),
               ],
             ),
@@ -264,10 +218,6 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
       ),
     );
   }
-
-  // ============================================================
-  // PAGE HEADER
-  // ============================================================
 
   Widget _buildPageHeader() {
     return Container(
@@ -373,19 +323,9 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     );
   }
 
-  // ============================================================
-  // LOCK STATUS
-  // ============================================================
-
   Widget _buildLockStatus() {
-    final color = widget.daKhoa
-        ? Colors.red.shade700
-        : Colors.green.shade700;
-
-    final background = widget.daKhoa
-        ? Colors.red.withOpacity(.08)
-        : Colors.green.withOpacity(.08);
-
+    final color = widget.daKhoa? Colors.red.shade700 : Colors.green.shade700;
+    final background = widget.daKhoa ? Colors.red.withOpacity(.08) : Colors.green.withOpacity(.08);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 14,
@@ -423,34 +363,19 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     );
   }
 
-  // ============================================================
-  // MAIN CONTENT
-  // ============================================================
-
   Widget _buildMainContent() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 4,
-          child: _buildInformationCard(),
-        ),
-
+        Expanded( flex: 4, child: _buildInformationCard(),),
         const SizedBox(width: 20),
-
         Expanded(
           flex: 7,
-          child: data == null
-              ? _buildEmptyAttendanceCard()
-              : _buildAttendanceCard(),
+          child: data == null? _buildEmptyAttendanceCard() : _buildAttendanceCard(),
         ),
       ],
     );
   }
-
-  // ============================================================
-  // INFORMATION CARD
-  // ============================================================
 
   Widget _buildInformationCard() {
     return _desktopCard(
@@ -465,27 +390,21 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             value:
             widget.tenCongTrinh ?? "---",
           ),
-
           const Divider(height: 24),
-
           _infoRow(
             icon: Icons.person_outline,
             label: "Họ tên",
             value:
             widget.hoTen ?? "---",
           ),
-
           const Divider(height: 24),
-
           _infoRow(
             icon: Icons.calendar_today_outlined,
             label: "Ngày",
             value:
             widget.ngay ?? "---",
           ),
-
           const Divider(height: 24),
-
           _infoRow(
             icon: Icons.lock_outline,
             label: "Trạng thái",
@@ -501,48 +420,22 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
     );
   }
 
-  // ============================================================
-  // ATTENDANCE CARD
-  // ============================================================
-
   Widget _buildAttendanceCard() {
     final cc = data!.chamCong;
-
     return _desktopCard(
       title: "Chấm công",
       icon: Icons.access_time_outlined,
       iconColor: Colors.green,
-      headerAction: widget.daKhoa
-          ? _lockedLabel()
-          : TextButton.icon(
-        onPressed: isSaving
-            ? null
-            : _toggleEdit,
-        icon: Icon(
-          _isEdit
-              ? Icons.close
-              : Icons.edit_outlined,
-          size: 17,
-        ),
-        label: Text(
-          _isEdit
-              ? "Hủy"
-              : "Cập nhật",
-        ),
+      headerAction: widget.daKhoa ? _lockedLabel() : TextButton.icon(
+        onPressed: isSaving ? null : _toggleEdit,
+        icon: Icon( _isEdit ? Icons.close : Icons.edit_outlined, size: 17, ),
+        label: Text( _isEdit  ? "Hủy" : "Cập nhật", ),
       ),
-      child: _isEdit
-          ? _buildEditAttendance()
-          : _buildViewAttendance(cc),
+      child: _isEdit ? _buildEditAttendance() : _buildViewAttendance(cc),
     );
   }
 
-  // ============================================================
-  // VIEW ATTENDANCE
-  // ============================================================
-
-  Widget _buildViewAttendance(
-      dynamic cc,
-      ) {
+  Widget _buildViewAttendance( dynamic cc, ) {
     return Column(
       children: [
         Row(
@@ -555,9 +448,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
                 status: cc.sang,
               ),
             ),
-
             const SizedBox(width: 14),
-
             Expanded(
               child: _attendanceStatus(
                 title: "Buổi chiều",
@@ -568,26 +459,20 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             ),
           ],
         ),
-
         const SizedBox(height: 18),
-
         _infoBox(
           icon: Icons.short_text,
           title: "Ký hiệu",
           value: cc.hienThi,
         ),
-
         const SizedBox(height: 10),
-
         _infoBox(
           icon: Icons.calculate_outlined,
           title: "Công",
           value: cc.soCong.toString(),
           valueColor: Colors.blue.shade700,
         ),
-
         const SizedBox(height: 10),
-
         _infoBox(
           icon: Icons.notes_outlined,
           title: "Ghi chú",
@@ -598,10 +483,6 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
       ],
     );
   }
-
-  // ============================================================
-  // EDIT ATTENDANCE
-  // ============================================================
 
   Widget _buildEditAttendance() {
     return Column(
@@ -618,9 +499,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             });
           },
         ),
-
         const SizedBox(height: 24),
-
         _buildAttendanceSelector(
           title: "Buổi chiều",
           icon: Icons.wb_twilight_outlined,
@@ -631,9 +510,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             });
           },
         ),
-
         const SizedBox(height: 24),
-
         const Text(
           "Ghi chú",
           style: TextStyle(
@@ -641,9 +518,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             fontSize: 13,
           ),
         ),
-
         const SizedBox(height: 8),
-
         TextFormField(
           controller: ghiChuCtrl,
           maxLines: 3,
@@ -667,42 +542,28 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
             Colors.grey.shade50,
           ),
         ),
-
         const SizedBox(height: 22),
-
         Row(
           mainAxisAlignment:
           MainAxisAlignment.end,
           children: [
             OutlinedButton(
-              onPressed: isSaving
-                  ? null
-                  : () {
+              onPressed: isSaving ? null  : () {
                 setState(() {
                   _isEdit = false;
-
                   if (data != null) {
-                    _sang =
-                        data!.chamCong.sang;
-                    _chieu =
-                        data!.chamCong.chieu;
-
-                    ghiChuCtrl.text =
-                        data!.chamCong.ghiChu ??
-                            "";
+                    _sang = data!.chamCong.sang;
+                    _chieu = data!.chamCong.chieu;
+                    ghiChuCtrl.text = data!.chamCong.ghiChu ?? "";
                   }
                 });
               },
               child: const Text("Hủy"),
             ),
-
             const SizedBox(width: 10),
-
             ElevatedButton.icon(
-              onPressed:
-              isSaving ? null : _save,
-              icon: isSaving
-                  ? const SizedBox(
+              onPressed: isSaving ? null : _save,
+              icon: isSaving ? const SizedBox(
                 width: 16,
                 height: 16,
                 child:
@@ -716,9 +577,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
                 size: 18,
               ),
               label: Text(
-                isSaving
-                    ? "Đang lưu..."
-                    : "Lưu chấm công",
+                isSaving ? "Đang lưu...": "Lưu chấm công",
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor:
@@ -847,9 +706,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
               size: 20,
             ),
           ),
-
           const SizedBox(width: 10),
-
           Expanded(
             child: Column(
               crossAxisAlignment:
@@ -863,9 +720,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
                     Colors.grey.shade600,
                   ),
                 ),
-
                 const SizedBox(height: 3),
-
                 Text(
                   value,
                   maxLines: 1,
@@ -1073,9 +928,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
               Icons.account_balance_wallet_outlined,
             ),
           ),
-
           const SizedBox(width: 16),
-
           Expanded(
             child: _salaryItem(
               title: "Tiền công",
@@ -1089,15 +942,11 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
               Colors.green.shade700,
             ),
           ),
-
           const SizedBox(width: 16),
-
           Expanded(
             child: _salaryItem(
               title: "Công",
-              value:
-              data!.chamCong.soCong
-                  .toString(),
+              value: data!.chamCong.soCong.toString(),
               icon:
               Icons.calculate_outlined,
               valueColor:

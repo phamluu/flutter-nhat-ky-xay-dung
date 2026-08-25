@@ -18,11 +18,6 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
       ),
     ),
   );
-
-  // ============================================================
-  // CHỨC VỤ
-  // ============================================================
-
   if (_showChucVu) {
     columns.add(
       const DataColumn(
@@ -39,10 +34,6 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
       ),
     );
   }
-
-  // ============================================================
-  // NGÀY
-  // ============================================================
 
   for (int i = 1; i <= soNgay; i++) {
     if (isShowNgay(i, _show10Dau,  _show10Giua,  _show10Cuoi)) {
@@ -89,11 +80,26 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   );
   columns.add(
     const DataColumn(
+      label: Text( "ĐÃ ỨNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12, ),
+      ),
+    ),
+  );
+  columns.add(
+    const DataColumn(
+      label: Text( "TRỪ ỨNG", style: TextStyle( fontWeight: FontWeight.w700,fontSize: 12,),
+      ),
+    ),
+  );
+  columns.add(
+    const DataColumn(
+      label: Text( "THỰC NHẬN",style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12, ),
+      ),
+    ),
+  );
+  columns.add(
+    const DataColumn(
       label: Text(
-        "ĐÃ ỨNG",
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
+        "TRẠNG THÁI", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
         ),
       ),
     ),
@@ -101,43 +107,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     const DataColumn(
       label: Text(
-        "ĐÃ ĐỐI TRỪ",
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    ),
-  );
-  columns.add(
-    const DataColumn(
-      label: Text(
-        "THỰC NHẬN",
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    ),
-  );
-  columns.add(
-    const DataColumn(
-      label: Text(
-        "TRẠNG THÁI",
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    ),
-  );
-  columns.add(
-    const DataColumn(
-      label: Text(
-        "HÀNH ĐỘNG",
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
+        "HÀNH ĐỘNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
         ),
       ),
     ),
