@@ -215,6 +215,7 @@ class _CongTrinhDetailDesktopState extends State<CongTrinhDetailDesktop> {
                     color: Colors.indigo,
                     page: BangChamCongListDesktop(
                       idCongTrinh: widget.congTrinh.id,
+                      tenCongTrinh: widget.congTrinh.ten,
                     ),
                   ),
 

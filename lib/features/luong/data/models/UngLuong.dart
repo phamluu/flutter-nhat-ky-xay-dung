@@ -6,6 +6,7 @@ class Ungluong {
     int? id;
     int? idNhanVienCongTrinh;
     double? soTien;
+    double? soTienDaTru;
     DateTime? ngayUng;
     int? trangThai;
    NhanVien? nhanVien;
@@ -17,6 +18,7 @@ class Ungluong {
     this.id,
     this.idNhanVienCongTrinh,
     this.soTien,
+    this.soTienDaTru,
     this.ngayUng,
     this.trangThai,
     this.nhanVien,

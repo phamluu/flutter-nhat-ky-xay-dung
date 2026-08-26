@@ -34,23 +34,22 @@ class UngLuongNhanVienDesktop extends StatefulWidget {
 class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
   final _service = UngLuongRepository();
   late final Chotchiluongservice _chotLuong;
+  late final ChotChiLuongRepository _chotLuongRepo;
   late bool daChotLuong = false;
   late Future<List<Ungluong>> _future;
   @override
   void initState() {
     super.initState();
-    _chotLuong = Chotchiluongservice(
-      ChotChiLuongRepository(),
-    );
+    _chotLuong = Chotchiluongservice(ChotChiLuongRepository(),);
+    _chotLuongRepo = ChotChiLuongRepository();
     _future = _service.getUngLuongNhanVien(
       widget.idNhanVienCongTrinh!, kyLuong: widget.kyLuong
     );
     _loadChotLuong();
   }
   Future<void> _loadChotLuong() async {
-    final chot = await _chotLuong.isDaChotLuong(
-      widget.idNhanVienCongTrinh!,
-      widget.idBangChamCong,
+    final chot = await _chotLuongRepo.checkDaChotLuong(idBangChamCong: widget.idBangChamCong,
+      idNhanVienCongTrinh:  widget.idNhanVienCongTrinh!
     );
     if (!mounted) return;
     setState(() {
@@ -58,13 +57,10 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
     });
   }
   Future<void> _reload() async {
-    final chot = await _chotLuong.isDaChotLuong(
-      widget.idNhanVienCongTrinh!,
-      widget.idBangChamCong,
+    final chot =  await _chotLuongRepo.checkDaChotLuong(idBangChamCong: widget.idBangChamCong,
+        idNhanVienCongTrinh:  widget.idNhanVienCongTrinh!
     );
-
     if (!mounted) return;
-
     setState(() {
       daChotLuong = chot;
 
@@ -74,7 +70,6 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
     });
   }
   void _openAddForm() {
-    if (daChotLuong) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -87,7 +82,6 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
     ).then((_) => _reload());
   }
   void _openEditForm(Ungluong ul) {
-    if (daChotLuong) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -125,23 +119,6 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
             )
           ],
         ),
-        actions: [
-          if (daChotLuong)
-          Padding(
-            padding: const EdgeInsets.only(
-              right: 24,
-            ),
-            child: FilledButton.icon(
-              onPressed:
-              daChotLuong ? null : _openAddForm,
-              icon: const Icon(Icons.add,size: 19,),
-              label: const Text('Thêm ứng lương'),
-              style: FilledButton.styleFrom(minimumSize: const Size(160,42,),
-                shape: RoundedRectangleBorder(borderRadius:BorderRadius.circular(8),),
-              ),
-            ),
-          ),
-        ],
       ),
       body: FutureBuilder<List<Ungluong>>(
         future: _future,
@@ -224,6 +201,20 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
           const SizedBox(width: 20),
           // Status
           _statusBadge(),
+          const SizedBox(width: 20),
+          Padding(
+            padding: const EdgeInsets.only(
+              right: 24,
+            ),
+            child: FilledButton.icon(
+              onPressed: _openAddForm,
+              icon: const Icon(Icons.add,size: 19,),
+              label: const Text('Thêm ứng lương'),
+              style: FilledButton.styleFrom(minimumSize: const Size(160,42,),
+                shape: RoundedRectangleBorder(borderRadius:BorderRadius.circular(8),),
+              ),
+            ),
+          ),
         ],
       ),
     );

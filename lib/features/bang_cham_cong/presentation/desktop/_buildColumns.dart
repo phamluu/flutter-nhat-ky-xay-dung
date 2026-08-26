@@ -99,7 +99,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     const DataColumn(
       label: Text(
-        "TRẠNG THÁI", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
+        "CHỐT LƯƠNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
         ),
       ),
     ),
@@ -107,7 +107,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     const DataColumn(
       label: Text(
-        "HÀNH ĐỘNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
+        "CHI LƯƠNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
         ),
       ),
     ),

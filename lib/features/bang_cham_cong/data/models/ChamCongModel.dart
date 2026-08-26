@@ -42,7 +42,7 @@ class ChamCongNhanVienModel {
     );
   }
   double? tongLuongChot; // Lấy trong bảng chốt lương
-  int trangThaiChotLuong; // trạng thái chốt lương
+  int? trangThaiChotLuong; // trạng thái chốt lương
   double get tongLuongHienThi {
     if (trangThaiChotLuong == TrangThaiLuong.dachot.value && tongLuongChot != null) {
       return tongLuongChot!;
@@ -54,12 +54,7 @@ class ChamCongNhanVienModel {
   // Cột Đã ứng
   final List<DaUng>? daUng;
   double tongUng;
-  // double get tongUng {
-  //   return daUng?.fold(
-  //     0.0,
-  //         (sum, item) => sum! + item.tienUng,
-  //   ) ?? 0.0;
-  // }
+  double truUng;
   double? tongUngChot;
   double get tongUngHienThi {
     if (trangThaiChotLuong == TrangThaiLuong.dachot.value && tongUngChot != null) {
@@ -91,7 +86,8 @@ class ChamCongNhanVienModel {
     required this.data,
     this.daUng,
     required this.tongUng,
-    required this.trangThaiChotLuong,
+    required this.truUng,
+    this.trangThaiChotLuong,
     this.idBangLuong,
     this.tongLuongChot,
     this.thucNhanChot,

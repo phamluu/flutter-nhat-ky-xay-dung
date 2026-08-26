@@ -29,7 +29,7 @@ class BangLuongTable {
           $is_synced INTEGER DEFAULT 0,
           $updated_at TEXT,
           $is_deleted INTEGER DEFAULT 0,
-          UNIQUE($idNhanVienCongTrinh)
+          UNIQUE($idNhanVienCongTrinh, $idBangChamCong)
         )
   ''';
 }

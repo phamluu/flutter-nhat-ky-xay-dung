@@ -71,14 +71,19 @@ class DBHelper{
     final path = await _getDatabasePath();
     return openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: (db, version) async {
         await _createAllTables(db);
       },
       onUpgrade: (db, int oldVersion, int newVersion )async{
-        if (oldVersion < 6) {
+        if (oldVersion < 8) {
           await _dropAllTables(db);
           await _createAllTables(db);
+        }
+        if (oldVersion < 7) {
+          await db.execute(
+              'ALTER TABLE ${UngLuongTable.tableName} ADD COLUMN ${UngLuongTable.soTienDaTru} REAL DEFAULT 0'
+          );
         }
       }
     );

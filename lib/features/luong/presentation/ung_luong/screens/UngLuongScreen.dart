@@ -33,6 +33,7 @@ class UngLuongScreen extends StatefulWidget {
 class _UngLuongScreenState extends State<UngLuongScreen> {
   final _service = UngLuongRepository();
   late final Chotchiluongservice _chotLuong;
+  late final ChotChiLuongRepository _chotLuongRepo;
   late bool daChotLuong = false;
   late Future<List<Ungluong>> _future;
   DateTime? selectedDate;
@@ -41,20 +42,23 @@ class _UngLuongScreenState extends State<UngLuongScreen> {
   void initState() {
     super.initState();
     _chotLuong = Chotchiluongservice(ChotChiLuongRepository());
+    _chotLuongRepo = ChotChiLuongRepository();
     _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!);
     _loadChotLuong();
   }
   void _reload() async {
-    final chot = await _chotLuong.isDaChotLuong(
-        widget.idNhanVienCongTrinh!, widget.idBangChamCong!);
+    final chot = await _chotLuongRepo.checkDaChotLuong(idBangChamCong: widget.idBangChamCong,
+        idNhanVienCongTrinh:  widget.idNhanVienCongTrinh!
+    );
     setState(() {
       _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!);
       daChotLuong = chot;
     });
   }
   void _loadChotLuong() async {
-    final chot = await _chotLuong.isDaChotLuong(
-        widget.idNhanVienCongTrinh!, widget.idBangChamCong!);
+    final chot = await _chotLuongRepo.checkDaChotLuong(idBangChamCong: widget.idBangChamCong,
+        idNhanVienCongTrinh:  widget.idNhanVienCongTrinh!
+    );
 
     setState(() {
       daChotLuong = chot;

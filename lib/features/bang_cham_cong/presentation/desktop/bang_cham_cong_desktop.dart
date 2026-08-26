@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/buildTrangThai.dart' hide TrangThaiChiLuong;
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
@@ -18,12 +19,11 @@ import '../../widgets/setKhoaChamCong.dart';
 import '../widgets/badgeCell.dart';
 import '../widgets/textCell.dart';
 import '_buildColumns.dart';
-import 'buildChuaKhoaAction.dart';
 import 'buildDesktopHeader.dart';
 import 'buildEmptyTable.dart';
 import 'buildLegend.dart';
 import 'buildSummary.dart';
-import 'buildTrangThai.dart';
+import 'buildTrangThai.dart' hide TrangThaiChiLuong;
 import 'getChamCongColor.dart';
 import 'getChamCongTextColor.dart';
 import 'isShowNgay.dart';
@@ -47,6 +47,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   bool _show10Cuoi = true;
   List<ChamCongNhanVienModel> data = [];
   late final Chotchiluongservice _chotService;
+  late final ChotChiLuongRepository _chotRepo;
   late final ChamCongService _chamCongService;
   late final BangChamCongRepository _bangChamCongRepository;
   bool daKhoaCC = false;
@@ -67,9 +68,11 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       ChamCongChiTietRepo(),
       BangChamCongRepository(),
       NhanVienCongTrinhRepo(),
-      UngLuongRepository()
+      UngLuongRepository(),
+      ChotChiLuongRepository()
     );
     _bangChamCongRepository = BangChamCongRepository();
+    _chotRepo = ChotChiLuongRepository();
     _initAndLoad();
   }
   Future<void> _initAndLoad() async {
@@ -285,8 +288,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               child: DataTable(
                 columnSpacing: 12,
                 headingRowHeight: 48,
-                dataRowMinHeight: 52,
-                dataRowMaxHeight: 60,
+                dataRowMinHeight: 64,
+                dataRowMaxHeight: 70,
                 headingRowColor: MaterialStateProperty.all(const Color(0xFFE8F5E9)),
                 border: TableBorder(horizontalInside: BorderSide(color: Colors.grey.shade200)),
                 columns: buildColumns(soNgay, _showChucVu, _show10Dau, _show10Giua, _show10Cuoi),
@@ -309,10 +312,10 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         badgeCell(nv.tongSoCong.toString(), Colors.blue),
         textCell(formatCurrency(nv.tongLuongHienThi), isBold: true),
         _ungLuongCell(nv),
-        textCell('', color: Colors.green.shade700, isBold: true),
+        textCell(formatCurrency(nv.truUng), isBold: true),
         textCell(formatCurrency(nv.thucNhanHienThi), color: Colors.green.shade700, isBold: true),
-        DataCell(buildTrangThai(TrangThaiLuong.fromValue(nv.trangThaiChotLuong))),
-        _actionCell(nv),
+        _chotLuongCell(nv),
+        _chiLuongCel(nv)
       ],
     );
   }
@@ -362,19 +365,153 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       ),
     ),
   );
+  DataCell _chotLuongCell(ChamCongNhanVienModel nv) {
+    final isDaChot = nv.trangThaiChotLuong == TrangThaiLuong.dachot.value;
+    return DataCell(
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1. Badge trạng thái
+            buildTrangThai(TrangThaiLuong.fromValue(nv.trangThaiChotLuong)),
+            const SizedBox(height: 4),
+            // 2. Nút thao tác Chốt / Hủy chốt
+            InkWell(
+              onTap: () async {
+                // Hộp thoại xác nhận thao tác
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(isDaChot ? 'Xác nhận hủy chốt' : 'Xác nhận chốt lương'),
+                    content: Text(
+                      isDaChot
+                          ? 'Bạn có chắc chắn muốn HỦY CHỐT lương của ${nv.ten}?'
+                          : 'Bạn có chắc chắn muốn CHỐT LƯƠNG cho ${nv.ten}?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Hủy'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDaChot ? Colors.red : Colors.green,
+                        ),
+                        child: Text(
+                          isDaChot ? 'Hủy chốt' : 'Chốt lương',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm != true) return;
+                try {
+                  // Gọi hàm chốt / hủy chốt với await
+                  await _chotRepo.chotOrHuyChotLuong(
+                    idBangLuong: nv.idBangLuong,
+                    idNhanVienCongTrinh: nv.idNhanVienCongTrinh!,
+                    idBangChamCong: widget.bangChamCong!.id!,
+                    tongCong: nv.tongSoCong ?? 0,
+                    tongLuong: nv.tongTienCong ?? 0,
+                    tongUng: nv.tongUng ?? 0,
+                    thucNhan: nv.thucNhan ?? 0,
+                  );
 
-  DataCell _actionCell(ChamCongNhanVienModel nv) => DataCell(
-    !daKhoaCC
-        ? buildChuaKhoaAction(nv)
-        : BangLuongActionCell(
-      nv: nv,
-      idBangChamCong: widget.bangChamCong?.id,
-      tenCongTrinh: widget.tenCongTrinh,
-      service: _chotService,
-      daKhoaCC: daKhoaCC,
-      onReload: _load,
-    ),
-  );
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                      ),
+                      backgroundColor: Colors.green.shade700,
+                      behavior: SnackBarBehavior.floating,
+                      // Đẩy SnackBar lên góc trên màn hình
+                      margin: EdgeInsets.only(
+                        top: 20,
+                        bottom: MediaQuery.of(context).size.height - 100,
+                        left: (MediaQuery.of(context).size.width - 280) / 2, // Căn giữa chiều ngang (rộng 280)
+                        right: (MediaQuery.of(context).size.width - 280) / 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+
+                  // Reload lại dữ liệu mới lên Data Table
+                  _load();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Lỗi: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDaChot ? Colors.red.shade50 : Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDaChot ? Colors.red.shade300 : Colors.green.shade300,
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isDaChot ? Icons.undo_rounded : Icons.check_circle_outline_rounded,
+                      size: 12,
+                      color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isDaChot ? 'Hủy chốt' : 'Chốt lương',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  DataCell _chiLuongCel(ChamCongNhanVienModel nv){
+    return DataCell(
+      Column(
+        children: [
+          buildTrangThaiChiLuong(TrangThaiChiLuong.fromValue(nv.trangThaiChotLuong)),
+          // ChiLuongButton(
+          //   nv: nv,
+          //   idBangChamCong: widget.bangChamCong!.id!,
+          //   tenCongTrinh: widget.tenCongTrinh,
+          //   onReload: _load,
+          // )
+        ],
+      )
+
+    );
+  }
 
   // ============================================================
   // NAVIGATION HELPERS

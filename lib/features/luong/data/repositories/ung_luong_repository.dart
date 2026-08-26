@@ -38,114 +38,57 @@ class UngLuongRepository {
     }).toList();
   }
 
-  Future<double> tongTienUngLuongForNhanVien({required int idNhanVienCongTrinh,LoaiTongUngLuong loai = LoaiTongUngLuong.tatCa,}) async {
-      final db = await _dbHelper.database;
-      String condition = '';
-      switch (loai) {
-          case LoaiTongUngLuong.tatCa:
-          condition = '';
-          case LoaiTongUngLuong.chuaDoiTru:
-          condition = '''
-                AND (
-                  COALESCE(ul.${UngLuongTable.soTien}, 0)
-                  -
-                  COALESCE((
-                    SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru})
-                    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-                    WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
-                          = ul.${UngLuongTable.id}
-                      AND COALESCE(
-                        ct.${ChiTietDoiTruUngLuongTable.isDeleted},
-                        0
-                      ) = 0
-                  ), 0)
-                ) > 0
-              ''';
-          case LoaiTongUngLuong.daDoiTru:
-          condition = '''
-                AND COALESCE((
-                  SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru})
-                  FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-                  WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
-                        = ul.${UngLuongTable.id}
-                    AND COALESCE(
-                      ct.${ChiTietDoiTruUngLuongTable.isDeleted},
-                      0
-                    ) = 0
-                ), 0) > 0
-              ''';
-          }
-      final results = await db.rawQuery(
-      '''
-        SELECT
-          COALESCE(
-            SUM(
-              CASE
-                WHEN ? = 0 THEN
-                  COALESCE(ul.${UngLuongTable.soTien}, 0)
-                WHEN ? = 1 THEN
-                  MAX(
-                    COALESCE(ul.${UngLuongTable.soTien}, 0)
-                    -
-                    COALESCE((
-                      SELECT SUM(
-                        ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}
-                      )
-                      FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-                      WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
-                            = ul.${UngLuongTable.id}
-                        AND COALESCE(
-                          ct.${ChiTietDoiTruUngLuongTable.isDeleted},
-                          0
-                        ) = 0
-                    ), 0),
-                    0
-                  )
-                ELSE
-                  COALESCE((
-                    SELECT SUM(
-                      ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}
-                    )
-                    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-                    WHERE ct.${ChiTietDoiTruUngLuongTable.idUngLuong}
-                          = ul.${UngLuongTable.id}
-                      AND COALESCE(
-                        ct.${ChiTietDoiTruUngLuongTable.isDeleted},
-                        0
-                      ) = 0
-                  ), 0)
-              END
-            ),
-            0
-          ) AS tongTien
-        FROM ${UngLuongTable.tableName} ul
-        WHERE ul.${UngLuongTable.idNhanVienCongTrinh} = ?
-          AND COALESCE(
-            ul.${UngLuongTable.is_deleted},
-            0
-          ) = 0
-          $condition
-        ''',
-        [
-            loai == LoaiTongUngLuong.tatCa
-            ? 0
-                : loai == LoaiTongUngLuong.chuaDoiTru
-            ? 1
-                : 2,
-            loai == LoaiTongUngLuong.tatCa
-            ? 0
-                : loai == LoaiTongUngLuong.chuaDoiTru
-            ? 1
-                : 2,
-            idNhanVienCongTrinh,
-        ],
-      );
-      if (results.isEmpty) {
-      return 0;
-      }
-      return (results.first['tongTien'] as num?)?.toDouble() ?? 0;
+  // Tính tổng số tiền ứng còn lại, k tính số tiền đã trừ trong bảng lương hiện tại
+  // Tính tổng số tiền đã ứng
+  // Tính tổng số tiền đã khấu trừ, ngoại trừ bảng lương hiện tại
+  Future<double> tongTienUngLuongForNhanVien({
+    required int idNhanVienCongTrinh,
+    int? idBangLuong,
+  }) async {
+    final db = await _dbHelper.database;
+
+    // 1. Tính tổng tất cả tiền nhân viên đã ứng (chưa bị xóa)
+    final resDaUng = await db.rawQuery('''
+    SELECT SUM(${UngLuongTable.soTien}) AS total
+    FROM ${UngLuongTable.tableName}
+    WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
+      AND ${UngLuongTable.is_deleted} = 0
+  ''', [idNhanVienCongTrinh]);
+
+    // 2. Tính tổng tiền đã đối trừ ở các bảng lương KHÁC (không tính bảng lương hiện tại idBangLuong)
+    // Kết nối (JOIN) với UngLuongTable để đảm bảo đúng idNhanVienCongTrinh
+    final resDaTruCacKyKhac = await db.rawQuery('''
+    SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${UngLuongTable.tableName} ul 
+      ON ct.${ChiTietDoiTruUngLuongTable.idUngLuong} = ul.${UngLuongTable.id}
+    WHERE ul.${UngLuongTable.idNhanVienCongTrinh} = ?
+      AND ct.${ChiTietDoiTruUngLuongTable.isDeleted} = 0
+      AND ul.${UngLuongTable.is_deleted} = 0
+      ${idBangLuong != null ? 'AND ct.${ChiTietDoiTruUngLuongTable.idBangLuong} != ?' : ''}
+  ''', idBangLuong != null ? [idNhanVienCongTrinh, idBangLuong] : [idNhanVienCongTrinh]);
+
+    // Lấy giá trị num từ kết quả query (mặc định 0.0 nếu null)
+    final double tongUng = (resDaUng.first['total'] as num?)?.toDouble() ?? 0.0;
+    final double tongDaTruKhac = (resDaTruCacKyKhac.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    // Số tiền ứng chưa bị trừ (hoặc chưa bị trừ ở các kỳ trước)
+    return tongUng - tongDaTruKhac;
   }
 
+  Future<double> tongTruUng(int? idBangLuong) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}) as total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName}
+    WHERE ${ChiTietDoiTruUngLuongTable.idBangLuong} = ?
+  ''', [idBangLuong]);
+    final total = result.first['total'];
+    if (total == null) {
+      return 0.0;
+    }
+    return (total as num).toDouble();
+  }
   Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, {int? thang,int? nam, String? kyLuong, }) async {
     final db = await _dbHelper.database;
     final ulWhere = <String>[];

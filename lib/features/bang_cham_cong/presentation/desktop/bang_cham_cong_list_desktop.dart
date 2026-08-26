@@ -3,12 +3,15 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bang_cham_cong_desktop.dart';
 
 import '../../../../core/utils/SyncColor.dart';
+import '../../../../core/utils/date_utils.dart';
+import '../../../../core/utils/trang_thai_khoa_cong.dart';
 import '../../data/models/bang_cham_cong.dart';
 import 'bang_cham_cong_form_desktop.dart';
 
 class BangChamCongListDesktop extends StatefulWidget {
   final int? idCongTrinh;
-  const BangChamCongListDesktop({super.key, this.idCongTrinh});
+  final String? tenCongTrinh;
+  const BangChamCongListDesktop({super.key, this.idCongTrinh, this.tenCongTrinh});
   @override
   State<BangChamCongListDesktop> createState() =>
       _BangChamCongListDesktopState();
@@ -76,9 +79,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     );
   }
 
-  Future<void> _deleteCongTrinh(
-      BangChamCong congTrinh,
-      ) async
+  Future<void> _deleteCongTrinh(BangChamCong chamCong) async
   {
     final confirm = await showDialog<bool>(
       context: context,
@@ -86,8 +87,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         return AlertDialog(
           title: const Text('Xác nhận xóa'),
           content: Text(
-            'Bạn có chắc muốn xóa bảng chấm công '
-                '"${congTrinh.thang}"?',
+            'Bạn có chắc muốn xóa bảng chấm công ${chamCong.thang} ?',
           ),
           actions: [
             TextButton(
@@ -111,9 +111,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     );
     if (confirm != true) return;
     try {
-      // await _service.deleteCongTrinh(
-      //   congTrinh.id!,
-      // );
+      await _repo.delete(idBangChamCong: chamCong.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -135,33 +133,26 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
       );
     }
   }
-
-  // =========================================================
-  // HEADER
-  // =========================================================
   Widget _buildHeader() {
     return Row(
       children: [
-        const Expanded(
+        Expanded(
+          flex: 3,
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment:CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Bảng chấm công',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle( fontSize: 26,fontWeight: FontWeight.bold, ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                'Quản lý danh sách các bảng chấm công',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
+                'Công trình ${widget.tenCongTrinh}',
+                style: const TextStyle(color: Colors.grey,fontSize: 14,
                 ),
               ),
+              const SizedBox(height: 15),
             ],
           ),
         ),
@@ -169,19 +160,13 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         FilledButton.icon(
           onPressed:  _openThemBangChamCong,
           icon: const Icon(Icons.add),
-          label: const Text(
-            'Thêm mới',
-          ),
+          label: const Text( 'Thêm mới', ),
         ),
       ],
     );
   }
-  // =========================================================
-  // TABLE
-  // =========================================================
-  Widget _buildTable(
-      List<BangChamCong> data,
-      ) {
+
+  Widget _buildTable(List<BangChamCong> data,) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -230,21 +215,11 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         children: [
           const SizedBox(
             width: 150,
-            child: Text(
-              'STT',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text( 'STT', style: TextStyle( fontWeight: FontWeight.bold,), ),
           ),
           const Expanded(
             flex: 3,
-            child: Text(
-              'Bảng chấm công',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Bảng chấm công',style: TextStyle( fontWeight: FontWeight.bold,),),
           ),
           const SizedBox(
             width: 150,
@@ -257,11 +232,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
           ),
           const SizedBox(
             width: 150,
-            child: Text(
-              'Thao tác',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+            child: Text( 'Thao tác', style: TextStyle( fontWeight: FontWeight.bold,),
             ),
           ),
         ],
@@ -270,6 +241,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
   }
 
   Widget _buildTableRow(int index, BangChamCong ct) {
+    final trangThai = TrangThaiKhoaChamCong.fromValue(ct.daKhoa);
     return InkWell(
       onDoubleTap: () {
         _openChiTiet(ct);
@@ -278,41 +250,46 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         constraints: const BoxConstraints(
           minHeight: 82,
         ),
-        padding:
-        const EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 10,
         ),
         child: Row(
           children: [
-            SizedBox(width: 50, child: Text((index + 1).toString())),
-            // TÊN
+            SizedBox(
+              width: 50,
+              child: Text((index + 1).toString()),
+            ),
             Expanded(
-              flex: 3,
+              flex: 1,
               child: Column(
-                mainAxisAlignment:
-                MainAxisAlignment.center,
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Bảng chấm công tháng ${ct.thang.toString()}/${ct.nam.toString()}",
+                  Text(
+                    "Bảng chấm công tháng ${ct.thang}/${ct.nam}",
                     maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight:
-                      FontWeight.w600,
+                      fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
                   ),
-
-                  const SizedBox(height: 4),
-
+                  const SizedBox(height: 6),
+                  Text(DateUtilsCore.formatDate(ct.ngayTao), style: TextStyle(color: Colors.black26),),
                 ],
               ),
             ),
-            // Tranng thái
-            Text(ct.daKhoa != null ? ct.daKhoa.toString() : ''),
+            SizedBox(width: 150,
+              child: Text(
+                trangThai.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: ct.daKhoa == TrangThaiKhoaChamCong.dakhoa.value ? Colors.green : Colors.orange,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
             // THAO TÁC
             SizedBox(
               width: 150,
@@ -368,7 +345,6 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
         ),
       ),
     );
-
     if (result == true && mounted) {
       _loadData();
     }
@@ -387,31 +363,22 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
           const SizedBox(height: 12),
           const Text(
             'Chưa có bảng chấm công nào',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight:
-              FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,),
           ),
           const SizedBox(height: 6),
           Text(
             'Hãy thêm bảng chấm công đầu tiên',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle( color: Colors.grey.shade600,),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildError(
-      String error,
-      ) {
+  Widget _buildError( String error,) {
     return Center(
       child: Column(
-        mainAxisAlignment:
-        MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
             Icons.error_outline,
@@ -427,10 +394,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
           ),
           const SizedBox(height: 8),
           Text(
-            error,
-            style: const TextStyle(
-              color: Colors.grey,
-            ),
+            error, style: const TextStyle( color: Colors.grey),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
