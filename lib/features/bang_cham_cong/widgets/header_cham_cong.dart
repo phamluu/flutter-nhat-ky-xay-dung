@@ -18,7 +18,7 @@ class HeaderChamCong extends StatelessWidget {
   final ValueChanged<bool> onToggle10Giua;
   final ValueChanged<bool> onToggle10Cuoi;
 
-  final List<ChamCongNhanVienModel> data;
+  final List<ChamCongLuongNhanVienModel> data;
   final int soNgay;
   final int selectedMonth;
   final int selectedYear;

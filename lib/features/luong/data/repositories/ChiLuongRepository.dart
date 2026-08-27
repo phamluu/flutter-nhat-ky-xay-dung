@@ -16,7 +16,6 @@ class ChiLuongRepository {
     DateTime? denNgay,
   }) async {
     final db = await DBHelper.instance.database;
-
     final conditions = <String>[
       'nvc.idCongTrinh = ?',
       'cl.is_deleted = 0',
@@ -83,10 +82,12 @@ class ChiLuongRepository {
 
     ORDER BY cl.ngayChi DESC, cl.id DESC
   ''';
-
     return await db.rawQuery(sql, args);
   }
-  Future<List<ChiLuongModel>> getByBangLuong(int idBangLuong) async {
+  Future<List<ChiLuongModel>> getByBangLuong(int? idBangLuong) async {
+    if (idBangLuong == null){
+      return [];
+    }
     final db = await _dbHelper.database;
     final result = await db.query(
       'chi_luong',
@@ -116,7 +117,10 @@ class ChiLuongRepository {
   ''', [idCongTrinh, idBangChamCong]);
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
-  Future<double> getTongDaChi(int idBangLuong) async {
+  Future<double> getTongDaChi(int? idBangLuong) async {
+    if(idBangLuong == null){
+      throw Exception('Không có bảng lương');
+    }
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
       'SELECT SUM(soTien) as total FROM chi_luong WHERE idBangLuong = ?',

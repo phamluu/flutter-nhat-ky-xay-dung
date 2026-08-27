@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../data/models/ChiLuong.dart';
 import '../../data/repositories/ChiLuongRepository.dart';
@@ -36,7 +37,7 @@ class _ChiLuongScreenState extends State<ChiLuongScreen> {
   @override
   void initState() {
     super.initState();
-    _service = ChiLuongService(ChiLuongRepository());
+    _service = ChiLuongService(ChiLuongRepository(), ChotChiLuongRepository());
     _load();
   }
 

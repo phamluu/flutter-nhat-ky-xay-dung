@@ -1,4 +1,5 @@
 import 'package:excel/excel.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
 import '../../luong/data/repositories/ChiLuongRepository.dart';
 import '../../luong/data/services/ChiLuongService.dart';
 Future<void> ChiLuongExcel({
@@ -7,7 +8,7 @@ Future<void> ChiLuongExcel({
   int? idBangChamCong,
   required int idCongTrinh,
 }) async {
-  ChiLuongService service = ChiLuongService(ChiLuongRepository());
+  ChiLuongService service = ChiLuongService(ChiLuongRepository(), ChotChiLuongRepository());
   final chiLuongs = await service.getByCongTrinhThangNam(
     idCongTrinh,
     idBangChamCong: idBangChamCong,

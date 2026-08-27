@@ -41,8 +41,6 @@ class ChotChiLuongRepository {
           thucNhan: thucNhan);
       await chotLuong(bangLuong: bangLuong);
     }
-    // throw Exception('đã chốt lương: ${daChotLuong}');
-    // Nếu đã chốt lương => goị hủy chốt lương
   }
 
   // Chỉ xét cho trường hợp chốt lương
@@ -78,7 +76,12 @@ class ChotChiLuongRepository {
         BangLuongTable.tableName,
         {
           BangLuongTable.trangThai: TrangThaiLuong.dachot.value,
+          BangLuongTable.tongCong: bangLuong.tongCong,
+          BangLuongTable.tongLuong: bangLuong.tongLuong,
+          BangLuongTable.tongUng : bangLuong.tongUng,
+          BangLuongTable.thucNhan: bangLuong.thucNhan,
           BangLuongTable.ngayChot: nowIso,
+          BangLuongTable.updated_at: nowIso,
         },
         where: '${BangLuongTable.id} = ?',
         whereArgs: [bangLuong.id],
@@ -230,51 +233,6 @@ class ChotChiLuongRepository {
     }
     return null;
   }
-  /// 👉 insert hoặc update bảng lương (chốt)
-  Future<int> insertBangLuong(BangLuong bangLuong) async {
-    final db = await _dbHelper.database;
-    return await db.insert(BangLuongTable.tableName, bangLuong.toMapInsert());
-  }
-  Future<void> updateBangLuong(BangLuong bangLuong) async {
-    final db = await _dbHelper.database;
-    await db.update(
-      BangLuongTable.tableName,
-      bangLuong.toMapUpdate(),
-      where: '${BangLuongTable.id} = ?',
-      whereArgs: [bangLuong.id],
-    );
-  }
-  Future<int> upsertBangLuong(BangLuong bangLuong) async
-  {
-    final db = await _dbHelper.database;
-    // final data = {
-    //   'idNhanVienCongTrinh': idNhanVienCongTrinh,
-    //   'thang': thang,
-    //   'nam': nam,
-    //   'tongCong': tongCong,
-    //   'tongLuong': tongLuong,
-    //   'tongUng': tongUng,
-    //   'thucNhan': thucNhan,
-    // };
-    final existing = await db.query(BangLuongTable.tableName,
-      where: '${BangLuongTable.idNhanVienCongTrinh} = ? AND ${BangLuongTable.idBangChamCong}',
-      whereArgs: [bangLuong.idNhanVienCongTrinh, bangLuong.idBangChamCong],
-    );
-    if (existing.isNotEmpty) {
-      final id = existing.first[BangLuongTable.id] as int;
-      await db.update(
-        BangLuongTable.tableName,
-        bangLuong.toMapUpdate(),
-        where: '${BangLuongTable.id} = ?',
-        whereArgs: [id],
-      );
-      return id;
-    } else {
-      return await insertBangLuong(bangLuong);
-    }
-  }
-
-  /// 👉 lấy bảng lương đã chốt
 
   Future<Map<String, dynamic>?> getBangLuong(int idNvct, int idBangChamCong) async
   {
@@ -304,52 +262,6 @@ class ChotChiLuongRepository {
       'ngayChi': DateTime.now().toIso8601String(),
       'ghiChu': ghiChu,
     });
-  }
-
-  Future<Set<int>> getDanhSachDaChot( int idCongTrinh, int idBangChamCong) async
-  {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-    SELECT ${BangLuongTable.idNhanVienCongTrinh}
-    FROM ${BangLuongTable.tableName}
-    WHERE ${BangLuongTable.idBangChamCong} = ?
-  ''', [idBangChamCong]);
-    return result
-        .map((e) => (e['${BangLuongTable.idNhanVienCongTrinh}'] as num).toInt())
-        .toSet();
-  }
-  /// 👉 tổng đã chi
-  Future<double> getTongDaChi(int idBangLuong) async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-      SELECT SUM(soTien) as tong
-      FROM chi_luong
-      WHERE idBangLuong = ?
-    ''', [idBangLuong]);
-
-    return (result.first['tong'] as num?)?.toDouble() ?? 0;
-  }
-
-  Future<List<Map<String, dynamic>>> getBangLuongByCongTrinh( int idCongTrinh, int idBangChamCong) async
-  {
-    final db = await _dbHelper.database;
-    return await db.rawQuery('''
-    SELECT bl.*, nvct.idCongTrinh
-    FROM ${BangLuongTable.tableName} bl
-    INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct
-      ON bl.idNhanVienCongTrinh = nvct.id
-    WHERE nvct.idCongTrinh = ?
-      AND bl.${BangLuongTable.idBangChamCong} = ?
-  ''', [idCongTrinh, idBangChamCong]);
-  }
-
-  Future<int> delete(int id) async {
-    final db = await _dbHelper.database;
-    return await db.delete(
-      'bang_luong',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
   }
 
   Future<bool> checkDaChotLuong({int? idBangLuong, int? idBangChamCong, int? idNhanVienCongTrinh}) async {

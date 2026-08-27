@@ -6,14 +6,14 @@ import '../data/models/ChamCongModel.dart';
 
 Future<void> ChamCongExcel(
     {required Sheet sheet,
-    required List<ChamCongNhanVienModel> data,
+    required List<ChamCongLuongNhanVienModel> data,
     required int idBangChamCong,
     required int idCongTrinh,
     String? tenCongTrinh}) async {
   /// ===== LẤY NGÀY CÓ CHẤM CÔNG =====
   Set<String> ngayCoChamCongSet = {};
   for (var nv in data) {
-    nv.data.forEach((ngay, value) {
+    nv.chamCong.data.forEach((ngay, value) {
       if (value != null && value.chamCong.hienThi.isNotEmpty) {
         ngayCoChamCongSet.add(ngay);
       }
@@ -89,19 +89,19 @@ Future<void> ChamCongExcel(
   for (var nv in data) {
     List<dynamic> row = [];
     row.add(stt++);
-    row.add(nv.ten ?? "");
-    row.add(nv.chucVu ?? "");
+    row.add(nv.chamCong.ten ?? "");
+    row.add(nv.chamCong.chucVu ?? "");
 
     for (var ngay in ngayCoChamCong) {
-      final cc = nv.data[ngay];
+      final cc = nv.chamCong.data[ngay];
       row.add(cc?.chamCong.hienThi ?? "");
     }
-    row.add(nv.tongSoCong ?? 0);
+    row.add(nv.chamCong.tongSoCong ?? 0);
     row.add(formatCurrency(nv.tongTienCong ?? 0));
     row.add(formatCurrency(nv.tongUngHienThi ?? 0));
     row.add(formatCurrency(nv.thucNhanHienThi ?? 0));
 
-    final trangthai = TrangThaiLuong.fromValue(nv.trangThaiChotLuong);
+    final trangthai = TrangThaiLuong.fromValue(nv.luong.trangThaiChotLuong);
     row.add(trangthai == TrangThaiLuong.dachot ? "Đã chốt" : "Chưa chốt");
 
     sheet.appendRow(row);

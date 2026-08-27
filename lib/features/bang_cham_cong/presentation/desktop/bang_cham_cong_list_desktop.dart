@@ -68,7 +68,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
                     if (data.isEmpty) {
                       return _buildEmpty();
                     }
-                    return _buildTable(data);
+                    return _buildTable(data, widget.tenCongTrinh );
                   },
                 ),
               ),
@@ -166,7 +166,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     );
   }
 
-  Widget _buildTable(List<BangChamCong> data,) {
+  Widget _buildTable(List<BangChamCong> data, String? tenCongTrinh) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -193,8 +193,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
                 ),
                 itemBuilder:
                     (context, index) {
-                  return _buildTableRow(index,
-                    data[index],
+                  return _buildTableRow(index, data[index], tenCongTrinh
                   );
                 },
               ),
@@ -240,11 +239,11 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     );
   }
 
-  Widget _buildTableRow(int index, BangChamCong ct) {
+  Widget _buildTableRow(int index, BangChamCong ct, String? tenCongTrinh) {
     final trangThai = TrangThaiKhoaChamCong.fromValue(ct.daKhoa);
     return InkWell(
       onDoubleTap: () {
-        _openChiTiet(ct);
+        _openChiTiet(ct, tenCongTrinh);
       },
       child: Container(
         constraints: const BoxConstraints(
@@ -298,7 +297,7 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
                   IconButton(
                     tooltip: 'Xem chi tiết',
                     onPressed: () {
-                      _openChiTiet(ct);
+                      _openChiTiet(ct, tenCongTrinh);
                     },
                     icon: const Icon(
                       Icons.visibility_outlined,
@@ -336,12 +335,13 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
       _loadData();
     }
   }
-  Future<void> _openChiTiet(BangChamCong ct) async {
+  Future<void> _openChiTiet(BangChamCong ct, String? tenCongTrinh) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BangChamCongDesktop(
-          bangChamCong: ct
+          bangChamCong: ct,
+          tenCongTrinh: tenCongTrinh,
         ),
       ),
     );

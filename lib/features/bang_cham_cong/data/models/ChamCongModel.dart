@@ -2,101 +2,108 @@ import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 
 import '../../../../core/utils/trang_thai_cham_cong.dart';
 
-// Bảng chấm công tháng: lấy danh sách nhân viên theo công trình + tháng
-class BangChamCongModel{
-  int? id; // id bảng chấm công
-  int? idCongTrinh;
-  int? thang;
-  int? nam;
-  String? thangKey;
-  List<ChamCongNhanVienModel>? chamCongNhanViens; // group theo từng nhân viên công trình
-  BangChamCongModel({
-    this.id,
-    this.idCongTrinh,
-    this.thang,
-    this.nam,
-    this.thangKey,
-    this.chamCongNhanViens,
+class ChamCongLuongNhanVienModel{
+      final ChamCongNhanVienModel chamCong;
+      final LuongNhanVienModel luong;
+
+      ChamCongLuongNhanVienModel({
+        required this.chamCong,
+        required this.luong
+      });
+      double get tongTienCong {
+        return chamCong.tongTienCong;
+      }
+      double get tongLuongHienThi {
+        if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value && luong.tongLuongChot != null) {
+          return luong.tongLuongChot!;
+        }
+        return tongTienCong;
+      }
+      /// Tổng ứng hiển thị
+      double get tongUngHienThi {
+        if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value &&
+            luong.tongUngChot != null) {
+          return luong.tongUngChot!;
+        }
+        return luong.tongUng;
+      }
+      /// Thực nhận
+      double get thucNhan {
+        return tongTienCong - luong.tongUng;
+      }
+      /// Thực nhận hiển thị
+      double get thucNhanHienThi {
+        if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value &&
+            luong.thucNhanChot != null) {
+          return luong.thucNhanChot!;
+        }
+        return thucNhan;
+      }
+
+}
+class LuongNhanVienModel {
+  final double? tongLuongChot;
+  final int? trangThaiChotLuong;
+  final List<DaUng>? daUng;
+  final double tongUng;
+  final double truUng;
+  final double? tongUngChot;
+  final double? thucNhanChot;
+  final int? idBangLuong;
+  final double tongDaChi;
+
+  double get ungPhatSinhSauChot {
+    if (tongUngChot == null) return 0;
+    return tongUng - tongUngChot!;
+  }
+  double get conPhaiTra {
+    if (thucNhanChot == null) return 0;
+    return thucNhanChot! - ungPhatSinhSauChot - thucNhanChot!;
+  }
+  LuongNhanVienModel({
+    this.tongLuongChot,
+    this.trangThaiChotLuong,
+    this.daUng,
+    required this.tongUng,
+    required this.truUng,
+    this.tongUngChot,
+    this.thucNhanChot,
+    this.idBangLuong,
+    required this.tongDaChi,
   });
 }
 
+
 //join nhân viên công trình + group theo từng nhân viên công trình
 class ChamCongNhanVienModel {
-  int? idNhanVienCongTrinh;
+  final int? idNhanVienCongTrinh;
   final String? ten;
   final String? chucVu;
-  final Map<String, ChamCongNgayLuong> data ;
-  // Cột tổng công
+  /// Key = ngày, value = chấm công + lương ngày
+  final Map<String, ChamCongNgayLuong> data;
+  /// Tổng số công trong tháng
   double get tongSoCong {
     return data.values.fold(
       0,
           (sum, item) => sum + item.chamCong.soCong,
     );
   }
-
-  // Tính cột tổng lương
+  /// Tổng tiền công trong tháng
   double get tongTienCong {
     return data.values.fold(
       0,
           (sum, item) => sum + item.tienCongNgay,
     );
   }
-  double? tongLuongChot; // Lấy trong bảng chốt lương
-  int? trangThaiChotLuong; // trạng thái chốt lương
-  double get tongLuongHienThi {
-    if (trangThaiChotLuong == TrangThaiLuong.dachot.value && tongLuongChot != null) {
-      return tongLuongChot!;
-    }
-    return tongTienCong;
-  }
-  // end cột tổng lương
-
-  // Cột Đã ứng
-  final List<DaUng>? daUng;
-  double tongUng;
-  double truUng;
-  double? tongUngChot;
-  double get tongUngHienThi {
-    if (trangThaiChotLuong == TrangThaiLuong.dachot.value && tongUngChot != null) {
-      return tongUngChot!;
-    }
-    return tongUng;
-  }
-  // End cột đã ứng
-
-  // Cột thực nhận
-  double get thucNhan{
-    return tongTienCong - tongUng;
-  }
-  double? thucNhanChot;
-  double get thucNhanHienThi {
-    if (trangThaiChotLuong == TrangThaiLuong.dachot.value && thucNhanChot != null) {
-      return thucNhanChot!;
-    }
-    return thucNhan;
-  }
-  // End cột thực nhận
-
-  int? idBangLuong; // Chốt lương => c idBangLuong
-  double tongDaChi;
   ChamCongNhanVienModel({
     this.idNhanVienCongTrinh,
     this.ten,
     this.chucVu,
     required this.data,
-    this.daUng,
-    required this.tongUng,
-    required this.truUng,
-    this.trangThaiChotLuong,
-    this.idBangLuong,
-    this.tongLuongChot,
-    this.thucNhanChot,
-    this.tongUngChot,
-    required this.tongDaChi
   });
-
 }
 
+/**************DỮ LIỆU CỦA DATA *****************/
 // Chấm công chi tiết
 class ChamCongNgay {
   int? id; // Dùng để update

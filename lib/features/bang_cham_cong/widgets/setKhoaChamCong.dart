@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 Future<void> setkhoaChamCong({
   required BuildContext context,
@@ -63,25 +65,11 @@ Future<void> setkhoaChamCong({
     final _bangChamCongRepo = BangChamCongRepository();
     await _bangChamCongRepo.setKhoaChamCong(idBangChamCong: idBangChamCong, daKhoa: isKhoa);
     if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isKhoa
-              ? 'Đã khóa chấm công tháng $selectedMonth/$selectedYear'
-              : 'Đã mở khóa chấm công tháng $selectedMonth/$selectedYear',
-        ),
-      ),
-    );
+    String title = isKhoa ?  'Đã khóa chấm công tháng $selectedMonth/$selectedYear'
+      : 'Đã mở khóa chấm công tháng $selectedMonth/$selectedYear';
+    showSuccessToast(context, title);
   } catch (e) {
     if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Không thể $actionText chấm công: $e',
-        ),
-      ),
-    );
+    showErrorToast(context, e, 'Không thể $actionText chấm công: $e');
   }
 }

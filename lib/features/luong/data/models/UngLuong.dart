@@ -1,6 +1,8 @@
+import 'package:nhat_ky_xay_dung/data/tables/chi_tiet_doi_tru_ung_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';import '../../../cong_trinh/data/models/NhanVienCongTrinh.dart';
 import '../../../nhan_vien/data/models/NhanVien.dart';
+import 'ChiTietDoiUngTruLuong.dart';
 
 class Ungluong {
     int? id;
@@ -9,11 +11,18 @@ class Ungluong {
     double? soTienDaTru;
     DateTime? ngayUng;
     int? trangThai;
-   NhanVien? nhanVien;
-   NhanVienCongTrinh? nhanVienCongTrinh;
     String? lyDo;
     final int? isSynced;
-
+    List<ChiTietDoiUngTruLuong>? lstDoiTru;
+    double get tongDaTru {
+      return lstDoiTru?.fold(
+        0.0,
+            (sum, item) => sum! + item.soTienDoiTru!,
+      ) ?? 0.0;
+    }
+    double get conLai{
+      return this.soTien! - this.tongDaTru;
+    }
   Ungluong({
     this.id,
     this.idNhanVienCongTrinh,
@@ -21,12 +30,30 @@ class Ungluong {
     this.soTienDaTru,
     this.ngayUng,
     this.trangThai,
-    this.nhanVien,
-    this.nhanVienCongTrinh,
+    // this.nhanVien,
+    // this.nhanVienCongTrinh,
     this.lyDo,
-    this.isSynced
+    this.isSynced,
+    this.lstDoiTru
   });
-
+    factory Ungluong.fromMap(Map<String, dynamic> map)
+    {
+      return Ungluong(
+        id: map[UngLuongTable.id] as int?,
+        idNhanVienCongTrinh: map[UngLuongTable.idNhanVienCongTrinh] as int?,
+        soTien: (map[UngLuongTable.soTien] is int)
+            ? (map[UngLuongTable.soTien] as int).toDouble()
+            : map[UngLuongTable.soTien] as double?,
+        soTienDaTru: (map[UngLuongTable.soTienDaTru] is int)
+            ? (map[UngLuongTable.soTienDaTru] as int).toDouble()
+            : map[UngLuongTable.soTienDaTru] as double?,
+        ngayUng: map[UngLuongTable.ngayUng] != null
+            ? DateTime.tryParse(map[UngLuongTable.ngayUng].toString())
+            : null,
+        lyDo: map[UngLuongTable.lyDo] as String?,
+        trangThai: map[UngLuongTable.trangThai] as int?,
+      );
+    }
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
       UngLuongTable.idNhanVienCongTrinh: idNhanVienCongTrinh,
@@ -38,65 +65,14 @@ class Ungluong {
     return map;
   }
 
-  factory Ungluong.fromMap(
-      Map<String, dynamic> map, {
-        List<NhanVienCongTrinh>? nhanVienCongTrinhs,
-        List<CongTrinh>? congTrinhs,
-        NhanVienCongTrinh? nvct,
-      })
-  {
-    // lấy nhân viên công trình
-    if (nhanVienCongTrinhs != null) {
-      nvct = nhanVienCongTrinhs.firstWhere(
-            (e) => e.id == (map['idNhanVienCongTrinh'] as int?),
-        orElse: () => NhanVienCongTrinh(
-          id: map['idNhanVienCongTrinh'] as int?,
-          idNhanVien: map['idNhanVien'] as int,
-          idCongTrinh: map['idCongTrinh'] as int?, // cần có cột này khi query
-        ),
-      );
-    }
-
-    // nếu có danh sách công trình thì map tiếp
-    if (nvct != null && congTrinhs != null) {
-      final congTrinh = congTrinhs.firstWhere(
-            (c) => c.id == nvct!.idCongTrinh,
-        orElse: () => CongTrinh(id: nvct!.idCongTrinh, ten: "Không rõ"),
-      );
-      nvct = NhanVienCongTrinh(
-        id: nvct.id,
-        idNhanVien: nvct.idNhanVien,
-        idCongTrinh: nvct.idCongTrinh,
-        ngayBatDau: nvct.ngayBatDau,
-        ngayKetThuc: nvct.ngayKetThuc,
-        vaiTro: nvct.vaiTro,
-        congTrinh: congTrinh,
-      );
-    }
-
-    return Ungluong(
-      id: map[UngLuongTable.id] as int?,
-      idNhanVienCongTrinh: map[UngLuongTable.idNhanVienCongTrinh] as int?,
-      soTien: (map[UngLuongTable.soTien] is int)
-          ? (map[UngLuongTable.soTien] as int).toDouble()
-          : map[UngLuongTable.soTien] as double?,
-      ngayUng: map[UngLuongTable.ngayUng] != null
-          ? DateTime.tryParse(map[UngLuongTable.ngayUng].toString())
-          : null,
-      lyDo: map[UngLuongTable.lyDo] as String?,
-      trangThai: map[UngLuongTable.trangThai] as int?,
-      nhanVienCongTrinh: nvct,
-    );
-  }
-
   Ungluong copyWith({
     int? id,
     int? idNhanVienCongTrinh,
     double? soTien,
     int? trangThai,
     DateTime? ngayUng,
-    NhanVien? nhanVien,
-    NhanVienCongTrinh? nhanVienCongTrinh,
+    // NhanVien? nhanVien,
+    // NhanVienCongTrinh? nhanVienCongTrinh,
     String? lyDo,
   }) {
     return Ungluong(
@@ -105,21 +81,25 @@ class Ungluong {
       soTien: soTien ?? this.soTien,
       ngayUng: ngayUng ?? this.ngayUng,
       trangThai: trangThai ?? this.trangThai,
-      nhanVien: nhanVien ?? this.nhanVien,
-      nhanVienCongTrinh: nhanVienCongTrinh ?? this.nhanVienCongTrinh,
+      // nhanVien: nhanVien ?? this.nhanVien,
+      // nhanVienCongTrinh: nhanVienCongTrinh ?? this.nhanVienCongTrinh,
       lyDo: lyDo ?? this.lyDo,
     );
   }
+
+  int? operator [](String other) {}
 }
 
 // Theo danh sách nhân viên
 
 class UngLuongItem{
   double soTien;
+  double soTienDaTru;
   DateTime? ngayUng;
   String? lyDo;
   UngLuongItem({
     required this.soTien,
+    required this.soTienDaTru,
     this.ngayUng,
     this.lyDo
 });
@@ -137,7 +117,6 @@ class UngLuongViewModel{
     this.thang,
     this.nam,
     required this.daUngs,
-    this.daDoiTru
   });
   double get tongUng {
     return daUngs.fold(
@@ -145,5 +124,10 @@ class UngLuongViewModel{
           (sum, item) => sum! + item.soTien,
     ) ?? 0.0;
   }
-  double? daDoiTru;
+  double get tongDoiTru {
+    return daUngs.fold(
+      0.0,
+          (sum, item) => sum! + item.soTienDaTru,
+    ) ?? 0.0;
+  }
 }

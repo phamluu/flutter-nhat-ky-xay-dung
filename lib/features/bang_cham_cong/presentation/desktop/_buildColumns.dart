@@ -112,5 +112,45 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
       ),
     ),
   );
+  columns.add(
+    DataColumn(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Còn phải trả',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Tooltip(
+            message: 'Số tiền khách hàng còn phải thanh toán',
+            child: Container(
+              width: 15,
+              height: 15,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1,
+                ),
+              ),
+              child: const Text(
+                '?',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
   return columns;
 }

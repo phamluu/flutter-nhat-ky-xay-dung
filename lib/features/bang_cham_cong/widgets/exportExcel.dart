@@ -6,12 +6,10 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChiL
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import '../../../core/utils/currencyFormat.dart';
-import '../../../core/utils/trang_thai_luong.dart';
 import 'exportExcelUngLuong.dart';
 Future<void> exportExcelFull({
   required BuildContext context,
-  required List<ChamCongNhanVienModel> data,
+  required List<ChamCongLuongNhanVienModel> data,
   required int soNgay,
   int? idBangChamCong,
   required int idCongTrinh,

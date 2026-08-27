@@ -1,17 +1,21 @@
+import '../../../bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
 import '../models/ChiLuong.dart';
 import '../repositories/ChiLuongRepository.dart';
 
 class ChiLuongService {
   final ChiLuongRepository repo;
+  final ChotChiLuongRepository _chotRepo;
+  ChiLuongService(this.repo, this._chotRepo);
 
-  ChiLuongService(this.repo);
-
-  Future<void> chiLuong({
-    required int idBangLuong,
-    required double soTien,
-    DateTime? ngayChi,
-    String? ghiChu,
-  }) async {
+  Future<void> chiLuong({idBangLuong, required double soTien, DateTime? ngayChi, String? ghiChu,}) async {
+    // Kiểm tra trạng thái nếu chưa chốt lương thì không được chi
+    bool daChotLuong = await _chotRepo.checkDaChotLuong(idBangLuong: idBangLuong);
+    if(idBangLuong == null){
+      throw Exception('Không có bảng lương');
+    }
+    if(!daChotLuong){
+      throw Exception('Không thể chi lương. Hãy chốt lương trước');
+    }
     final model = ChiLuongModel(
       idBangLuong: idBangLuong,
       soTien: soTien,
@@ -23,11 +27,11 @@ class ChiLuongService {
     await repo.insert(model);
   }
 
-  Future<List<ChiLuongModel>> getLichSu(int idBangLuong) {
+  Future<List<ChiLuongModel>> getLichSu(int? idBangLuong) {
     return repo.getByBangLuong(idBangLuong);
   }
 
-  Future<double> getTongDaChi(int idBangLuong) {
+  Future<double> getTongDaChi(int? idBangLuong) {
     return repo.getTongDaChi(idBangLuong);
   }
   Future<void> deleteChiLuong(int id) async {

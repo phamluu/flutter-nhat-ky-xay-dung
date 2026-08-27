@@ -31,8 +31,7 @@ class _UngLuongListDesktopState extends State<UngLuongListDesktop> {
   String? kyLuong;
   List<Map<String, dynamic>> kyLuongs = [];
   bool _isLoading = false;
-  final ScrollController _verticalScrollController =
-  ScrollController();
+  final ScrollController _verticalScrollController = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -888,7 +887,7 @@ class _UngLuongListDesktopState extends State<UngLuongListDesktop> {
             ),
             // ĐÃ ĐỐI TRỪ
             DataCell(
-              item.daDoiTru != null && item.daDoiTru != 0
+              item.tongDoiTru != null && item.tongDoiTru != 0
                   ? Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -899,7 +898,7 @@ class _UngLuongListDesktopState extends State<UngLuongListDesktop> {
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: Text(
-                  formatCurrency(item.daDoiTru!),
+                  formatCurrency(item.tongDoiTru!),
                   style: TextStyle(
                     color: Colors.orange.shade800,
                     fontWeight: FontWeight.w700,

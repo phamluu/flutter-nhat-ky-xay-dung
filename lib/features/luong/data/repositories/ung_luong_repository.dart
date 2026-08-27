@@ -1,11 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/UngLuongDataModel.dart';
 import 'package:path/path.dart';
 import '../../../../data/db_helper.dart';
+import '../../../../data/tables/bang_luong_table.dart';
 import '../../../../data/tables/chi_tiet_doi_tru_ung_luong.dart';
 import '../../../../data/tables/ung_luong_table.dart';
+import '../models/ChiTietDoiUngTruLuong.dart';
 import '../models/UngLuong.dart';
 import '../enums.dart';
 class UngLuongRepository {
@@ -138,24 +141,19 @@ class UngLuongRepository {
     SELECT
       nvct.${NhanVienCongTrinhTable.id}
         AS idNhanVienCongTrinh,
-
       nv.${NhanVienTable.hoTen}
         AS hoTen,
-
       ul.${UngLuongTable.id}
         AS idUngLuong,
-
       ul.${UngLuongTable.soTien}
         AS soTien,
-
+      ul.${UngLuongTable.soTienDaTru}
+        AS soTienDaTru,
       ul.${UngLuongTable.ngayUng}
         AS ngayUng,
-
       ul.${UngLuongTable.lyDo}
         AS lyDo
-
     FROM ${NhanVienCongTrinhTable.tableName} nvct
-
     INNER JOIN ${NhanVienTable.tableName} nv
       ON nv.${NhanVienTable.id}
        = nvct.${NhanVienCongTrinhTable.idNhanVien}
@@ -185,11 +183,9 @@ class UngLuongRepository {
 
     for (final row in result) {
       final idNVCT = row['idNhanVienCongTrinh'] as int?;
-
       if (idNVCT == null) {
         continue;
       }
-
       final viewModel = map.putIfAbsent(
         idNVCT,
             () => UngLuongViewModel(
@@ -205,15 +201,12 @@ class UngLuongRepository {
       // => idUngLuong = null
       // => giữ nguyên daUngs = []
       final idUngLuong = row['idUngLuong'];
-
       if (idUngLuong != null) {
         viewModel.daUngs!.add(
           UngLuongItem(
             soTien: ((row['soTien'] as num?) ?? 0).toDouble(),
-            ngayUng: row['ngayUng'] != null
-                ? DateTime.tryParse(
-              row['ngayUng'].toString(),
-            )
+            soTienDaTru: ((row['soTienDaTru'] as num?) ?? 0).toDouble(),
+            ngayUng: row['ngayUng'] != null ? DateTime.tryParse( row['ngayUng'].toString(), )
                 : null,
             lyDo: row['lyDo']?.toString(),
           ),
@@ -223,30 +216,65 @@ class UngLuongRepository {
 
     return map.values.toList();
   }
+
   // Danh sách ứng lương của 1 nhân viên
-  Future<List<Ungluong>> getUngLuongNhanVien(int idNhanVienCongTrinh, { String? kyLuong,int? thang,int? nam,
+  Future<List<Ungluong>> getUngLuongNhanVien(
+      int idNhanVienCongTrinh, {
+        String? kyLuong,
+        int? thang,
+        int? nam,
       }) async {
     final db = await _dbHelper.database;
-    final where = <String>[
+
+    final where = [
       '${UngLuongTable.idNhanVienCongTrinh} = ?',
     ];
-    final whereArgs = <dynamic>[
-      idNhanVienCongTrinh,
-    ];
-    if (kyLuong != null && kyLuong.isNotEmpty) {
+    final whereArgs = <dynamic>[idNhanVienCongTrinh];
+
+    if (kyLuong?.isNotEmpty == true) {
       where.add(
         "strftime('%Y-%m', ${UngLuongTable.ngayUng}) = ?",
       );
       whereArgs.add(kyLuong);
     }
+
     final result = await db.query(
       UngLuongTable.tableName,
       where: where.join(' AND '),
       whereArgs: whereArgs,
       orderBy: '${UngLuongTable.id} DESC',
     );
-    return result.map((e) => Ungluong.fromMap(e)).toList();
+
+    final list = result.map(Ungluong.fromMap).toList();
+
+    await Future.wait(
+      list.map((item) async {
+        item.lstDoiTru = await getDoiUngTruLuongs(item.id);
+      }),
+    );
+
+    return list;
   }
+
+  Future<List<ChiTietDoiUngTruLuong>> getDoiUngTruLuongs(int? idUngLuong,) async {
+    if (idUngLuong == null) return [];
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT 
+      d.*,
+      c.${ChamCongTable.thang} AS thangKey
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} d
+    LEFT JOIN ${BangLuongTable.tableName} b
+      ON b.${BangLuongTable.id} = d.${ChiTietDoiTruUngLuongTable.idBangLuong}
+    LEFT JOIN ${ChamCongTable.tableName} c
+      ON c.${ChamCongTable.id} = b.${BangLuongTable.idBangChamCong}
+    WHERE d.${ChiTietDoiTruUngLuongTable.idUngLuong} = ?
+    ORDER BY d.${ChiTietDoiTruUngLuongTable.id} DESC
+  ''', [idUngLuong]);
+    return result.map((e) => ChiTietDoiUngTruLuong.fromMap(e)).toList();
+  }
+
+
   // Map trong bảng chấm công
   Future<List<Map<String, dynamic>>> getUngLuong( {required int idCongTrinh, DateTime? tuNgay, DateTime? denNgay}) async
   {
@@ -383,10 +411,43 @@ class UngLuongRepository {
     final db = await _dbHelper.database;
     return await db.insert(UngLuongTable.tableName, u.toMap());
   }
-
+  Future<bool> isDoiUngTruLuong(int idUngLuong) async {
+    final db = await _dbHelper.database;
+    // Kiểm tra khoản ứng có được đối trừ chưa
+    final ungLuong = await db.query(
+      UngLuongTable.tableName,
+      columns: [UngLuongTable.id],
+      where: '''
+                      ${UngLuongTable.id} = ?
+                      AND ${UngLuongTable.soTienDaTru} > 0
+                    ''',
+      whereArgs: [idUngLuong],
+      limit: 1,
+    );
+    final doiTru = await db.query(
+      ChiTietDoiTruUngLuongTable.tableName,
+      columns: [UngLuongTable.id],
+      where: '''
+                      ${ChiTietDoiTruUngLuongTable.idUngLuong} = ?
+                    ''',
+      whereArgs: [idUngLuong],
+      limit: 1,
+    );
+    if(ungLuong.isNotEmpty || doiTru.isNotEmpty){
+      return true;
+    }
+    return false;
+  }
   // Sửa ứng lương
   Future<int> updateUngLuong(Ungluong u) async {
     final db = await _dbHelper.database;
+    // Kiểm tra khoản ứng có được đối trừ chưa
+    bool isDoiUngTruLuong = await this.isDoiUngTruLuong(u.id!);
+    if (isDoiUngTruLuong) {
+      throw Exception(
+        'Khoản ứng đã được đối trừ, không thể sửa',
+      );
+    }
     return await db.update(
       UngLuongTable.tableName,
       u.toMap(),
@@ -397,6 +458,12 @@ class UngLuongRepository {
 
   // Xóa ứng lương
   Future<int> deleteUngLuong(int id) async {
+    bool isDoiUngTruLuong = await this.isDoiUngTruLuong(id);
+    if (isDoiUngTruLuong) {
+      throw Exception(
+        'Khoản ứng đã được đối trừ, không thể xóa',
+      );
+    }
     final db = await _dbHelper.database;
     return await db.delete(
       UngLuongTable.tableName,

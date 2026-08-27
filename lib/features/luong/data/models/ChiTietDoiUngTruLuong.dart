@@ -1,6 +1,6 @@
 import '../../../../data/tables/chi_tiet_doi_tru_ung_luong.dart';
 
-class Chitietdoiungtruluong {
+class ChiTietDoiUngTruLuong{
   final int? id;
   final int? idBangLuong;
   final int? idUngLuong;
@@ -10,7 +10,16 @@ class Chitietdoiungtruluong {
   final int? isSynced;
   final String? updatedAt;
   final int? isDeleted;
-  Chitietdoiungtruluong({
+  final String? thangKey;
+  int? get thang {
+    if (thangKey == null || !thangKey!.contains('-')) return null;
+    return int.tryParse(thangKey!.split('-').last);
+  }
+  int? get nam {
+    if (thangKey == null || !thangKey!.contains('-')) return null;
+    return int.tryParse(thangKey!.split('-').first);
+  }
+  ChiTietDoiUngTruLuong({
       this.id,
       this.idBangLuong,
       this.idUngLuong,
@@ -19,11 +28,12 @@ class Chitietdoiungtruluong {
       this.serverId,
       this.isSynced,
       this.updatedAt,
-      this.isDeleted
+      this.isDeleted,
+      this.thangKey
   });
-  factory Chitietdoiungtruluong.fromMap(Map<String, dynamic> map) {
-    return Chitietdoiungtruluong(
-      id: map[ChiTietDoiTruUngLuongTable.tableName],
+  factory ChiTietDoiUngTruLuong.fromMap(Map<String, dynamic> map) {
+    return ChiTietDoiUngTruLuong(
+      id: map[ChiTietDoiTruUngLuongTable.id],
       idBangLuong: map[ChiTietDoiTruUngLuongTable.idBangLuong],
       idUngLuong: map[ChiTietDoiTruUngLuongTable.idUngLuong],
       soTienDoiTru: (map[ChiTietDoiTruUngLuongTable.soTienDoiTru] as num).toDouble(),
@@ -32,6 +42,7 @@ class Chitietdoiungtruluong {
       isSynced: map[ChiTietDoiTruUngLuongTable.isSynced],
       updatedAt: map[ChiTietDoiTruUngLuongTable.updatedAt],
       isDeleted: map[ChiTietDoiTruUngLuongTable.isDeleted],
+      thangKey: map['thangKey']?.toString(),
     );
   }
 }
