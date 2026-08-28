@@ -5,7 +5,7 @@ import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/UngLuongDataModel.dart';
 import 'package:path/path.dart';
 import '../../../../data/db_helper.dart';
-import '../../../../data/tables/bang_luong_table.dart';
+import '../../../../data/tables/ky_luong_table.dart';
 import '../../../../data/tables/chi_tiet_doi_tru_ung_luong.dart';
 import '../../../../data/tables/ung_luong_table.dart';
 import '../models/ChiTietDoiUngTruLuong.dart';
@@ -264,10 +264,10 @@ class UngLuongRepository {
       d.*,
       c.${ChamCongTable.thang} AS thangKey
     FROM ${ChiTietDoiTruUngLuongTable.tableName} d
-    LEFT JOIN ${BangLuongTable.tableName} b
-      ON b.${BangLuongTable.id} = d.${ChiTietDoiTruUngLuongTable.idBangLuong}
+    LEFT JOIN ${KyLuongTable.tableName} b
+      ON b.${KyLuongTable.id} = d.${ChiTietDoiTruUngLuongTable.idBangLuong}
     LEFT JOIN ${ChamCongTable.tableName} c
-      ON c.${ChamCongTable.id} = b.${BangLuongTable.idBangChamCong}
+      ON c.${ChamCongTable.id} = b.${KyLuongTable.idBangChamCong}
     WHERE d.${ChiTietDoiTruUngLuongTable.idUngLuong} = ?
     ORDER BY d.${ChiTietDoiTruUngLuongTable.id} DESC
   ''', [idUngLuong]);

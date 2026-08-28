@@ -1,4 +1,4 @@
-import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 
 class ChiLuongTable {
   static const String tableName = 'chi_luong';
@@ -24,7 +24,7 @@ class ChiLuongTable {
           $is_synced INTEGER DEFAULT 0,
           $updated_at TEXT,
           $is_deleted INTEGER DEFAULT 0,
-          FOREIGN KEY ($idBangLuong) REFERENCES ${BangLuongTable.tableName}(${BangLuongTable.id})
+          FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id})
         )
   ''';
 }

@@ -1,4 +1,4 @@
-import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
 
 import '../../../../data/db_helper.dart';
@@ -56,7 +56,7 @@ class ChiLuongRepository {
       cl.updated_at,
 
       bl.idNhanVienCongTrinh,
-      bl.${BangLuongTable.idBangChamCong},
+      bl.${KyLuongTable.idBangChamCong},
       bl.tongCong,
       bl.tongLuong,
       bl.tongUng,
@@ -112,7 +112,7 @@ class ChiLuongRepository {
     INNER JOIN nhan_vien nv 
         ON nvct.idNhanVien = nv.id
     WHERE nvct.idCongTrinh = ?
-      AND bl.${BangLuongTable.idBangChamCong} = ?
+      AND bl.${KyLuongTable.idBangChamCong} = ?
     ORDER BY cl.ngayChi DESC
   ''', [idCongTrinh, idBangChamCong]);
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();

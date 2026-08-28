@@ -3,17 +3,17 @@ import 'package:nhat_ky_xay_dung/features/nhan_vien/data/models/NhanVien.dart';
 import '../../../../data/tables/luong_co_ban_table.dart';
 class Luongcoban {
   final int? id;
-  final int idNhanVien;
+  final int? idNhanVien;
   final double? mucLuong;
   final DateTime? ngayTao;
-  final DateTime? ngayApDung;
+  final String? ngayApDung;
   final NhanVien? nhanVien;
   final String? ghiChu;
   final int? isSynced;
 
   Luongcoban({
     this.id,
-    required this.idNhanVien,
+    this.idNhanVien,
     this.mucLuong,
     this.ngayTao,
     this.ngayApDung,
@@ -27,7 +27,7 @@ class Luongcoban {
       LuongCoBanTable.id: id,
       LuongCoBanTable.idNhanVien: idNhanVien,
       LuongCoBanTable.mucLuong: mucLuong,
-      LuongCoBanTable.ngayApDung: ngayApDung?.toIso8601String(),
+      LuongCoBanTable.ngayApDung: ngayApDung,
       LuongCoBanTable.ngayTao: (ngayTao ?? DateTime.now()).toIso8601String(),
       LuongCoBanTable.ghiChu: ghiChu
     };
@@ -48,7 +48,7 @@ class Luongcoban {
       idNhanVien: map[LuongCoBanTable.idNhanVien],
       mucLuong: map[LuongCoBanTable.mucLuong],
       ngayTao: map[LuongCoBanTable.ngayTao] != null ? DateTime.parse(map[LuongCoBanTable.ngayTao]) : null,
-      ngayApDung: map[LuongCoBanTable.ngayApDung] != null ? DateTime.parse(map[LuongCoBanTable.ngayApDung]) : null,
+      ngayApDung: map[LuongCoBanTable.ngayApDung],
       ghiChu: map[LuongCoBanTable.ghiChu],
       nhanVien: nv,
     );
@@ -59,7 +59,7 @@ class Luongcoban {
     required int idNhanVien,
     double? mucLuong,
     DateTime? ngayTao,
-    DateTime? ngayApDung,
+    String? ngayApDung,
     NhanVien? nhanVien,
     String? ghiChu,
   }) {
@@ -84,12 +84,28 @@ class LuongNhanVienViewModel{
 
   double get mucLuongHienTai {
     if (luongCoBans.isEmpty) return 0;
-    Luongcoban latestLuong = luongCoBans.reduce((a, b) {
-      if (a.ngayApDung == null) return b;
-      if (b.ngayApDung == null) return a;
-      return a.ngayApDung!.isAfter(b.ngayApDung!) ? a : b;
-    });
-    return latestLuong.mucLuong ?? 0;
+    final homNay = DateTime.now();
+    final ngayHienTai =
+        '${homNay.year.toString().padLeft(4, '0')}-'
+        '${homNay.month.toString().padLeft(2, '0')}-'
+        '${homNay.day.toString().padLeft(2, '0')}';
+    Luongcoban? latestLuong;
+    for (final luong in luongCoBans) {
+      final ngayApDung = luong.ngayApDung;
+      if (ngayApDung == null || ngayApDung.isEmpty) {
+        latestLuong ??= luong;
+        continue;
+      }
+      if (ngayApDung.compareTo(ngayHienTai) > 0) {
+        continue;
+      }
+      if (latestLuong == null ||
+          latestLuong.ngayApDung == null ||
+          ngayApDung.compareTo(latestLuong.ngayApDung!) > 0) {
+        latestLuong = luong;
+      }
+    }
+    return latestLuong?.mucLuong ?? 0;
   }
   int get soLanTangLuong {
     if (luongCoBans.length <= 1) return 0;

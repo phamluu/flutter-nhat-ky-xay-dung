@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:nhat_ky_xay_dung/data/tables/bang_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_chi_tiet_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
@@ -40,6 +41,11 @@ class DBHelper{
         (Platform.isWindows ||
             Platform.isLinux ||
             Platform.isMacOS)) {
+      // sử dụng
+      final executablePath = Platform.resolvedExecutable;
+      final executableDirectory = File(executablePath).parent;
+      return join( executableDirectory.path, 'ptl_app.db', );
+      // end sử dụng
 
       // Trong quá trình phát triển:
       final directory = Directory(
@@ -56,11 +62,11 @@ class DBHelper{
         directory.path,
         'ptl_app.db',
       );
+      // end
     }
 
     // Android / iOS
     final databaseDirectory = await getDatabasesPath();
-
     return join(
       databaseDirectory,
       'ptl_app.db',
@@ -71,20 +77,18 @@ class DBHelper{
     final path = await _getDatabasePath();
     return openDatabase(
       path,
-      version: 8,
+      version: 10,
       onCreate: (db, version) async {
         await _createAllTables(db);
       },
       onUpgrade: (db, int oldVersion, int newVersion )async{
-        if (oldVersion < 8) {
-          await _dropAllTables(db);
-          await _createAllTables(db);
-        }
-        if (oldVersion < 7) {
-          await db.execute(
-              'ALTER TABLE ${UngLuongTable.tableName} ADD COLUMN ${UngLuongTable.soTienDaTru} REAL DEFAULT 0'
-          );
-        }
+        // if (oldVersion < 8) {
+        //   await _dropAllTables(db);
+        //   await _createAllTables(db);
+        // }
+        // if (oldVersion < 10) {
+        //   await db.execute('DROP TABLE IF EXISTS ${KhoaChamCongTable.tableName}');
+        // }
       }
     );
   }
@@ -96,16 +100,17 @@ class DBHelper{
     await db.execute(NhanVienCongTrinhTable.createTable);
     await db.execute(NhatKyTable.createTable);
     await db.execute(NhatKyHinhAnhTable.createTable);
-    await db.execute(BangLuongTable.createTable);
+    await db.execute(KyLuongTable.createTable);
+    await db.execute(KyLuongChiTietTable.createTable);
     await db.execute(ChiTietDoiTruUngLuongTable.createTable);
     await db.execute(ChiLuongTable.createTable);
     await db.execute(DanhMucThuChiTable.createTable);
-    await db.execute(KhoaChamCongTable.createTable);
     await db.execute(LuongCoBanTable.createTable);
     await db.execute(ThuChiTable.createTable);
     await db.execute(UngLuongTable.createTable);
     await db.execute(ChamCongTable.createTable);
     await db.execute(ChamCongChiTietTable.createTable);
+
   }
   Future<void> _dropAllTables(Database db) async {
     final tables = await db.rawQuery('''

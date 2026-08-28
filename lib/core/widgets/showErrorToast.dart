@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
-void showErrorToast(BuildContext context, Object e, String? mess) {
+void showErrorToast(
+  BuildContext context,
+  Object e,
+  String? mess,
+) {
   final overlay = Overlay.of(context);
 
   late OverlayEntry entry;
@@ -15,9 +19,11 @@ void showErrorToast(BuildContext context, Object e, String? mess) {
           constraints: const BoxConstraints(
             maxWidth: 400,
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            12,
+            40, // chừa chỗ cho nút đóng
+            12,
           ),
           decoration: BoxDecoration(
             color: Colors.red,
@@ -30,21 +36,48 @@ void showErrorToast(BuildContext context, Object e, String? mess) {
               ),
             ],
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.white,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  '${mess}: $e',
-                  style: const TextStyle(
+// Nội dung
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '${mess ?? 'Lỗi'}: $e',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+// Nút đóng ở góc trên bên phải
+              Positioned(
+                top: -8,
+                right: -8,
+                child: IconButton(
+                  onPressed: () {
+                    entry.remove();
+                  },
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  tooltip: 'Đóng',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
                   ),
                 ),
               ),
@@ -56,8 +89,4 @@ void showErrorToast(BuildContext context, Object e, String? mess) {
   );
 
   overlay.insert(entry);
-
-  Future.delayed(const Duration(seconds: 4), () {
-    entry.remove();
-  });
 }

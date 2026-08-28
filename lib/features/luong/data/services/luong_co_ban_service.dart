@@ -22,13 +22,13 @@ class LuongCoBanService {
         (e) => e.id == l.idNhanVien,
         orElse: () => NhanVien(id: l.idNhanVien, hoTen: "Không tên"),
       );
-      return l.copyWith(idNhanVien: l.idNhanVien, nhanVien: nv);
+      return l.copyWith(idNhanVien: l.idNhanVien!, nhanVien: nv);
     }).toList();
 
     // 3. Group theo nhân viên
     final Map<int, List<Luongcoban>> grouped = {};
     for (var l in luongsMapped) {
-      grouped.putIfAbsent(l.idNhanVien, () => []).add(l);
+      grouped.putIfAbsent(l.idNhanVien!, () => []).add(l);
     }
 
     // 4. Chuyển sang ViewModel

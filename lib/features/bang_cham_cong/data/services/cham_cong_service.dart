@@ -27,6 +27,7 @@ class ChamCongService {
       final Map<String, ChamCongNgayLuong> mapData = {};
       for (var c in dataChamCong.where((c) => c.idNhanVienCongTrinh == nv.id)) {
         if (c.ngay != null) {
+          final luongCoBan = await repo.luongNgayForNhanVien(idNhanVienCongTrinh: c.idNhanVienCongTrinh, ngay: c.ngay);
           mapData[c.ngay!] = ChamCongNgayLuong(
             chamCong: ChamCongNgay(
               id: c.id,
@@ -34,7 +35,7 @@ class ChamCongService {
               chieu: TrangThaiChamCong.fromValue(c.trangThaiChieu),
               ghiChu: c.ghiChu ?? '',
             ),
-             luongNgay: await repo.luongNgayForNhanVien(idnhanVienCongTrinh: c.idNhanVienCongTrinh, ngay: c.ngay),
+             luongNgay: luongCoBan.mucLuong!,
           );
         }
       }

@@ -6,6 +6,7 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/cham_cong_c
 import '../../../../core/utils/trang_thai_cham_cong.dart';
 import '../../../../data/db_helper.dart';
 import '../../../../data/tables/cham_cong_table.dart';
+import '../../../luong/data/models/LuongCoBan.dart';
 import '../models/ChamCongModel.dart';
 
 class ChamCongChiTietRepo {
@@ -139,15 +140,22 @@ class ChamCongChiTietRepo {
     );
     return maps.map((map) => ChamCongChiTiet.fromMap(map)).toList();
   }
+  // lấy toàn bộ bảng chấm công đã chốt lương
+  // lấy toàn bộ chấm công chi tiêt đã chốt lương => list idLuongCoBan dựa vào ngày & idNhanVienCongTrinh
+
   // Lấy lương cơ bản trong 1 ngày cụ thể của 1 nhân viên
-  Future<double> luongNgayForNhanVien({ int? idNhanVien, int? idnhanVienCongTrinh, String? ngay,
+  Future<Luongcoban> luongNgayForNhanVien({
+    int? idNhanVien,
+    int? idNhanVienCongTrinh,
+    String? ngay,
   }) async {
-    if (idNhanVien == null && idnhanVienCongTrinh == null) {
-      return 0.0;
+    if (idNhanVien == null && idNhanVienCongTrinh == null) {
+      throw Exception('Không xác định được nhân viên');
     }
     final db = await _dbHelper.database;
     final where = <String>[];
     final args = <dynamic>[];
+
     // Xác định nhân viên
     if (idNhanVien != null) {
       where.add(
@@ -158,9 +166,10 @@ class ChamCongChiTietRepo {
       where.add(
         'nvct.${NhanVienCongTrinhTable.id} = ?',
       );
-      args.add(idnhanVienCongTrinh);
+      args.add(idNhanVienCongTrinh);
     }
-    // Nếu có ngày thì chỉ lấy mức lương đã áp dụng gần nhất
+
+    // Chỉ lấy mức lương đã áp dụng đến ngày cần tính
     if (ngay != null && ngay.isNotEmpty) {
       where.add('''
       (
@@ -173,10 +182,14 @@ class ChamCongChiTietRepo {
     final results = await db.rawQuery(
       '''
     SELECT
+      lcb.${LuongCoBanTable.id} AS idLuongCoBan,
       lcb.${LuongCoBanTable.mucLuong} AS mucLuong,
       lcb.${LuongCoBanTable.ngayApDung} AS ngayApDung
     FROM ${LuongCoBanTable.tableName} lcb
-    LEFT JOIN ${NhanVienCongTrinhTable.tableName} nvct ON nvct.${NhanVienCongTrinhTable.idNhanVien} = lcb.${LuongCoBanTable.idNhanVien}
+
+    LEFT JOIN ${NhanVienCongTrinhTable.tableName} nvct
+      ON nvct.${NhanVienCongTrinhTable.idNhanVien}
+         = lcb.${LuongCoBanTable.idNhanVien}
     WHERE ${where.join(' AND ')}
     ORDER BY
       CASE
@@ -190,10 +203,12 @@ class ChamCongChiTietRepo {
       args,
     );
     if (results.isEmpty) {
-      return 0.0;
+      return Luongcoban(mucLuong: 0);
     }
-    final mucLuong = results.first['mucLuong'];
-    return (mucLuong as num).toDouble();
+    final result = results.first;
+    final idLuongCoBan = result['idLuongCoBan'] as int?;
+    final mucLuong = (result['mucLuong'] as num?)?.toDouble() ?? 0.0;
+    return Luongcoban(id: idLuongCoBan, mucLuong: mucLuong,);
   }
   // idChamCong là id trong table chấm công chi tiết
   // Load chấm công 1 ngày của 1 nhân viên

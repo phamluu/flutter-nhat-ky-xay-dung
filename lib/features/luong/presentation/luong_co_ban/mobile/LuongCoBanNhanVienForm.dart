@@ -86,7 +86,7 @@ class _LuongcobannhanvienformScreenState extends State<LuongcobannhanvienformScr
       idNhanVien: widget.idNhanVien,
       id: widget.luong?.id,
       mucLuong: parseCurrency(soTienCtrl.text),
-      ngayApDung: selectedDate,
+      ngayApDung: selectedDate.toString(),
       ghiChu: ghiChuCtrl.text,
     );
     try {

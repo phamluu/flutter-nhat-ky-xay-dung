@@ -1,5 +1,5 @@
-class BangLuongTable {
-  static const String tableName = 'bang_luong';
+class KyLuongTable {
+  static const String tableName = 'ky_luong';
   static const String id = 'id';
   static const String idNhanVienCongTrinh = 'idNhanVienCongTrinh';
   static const String idBangChamCong = 'idBangChamCong';

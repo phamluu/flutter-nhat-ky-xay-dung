@@ -6,6 +6,7 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bu
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
+import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/ung_luong_nhan_vien_desktop.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
 import '../../../luong/presentation/chi_luong/desktop/chi_luong_desktop.dart';
@@ -15,7 +16,6 @@ import '../../data/repositories/ChotChiLuongRepository.dart';
 import '../../data/services/ChotChiLuongService.dart';
 import '../../data/services/cham_cong_service.dart';
 import '../../data/models/ChamCongModel.dart';
-import '../../widgets/BangLuongActionCell.dart';
 import '../../widgets/ChamCongFilterState.dart';
 import '../../widgets/setKhoaChamCong.dart';
 import '../widgets/badgeCell.dart';
@@ -413,10 +413,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                     idBangLuong: nv.luong.idBangLuong,
                     idNhanVienCongTrinh: nv.chamCong.idNhanVienCongTrinh!,
                     idBangChamCong: widget.bangChamCong!.id!,
-                    tongCong: nv.chamCong.tongSoCong ?? 0,
-                    tongLuong: nv.tongTienCong ?? 0,
-                    tongUng: nv.luong.tongUng ?? 0,
-                    thucNhan: nv.thucNhan ?? 0,
                   );
 
                   if (!mounted) return;
@@ -583,13 +579,14 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => UngLuongScreen(
+        builder: (_) => UngLuongNhanVienDesktop(
           idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
           hoTen: nv.ten,
           congTrinh: widget.tenCongTrinh,
           idBangChamCong: widget.bangChamCong?.id,
           thang: widget.bangChamCong?.thang,
           nam: widget.bangChamCong?.nam,
+          kyLuong: widget.bangChamCong?.thangValue,
         ),
       ),
     );
