@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/buildTrangThai.dart' hide TrangThaiChiLuong;
@@ -416,31 +417,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                   );
 
                   if (!mounted) return;
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
-                      ),
-                      backgroundColor: Colors.green.shade700,
-                      behavior: SnackBarBehavior.floating,
-                      // Đẩy SnackBar lên góc trên màn hình
-                      margin: EdgeInsets.only(
-                        top: 20,
-                        bottom: MediaQuery.of(context).size.height - 100,
-                        left: (MediaQuery.of(context).size.width - 280) / 2, // Căn giữa chiều ngang (rộng 280)
-                        right: (MediaQuery.of(context).size.width - 280) / 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-
-                  // Reload lại dữ liệu mới lên Data Table
+                    showSuccessToast(context, isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!');
                   _load();
                 } catch (e) {
                   if (!mounted) return;

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
 import 'package:nhat_ky_xay_dung/features/nhan_vien/data/services/nhan_vien_service.dart';
 
@@ -117,15 +120,8 @@ class _NhanhVienCongTrinhFormDesktopState
       setState(() {
         _loading = false;
       });
+showErrorToast(context, e, "Không thể tải dữ liệu: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Không thể tải dữ liệu: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -139,13 +135,7 @@ class _NhanhVienCongTrinhFormDesktopState
     }
 
     if (_selectedNhanVienId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Vui lòng chọn nhân viên",
-          ),
-        ),
-      );
+showWarmToast(context, message: "Vui lòng chọn nhân viên");
 
       return;
     }
@@ -179,17 +169,9 @@ class _NhanhVienCongTrinhFormDesktopState
       }
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isEdit
-                ? "Đã cập nhật nhân viên"
-                : "Đã thêm nhân viên vào công trình",
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+showSuccessToast(context,  isEdit
+    ? "Đã cập nhật nhân viên"
+    : "Đã thêm nhân viên vào công trình");
 
       Navigator.pop(context, true);
     } catch (e) {
@@ -198,15 +180,8 @@ class _NhanhVienCongTrinhFormDesktopState
       setState(() {
         _saving = false;
       });
+showErrorToast(context, e,  "Lỗi lưu dữ liệu: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Lỗi lưu dữ liệu: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

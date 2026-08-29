@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 
 import '../../../../../core/utils/trang_thai_tien_do.dart';
 import '../../../data/models/TienDoCongTrinhModel.dart';
@@ -155,15 +156,8 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
       setState(() {
         _isSaving = false;
       });
+showErrorToast(context, e, 'Không thể lưu tiến độ: ');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể lưu tiến độ: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

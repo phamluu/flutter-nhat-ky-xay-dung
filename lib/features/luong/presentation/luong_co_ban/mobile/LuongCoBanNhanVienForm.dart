@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/repositories/luong_coban_repository.dart';
@@ -76,9 +79,7 @@ class _LuongcobannhanvienformScreenState extends State<LuongcobannhanvienformScr
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vui lòng chọn ngày")),
-      );
+      showWarmToast(context, message: "Vui lòng chọn ngày");
       return;
     }
     setState(() => isLoading = true);
@@ -95,20 +96,10 @@ class _LuongcobannhanvienformScreenState extends State<LuongcobannhanvienformScr
       } else {
         await _repo.update(model);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Lưu thành công"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, "Lưu thành công");
       Navigator.pop(context, true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi: $e");
     } finally {
       setState(() => isLoading = false);
     }

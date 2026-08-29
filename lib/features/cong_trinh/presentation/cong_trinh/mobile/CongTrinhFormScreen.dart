@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 
+import '../../../../../core/widgets/showSuccessToast.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
 
@@ -84,24 +86,11 @@ class _CongTrinhFormScreenState extends State<CongTrinhFormScreen> {
       } else {
         await _service.themCongTrinh(model);
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isEdit
-              ? "Cập nhật thành công"
-              : "Thêm công trình thành công"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, isEdit ? "Cập nhật thành công": "Thêm công trình thành công");
 
       Navigator.pop(context, true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi: $e");
     }
   }
 

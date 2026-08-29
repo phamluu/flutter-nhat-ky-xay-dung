@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/models/NhatKyCongTrinh.dart';
@@ -93,15 +96,8 @@ class _NhatKyFormDesktopState
       });
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Không thể tải danh sách công trình: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Không thể tải danh sách công trình: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -162,13 +158,8 @@ class _NhatKyFormDesktopState
     }
 
     if (_selectedCongTrinhId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Vui lòng chọn công trình",
-          ),
-        ),
-      );
+      showErrorToast(context, "","Vui lòng chọn công trình");
+
       return;
     }
 
@@ -227,30 +218,11 @@ class _NhatKyFormDesktopState
       }
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isEdit
-                ? "Đã cập nhật nhật ký"
-                : "Đã thêm nhật ký",
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
-
+      showSuccessToast(context, isEdit ? "Đã cập nhật nhật ký" : "Đã thêm nhật ký");
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Lỗi lưu nhật ký: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi lưu nhật ký: $e");
     } finally {
       if (mounted) {
         setState(() {
@@ -308,13 +280,8 @@ class _NhatKyFormDesktopState
   }
 
   void _showMaxImageMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Tối đa 9 hình ảnh",
-        ),
-      ),
-    );
+    showWarmToast(context, message:  "Tối đa 9 hình ảnh");
+
   }
 
   void _removeImage(int index) {

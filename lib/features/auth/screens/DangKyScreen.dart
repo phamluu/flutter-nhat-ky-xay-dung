@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/ApiClient.dart';
 import '../../../core/utils/AuthHelper.dart';
@@ -49,27 +52,13 @@ class _DangkyscreenState extends State<Dangkyscreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
-            content: Text(data['message'], style: TextStyle(color: Colors.white),),
-            backgroundColor: Colors.green,),
-        );
+        showSuccessToast(context, data['message']);
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Lỗi: ${response.body}"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showWarmToast(context, message: "Lỗi: ${response.body}");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("EXCEPTION: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "EXCEPTION: $e");
     } finally {
       setState(() => isLoading = false);
     }

@@ -1,7 +1,6 @@
 import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 
-import '../../../../data/_db_helper.dart';
 import '../models/CongTrinh.dart';
 import '../../../../data/db_helper.dart';
 
@@ -28,24 +27,38 @@ class CongtrinhReponsitory {
 
   Future<int> themCongTrinh(CongTrinh congTrinh) async {
     final db = await _dbHelper.database;
-    return await db.insert(CongTrinhTable.tableName, congTrinh.toMapInsert());
+    try{
+      return await db.insert(CongTrinhTable.tableName, congTrinh.toMapInsert());
+    }catch(e){
+      throw Exception('Lỗi: $e');
+    }
+
   }
   Future<void> updateCongTrinh(CongTrinh ct) async {
     final db = await _dbHelper.database;
-    await db.update(
-      CongTrinhTable.tableName,
-      ct.toMapUpdate(),
-      where: '${CongTrinhTable.id} = ?',
-      whereArgs: [ct.id],
-    );
+    try{
+      await db.update(
+        CongTrinhTable.tableName,
+        ct.toMapUpdate(),
+        where: '${CongTrinhTable.id} = ?',
+        whereArgs: [ct.id],
+      );
+    }catch(e){
+      throw Exception('Lỗi: $e');
+    }
+
   }
   Future<int> deleteCongTrinh(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
-      CongTrinhTable.tableName,
-      where: '${CongTrinhTable.id} = ?',
-      whereArgs: [id],
-    );
+    try{
+      return await db.delete(
+        CongTrinhTable.tableName,
+        where: '${CongTrinhTable.id} = ?',
+        whereArgs: [id],
+      );
+    }catch(e){
+      throw Exception('Lỗi: $e');
+    }
   }
 
   Future<List<CongTrinh>> getCongTrinhWithTienDo() async {

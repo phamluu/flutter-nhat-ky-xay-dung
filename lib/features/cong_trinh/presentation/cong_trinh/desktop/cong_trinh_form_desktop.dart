@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
@@ -129,17 +131,9 @@ class _CongTrinhFormDesktopState
       }
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isEdit
-                ? 'Cập nhật công trình thành công'
-                : 'Thêm công trình thành công',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context,  isEdit
+          ? 'Cập nhật công trình thành công'
+          : 'Thêm công trình thành công');
 
       Navigator.pop(context, true);
     } catch (e) {
@@ -161,13 +155,8 @@ class _CongTrinhFormDesktopState
 
   void _showError(String message) {
     if (!mounted) return;
+    showWarmToast(context, message: message);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
 
   // ==========================================================

@@ -1,10 +1,7 @@
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
-import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:intl/intl.dart';
-import '../data/_db_helper.dart';
 import '../data/db_helper.dart';
 import '../data/tables/cham_cong_table.dart';
 

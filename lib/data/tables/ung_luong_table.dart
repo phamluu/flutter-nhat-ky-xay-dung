@@ -27,7 +27,7 @@ class UngLuongTable {
                 $is_synced INTEGER DEFAULT 0,
                 $updated_at TEXT,
                 $is_deleted INTEGER DEFAULT 0,
-                FOREIGN KEY ($idNhanVienCongTrinh) REFERENCES ${NhanVienCongTrinhTable.tableName}(${NhanVienCongTrinhTable.id}) ON DELETE SET NULL
+                FOREIGN KEY ($idNhanVienCongTrinh) REFERENCES ${NhanVienCongTrinhTable.tableName}(${NhanVienCongTrinhTable.id}) ON DELETE RESTRICT
       )
   ''';
 }

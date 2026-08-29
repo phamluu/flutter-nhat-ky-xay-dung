@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/bang_cham_cong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 
@@ -60,18 +62,9 @@ class _BangChamCongFormDesktopState extends State<BangChamCongFormDesktop> {
       }
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isEdit
-                ? 'Cập nhật bảng chấm công thành công'
-                : 'Thêm bảng chấm công thành công',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
-
+        showSuccessToast(context, isEdit
+            ? 'Cập nhật bảng chấm công thành công'
+            : 'Thêm bảng chấm công thành công');
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -94,13 +87,7 @@ class _BangChamCongFormDesktopState extends State<BangChamCongFormDesktop> {
 
   void _showError(String message) {
     if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+      showWarmToast(context, message: message);
   }
 
   // ==========================================================

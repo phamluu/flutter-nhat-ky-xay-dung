@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import 'package:nhat_ky_xay_dung/features/auth/presentation/desktop/login_desktop.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -848,12 +851,7 @@ class _SettingDesktopState extends State<SettingDesktop> {
 // ============================================================
 
   Future<void> _syncData(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Đang đồng bộ..."),
-        backgroundColor: Colors.orange,
-      ),
-    );
+    showWarmToast(context, message: "Đang đồng bộ...");
 
     try {
       await syncService.syncAll();
@@ -861,29 +859,12 @@ class _SettingDesktopState extends State<SettingDesktop> {
       await loadSyncStatus();
 
       if (!mounted) return;
+      showSuccessToast(context, "Đồng bộ thành công");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Đồng bộ thành công",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
+      showErrorToast(context, e, "Đồng bộ thất bại: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Đồng bộ thất bại: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 }

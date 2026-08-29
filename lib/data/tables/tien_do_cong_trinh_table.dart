@@ -35,7 +35,7 @@ class TienDoCongTrinhTable {
         $isSynced INTEGER DEFAULT 0,
         $updatedAt TEXT,
         $isDeleted INTEGER DEFAULT 0,
-        FOREIGN KEY ($idCongTrinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id}) ON DELETE CASCADE
+        FOREIGN KEY ($idCongTrinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id}) ON DELETE RESTRICT
       )
   ''';
 }

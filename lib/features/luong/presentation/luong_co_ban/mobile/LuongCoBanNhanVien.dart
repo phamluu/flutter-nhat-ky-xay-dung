@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/repositories/luong_coban_repository.dart';
@@ -139,13 +140,7 @@ class _LuongCoBanNhanVienScreenState extends State<LuongCoBanNhanVienScreen> {
                           );
                           if (confirm == true) {
                             await _repo.delete(luong.id!);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Xóa lương cơ bản thành công", style: TextStyle(color: Colors.white),),
-                                backgroundColor: Colors.green,
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
+                            showSuccessToast(context, "Xóa lương cơ bản thành công");
                             setState(() {
                               _load();
                             });

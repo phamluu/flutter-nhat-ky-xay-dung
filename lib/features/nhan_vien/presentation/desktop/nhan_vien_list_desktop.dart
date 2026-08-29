@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../core/utils/AuthHelper.dart';
 import '../../../../core/utils/SyncColor.dart';
 import '../../../../core/utils/trang_thai_dong_bo.dart';
@@ -108,22 +110,12 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
       if (!mounted) return;
 
       setState(() => _reload());
+showSuccessToast(context, "Đã xóa nhân viên");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã xóa nhân viên"),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi xóa nhân viên: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi xóa nhân viên: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -156,24 +148,11 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
       await syn.syncOneNhanVien(nv);
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã đồng bộ nhân viên"),
-          backgroundColor: Colors.green,
-        ),
-      );
-
+        showSuccessToast(context, "Đã đồng bộ nhân viên");
       setState(() => _reload());
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi đồng bộ: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+        showErrorToast(context, e, "Lỗi đồng bộ: $e");
     }
   }
 
@@ -209,24 +188,13 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
       await syn.cancelSyncNhanVien(nv);
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã hủy đồng bộ"),
-          backgroundColor: Colors.orange,
-        ),
-      );
+showSuccessToast(context, "Đã hủy đồng bộ");
 
       setState(() => _reload());
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

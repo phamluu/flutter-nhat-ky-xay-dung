@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/auth/screens/DangKyScreen.dart';
 
 import '../../../../core/services/ApiClient.dart';
@@ -659,24 +661,14 @@ class _NhanVienDetailDesktopState extends State<NhanVienDetailDesktop> {
       if (!mounted) return;
 
       setState(() => isSyncing = false);
+showSuccessToast(context, "Đã đồng bộ nhân viên");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã đồng bộ nhân viên"),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
 
       setState(() => isSyncing = false);
+      showErrorToast(context, e, "Lỗi đồng bộ: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi đồng bộ: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -747,32 +739,16 @@ class _NhanVienDetailDesktopState extends State<NhanVienDetailDesktop> {
 
       if (data["success"] == true) {
         await fetchUserInfo();
+        showSuccessToast(context, "Cập nhật email thành công");
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Cập nhật email thành công"),
-            backgroundColor: Colors.green,
-          ),
-        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              data["message"] ?? "Cập nhật email thất bại",
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorToast(context, "", data["message"] ?? "Cập nhật email thất bại");
+
       }
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi : ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -841,24 +817,13 @@ class _NhanVienDetailDesktopState extends State<NhanVienDetailDesktop> {
           },
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              data["message"] ?? "Reset mật khẩu thất bại",
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorToast(context, "",data["message"] ?? "Reset mật khẩu thất bại");
+
       }
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -909,35 +874,17 @@ class _NhanVienDetailDesktopState extends State<NhanVienDetailDesktop> {
           setState(() {
             userInfo = null;
           });
+showSuccessToast(context, data["message"] ?? "Xóa tài khoản thành công");
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                data["message"] ?? "Xóa tài khoản thành công",
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                data["message"] ?? "Xóa tài khoản thất bại",
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showErrorToast(context, "", data["message"] ?? "Xóa tài khoản thất bại");
+
         }
       }
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

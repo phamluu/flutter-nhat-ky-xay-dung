@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../../data/models/LuongCoBan.dart';
 import '../../../data/repositories/luong_coban_repository.dart';
@@ -98,23 +99,13 @@ class _LuongCoBanNhanVienDesktopState
     await _repo.delete(luong.id!);
 
     if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Xóa lương cơ bản thành công',
-        ),
-        backgroundColor: Colors.green,
-      ),
-    );
-
+      showSuccessToast(context, 'Xóa lương cơ bản thành công');
     setState(_load);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(

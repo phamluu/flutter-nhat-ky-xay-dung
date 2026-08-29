@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
@@ -39,8 +41,7 @@ class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
 
   void _loadData() {
     setState(() {
-      _futureCongTrinh =
-          _service.getCongTrinhWithTienDo();
+      _futureCongTrinh = _service.getCongTrinhWithTienDo();
     });
   }
 
@@ -185,27 +186,12 @@ class _CongTrinhListDesktopState extends State<CongTrinhListDesktop> {
       );
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Xóa công trình thành công',
-          ),
-          backgroundColor: Colors.green
-        ),
-      );
+showSuccessToast(context, 'Xóa công trình thành công');
 
       _loadData();
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể xóa công trình: $e',
-          ),
-        ),
-      );
+showErrorToast(context, e, 'Không thể xóa công trình');
     }
   }
 

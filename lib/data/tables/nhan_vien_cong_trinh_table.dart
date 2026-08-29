@@ -26,8 +26,8 @@ class NhanVienCongTrinhTable {
           $isSynced INTEGER DEFAULT 0,
           $updatedAt TEXT,
           $isDeleted INTEGER DEFAULT 0,
-          FOREIGN KEY ($idNhanVien) REFERENCES ${NhanVienTable.tableName}(${NhanVienTable.id}),
-          FOREIGN KEY ($idCongTrinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id})
+          FOREIGN KEY ($idNhanVien) REFERENCES ${NhanVienTable.tableName}(${NhanVienTable.id}) ON DELETE RESTRICT,
+          FOREIGN KEY ($idCongTrinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id}) ON DELETE RESTRICT
       )
   ''';
 }

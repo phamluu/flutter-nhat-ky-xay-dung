@@ -1,5 +1,10 @@
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../../data/db_helper.dart';
+import '../../../../data/tables/nhat_ky_hinh_anh_table.dart';
 import '../models/CongTrinh.dart';
 import '../models/NhatKyCongTrinh.dart';
 
@@ -7,7 +12,7 @@ class NhatKyService {
   final _dbHelper = DBHelper.instance;
   Future<int> insertNhatKy(NhatKyCongTrinh nk) async {
     final db = await _dbHelper.database;
-    return await db.insert('nhat_ky', nk.toMap());
+    return await db.insert(NhatKyTable.tableName, nk.toMap());
   }
 
   // -----Nhật ký ---------
@@ -15,7 +20,7 @@ class NhatKyService {
     final db = await _dbHelper.database;
 
     // 1. Lấy tất cả công trình
-    final congTrinhMaps = await db.query('cong_trinh');
+    final congTrinhMaps = await db.query(CongTrinhTable.tableName);
     final congTrinhList = congTrinhMaps.map((e) => CongTrinh.fromMap(e)).toList();
     final congTrinhMap = {for (var c in congTrinhList) c.id: c};
 
@@ -23,21 +28,21 @@ class NhatKyService {
     List<Map<String, dynamic>> maps;
     if (idCongTrinh != null) {
       maps = await db.query(
-        'nhat_ky',
-        where: 'id_cong_trinh = ?',
+        NhatKyTable.tableName,
+        where: '${NhatKyTable.idCongTrinh} = ?',
         whereArgs: [idCongTrinh],
-        orderBy: 'ngay_tao DESC',
+        orderBy: '${NhatKyTable.ngayTao} DESC',
       );
     } else {
       maps = await db.query(
-        'nhat_ky',
-        orderBy: 'ngay_tao DESC',
+        NhatKyTable.tableName,
+        orderBy: '${NhatKyTable.ngayTao} DESC',
       );
     }
     // 3. Map sang ViewModel (có query đếm công nhân)
     List<NhatKyViewModel> result = [];
     for (final e in maps) {
-      final ct = congTrinhMap[e['id_cong_trinh']];
+      final ct = congTrinhMap[e[NhatKyTable.idCongTrinh]];
       final nhatKy = NhatKyCongTrinh.fromMap(e, congTrinh: ct);
 
       if (nhatKy.ngayTrienKhai == null) {
@@ -48,10 +53,10 @@ class NhatKyService {
       final countRes = await db.rawQuery(
         '''
     SELECT COUNT(DISTINCT nvct.id) AS cnt
-    FROM cham_cong cnt
-    JOIN nhan_vien_cong_trinh nvct
-      ON cnt.id_nhan_vien_cong_trinh = nvct.id
-    WHERE cnt.ngay = ? AND nvct.idCongTrinh = ?
+    FROM ${ChamCongChiTietTable.tableName} cnt
+    JOIN ${NhanVienCongTrinhTable.tableName} nvct
+      ON cnt.${ChamCongChiTietTable.idNhanVienCongTrinh} = nvct.${NhanVienCongTrinhTable.id}
+    WHERE cnt.${ChamCongChiTietTable.ngay} = ? AND nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
     ''',
         [nhatKy.ngayTrienKhai, nhatKy.idCongTrinh],
       );
@@ -70,9 +75,9 @@ class NhatKyService {
   Future<int> updateNhatKy(NhatKyCongTrinh nk) async {
     final db = await _dbHelper.database;
     return await db.update(
-      'nhat_ky',
+      NhatKyTable.tableName,
       nk.toMap(),
-      where: 'id = ?',
+      where: '${NhatKyHinhAnhTable.id} = ?',
       whereArgs: [nk.id],
     );
   }
@@ -80,8 +85,8 @@ class NhatKyService {
   Future<int> deleteNhatKy(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
-      'nhat_ky',
-      where: 'id = ?',
+      NhatKyTable.tableName,
+      where: '${NhatKyHinhAnhTable.id} = ?',
       whereArgs: [id],
     );
   }
@@ -91,9 +96,9 @@ class NhatKyService {
     final db = await DBHelper.instance.database;
 
     for (var path in paths) {
-      await db.insert('nhat_ky_hinh_anh', {
-        'id_nhat_ky': nhatKyId,
-        'url': path,
+      await db.insert(NhatKyHinhAnhTable.tableName, {
+        NhatKyHinhAnhTable.idNhatKy: nhatKyId,
+        NhatKyHinhAnhTable.url: path,
       });
     }
   }
@@ -102,20 +107,20 @@ class NhatKyService {
     final db = await DBHelper.instance.database;
 
     final result = await db.query(
-      'nhat_ky_hinh_anh',
-      where: 'id_nhat_ky = ?',
+      NhatKyHinhAnhTable.tableName,
+      where: '${NhatKyHinhAnhTable.idNhatKy} = ?',
       whereArgs: [nhatKyId],
     );
 
-    return result.map((e) => e['url'] as String).toList();
+    return result.map((e) => e['${NhatKyHinhAnhTable.url}'] as String).toList();
   }
 
   Future<void> deleteImages(int nhatKyId) async {
     final db = await DBHelper.instance.database;
 
     await db.delete(
-      'nhat_ky_hinh_anh',
-      where: 'id_nhat_ky = ?',
+      NhatKyHinhAnhTable.tableName,
+      where: '${NhatKyHinhAnhTable.idNhatKy} = ?',
       whereArgs: [nhatKyId],
     );
   }

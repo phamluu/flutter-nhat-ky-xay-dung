@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/NhanVienCongTrinh.dart';
 import '../../../data/services/nhan_vien_cong_trinh_service.dart';
@@ -101,26 +103,15 @@ class _NhanVienCongTrinhListDesktopState
       await _service.delete(item.id!);
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã xóa nhân viên khỏi công trình"),
-          backgroundColor: Colors.green,
-        ),
-      );
+showSuccessToast(context, "Đã xóa nhân viên khỏi công trình");
 
       setState(() {
         _reload();
       });
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi khi xóa: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi khi xóa: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

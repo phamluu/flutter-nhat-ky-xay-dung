@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import '../../../core/services/ApiClient.dart';
 import '../../../core/utils/AuthHelper.dart';
@@ -155,15 +157,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 MaterialPageRoute(builder: (_) => const LoginMobile()),
                 (route) => false,
               );
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Đã đăng xuất",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              showSuccessToast(context, "Đã đăng xuất");
+
             } else {
               Navigator.push(
                 context,
@@ -179,14 +174,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text("Đồng bộ dữ liệu"),
             subtitle: const Text("Gửi dữ liệu lên server"),
             onTap: () async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Đang đồng bộ..."), backgroundColor: Colors.orange,),
-              );
+              showWarmToast(context, message: "Đang đồng bộ...");
+
               await SyncService().syncAll();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Đồng bộ thành công", style: TextStyle(color: Colors.white),),
-                  backgroundColor: Colors.green,),
-              );
+              showSuccessToast(context, "Đồng bộ thành công");
+
             },
           ),
           /// 📊 SYNC STATUS

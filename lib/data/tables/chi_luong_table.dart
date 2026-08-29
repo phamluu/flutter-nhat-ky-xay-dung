@@ -24,7 +24,7 @@ class ChiLuongTable {
           $is_synced INTEGER DEFAULT 0,
           $updated_at TEXT,
           $is_deleted INTEGER DEFAULT 0,
-          FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id})
+          FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id}) ON DELETE RESTRICT
         )
   ''';
 }

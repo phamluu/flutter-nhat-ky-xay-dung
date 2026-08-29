@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/home/pages/HomeRouter.dart';
 import 'package:nhat_ky_xay_dung/features/home/presentation/mobile/home_mobile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,31 +45,17 @@ class _LoginMobileState extends State<LoginMobile> {
         // TODO: lưu token
         final token = data["token"];
         await AuthHelper.saveToken(token);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Đăng nhập thành công", style: TextStyle(color: Colors.white),),
-          backgroundColor: Colors.green,),
-        );
+        showSuccessToast(context, "Đăng nhập thành công");
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomeRouter()),
               (route) => false,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Lỗi: ${response.body}"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showWarmToast(context, message: "Lỗi: ${response.body}");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("EXCEPTION: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "EXCEPTION: $e");
     } finally {
       setState(() => isLoading = false);
     }

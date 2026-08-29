@@ -8,12 +8,45 @@ class NhanVienCongTrinhService {
   final _dbHelper = DBHelper.instance;
 
   Future<int> insert(NhanVienCongTrinh item) async {
+    // Kiểm tra mỗi nhân viên chỉ được thêm vào 1 công trình 1 lần
     final db = await _dbHelper.database;
+    final isTonTai = await db.query(NhanVienCongTrinhTable.tableName,
+        where: '${NhanVienCongTrinhTable.idCongTrinh} = ?'
+            'AND ${NhanVienCongTrinhTable.idNhanVien} = ?',
+        whereArgs: [item.idCongTrinh, item.idNhanVien],
+      limit: 1
+    );
+    if(isTonTai.isNotEmpty){
+      throw Exception('Nhân viên đã tồn tại không thể thêm');
+    }
     return await db.insert('nhan_vien_cong_trinh', item.toMap());
   }
 
   Future<int> update(NhanVienCongTrinh item) async {
     final db = await _dbHelper.database;
+    // Lấy idNhanVien cũ
+    final oldResult = await db.query(NhanVienCongTrinhTable.tableName,
+       columns:  [NhanVienCongTrinhTable.idNhanVien],
+      where: '${NhanVienCongTrinhTable.id} = ?',
+      whereArgs: [item.id],
+      limit: 1
+    );
+    if(oldResult.isNotEmpty){
+      final oldIdNhanVien = oldResult.first[NhanVienCongTrinhTable.idNhanVien];
+      if(item.idNhanVien != oldIdNhanVien){
+        final isTonTai = await db.query(NhanVienCongTrinhTable.tableName,
+            where: '${NhanVienCongTrinhTable.idCongTrinh} = ?'
+                'AND ${NhanVienCongTrinhTable.idNhanVien} = ?',
+            whereArgs: [item.idCongTrinh, item.idNhanVien],
+            limit: 1
+        );
+        if(isTonTai.isNotEmpty){
+          throw Exception('Nhân viên đã tồn tại không thể chọn');
+        }
+      }
+    }
+
+    // Kiểm tra tồn tại
     return await db.update(
       NhanVienCongTrinhTable.tableName,
       item.toMap(),

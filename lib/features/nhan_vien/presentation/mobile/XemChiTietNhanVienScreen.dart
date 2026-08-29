@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/auth/presentation/mobile/login_mobile.dart';
 import 'package:nhat_ky_xay_dung/features/auth/screens/DangKyScreen.dart';
 import '../../../../core/services/ApiClient.dart';
@@ -226,20 +228,12 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
       }
       await fetchUserInfo();
       setState(() => isSyncing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã đồng bộ nhân viên"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, "Đã đồng bộ nhân viên");
+
     } catch (e) {
       setState(() => isSyncing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi đồng bộ: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi đồng bộ: ");
+
     }
   }
   Widget _buildEditEmailButton(){
@@ -257,18 +251,12 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
           final data = jsonDecode(response.body);
           if (data["success"] == true) {
             await fetchUserInfo();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text("Cập nhật email thành công", style: TextStyle(color: Colors.white),),
-                backgroundColor: Colors.green,
-              ),
-            );
+            showSuccessToast(context, "Cập nhật email thành công");
+
           }
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Lỗi: $e", style: TextStyle(color: Colors.white),),
-            backgroundColor: Colors.red,),
-          );
+            showErrorToast(context, e, "Lỗi: ");
+
         }
       },
       child: const Text("Sửa email"),
@@ -348,16 +336,12 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
               ),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data["message"] ?? "Lỗi",style: TextStyle(color: Colors.white),),
-              backgroundColor: Colors.red,),
-            );
+            showErrorToast(context, "",data["message"] ?? "Lỗi");
+
           }
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Lỗi: $e", style: TextStyle(color: Colors.white)),
-              backgroundColor: Colors.red,),
-          );
+          showErrorToast(context, e, "Lỗi: ");
+
         }
       },
       child: const Text("Reset mật khẩu"),
@@ -398,28 +382,16 @@ class _XemChiTietNhanVienState extends State<XemChiTietNhanVienScreen> {
               setState(() {
                 userInfo = null;
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(data["message"] ?? "Xóa thành cônng"),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              showSuccessToast(context, data["message"] ?? "Xóa thành cônng");
+
             }else{
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(data["message"] ?? "Xóa thất bại"),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              showErrorToast(context, "",data["message"] ?? "Xóa thất bại");
+
             }
           }
         }catch(e){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Lỗi: $e"),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showErrorToast(context, e, "Lỗi: ");
+
         }
       },
       child: const Text("Xóa",

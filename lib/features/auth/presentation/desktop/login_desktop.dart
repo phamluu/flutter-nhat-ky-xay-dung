@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
 import '../../../../core/services/ApiClient.dart';
 import '../../../../core/utils/AuthHelper.dart';
@@ -52,14 +55,7 @@ class _LoginDesktopState extends State<LoginDesktop> {
         await AuthHelper.saveToken(data["token"]);
 
         if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Đăng nhập thành công"),
-            backgroundColor: Colors.green,
-          ),
-        );
-
+        showSuccessToast(context, "Đăng nhập thành công");
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -69,26 +65,12 @@ class _LoginDesktopState extends State<LoginDesktop> {
         );
       } else {
         if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              data["message"] ??
-                  "Email hoặc mật khẩu không chính xác",
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showWarmToast(context, message: data["message"] ??
+            "Email hoặc mật khẩu không chính xác");
       }
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi đăng nhập: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi đăng nhập: $e");
     } finally {
       if (mounted) {
         setState(() {

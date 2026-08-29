@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/models/NhatKyCongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
@@ -80,9 +81,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCongTrinhId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn công trình')),
-      );
+      showWarmToast(context, message: 'Vui lòng chọn công trình');
       return;
     }
     final imagePaths = _images.map((e) => e.path).toList();
@@ -230,9 +229,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
 
   Future<void> _pickImages() async {
     if (_images.length >= 9) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tối đa 9 ảnh')),
-      );
+      showWarmToast(context, message: 'Tối đa 9 ảnh');
       return;
     }
     final List<XFile> pickedFiles = await _picker.pickMultiImage(imageQuality: 60,);
@@ -245,9 +242,7 @@ class _ThemSuaNhatKyScreenState extends State<ThemSuaNhatKyScreen> {
   }
   Future<void> _takePhoto() async {
     if (_images.length >= 9) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tối đa 9 ảnh')),
-      );
+      showWarmToast(context, message: 'Tối đa 9 ảnh');
       return;
     }
     final XFile? photo =

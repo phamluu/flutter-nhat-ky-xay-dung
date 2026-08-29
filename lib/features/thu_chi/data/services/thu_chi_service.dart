@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 
 import '../../../../data/db_helper.dart';
@@ -70,12 +72,12 @@ class ThuChiService {
 
   Future<int> insert(ThuChi tc) async {
     final db = await _dbHelper.database;
-    return await db.insert('thu_chi', tc.toMap());
+    return await db.insert(ThuChiTable.tableName, tc.toMap());
   }
 
   Future<List<ThuChi>> getAll() async {
     final db = await _dbHelper.database;
-    final maps = await db.query('thu_chi', orderBy: 'ngay DESC');
+    final maps = await db.query(ThuChiTable.tableName, orderBy: 'ngay DESC');
     return maps.map((e) => ThuChi.fromMap(e)).toList();
   }
 
@@ -115,13 +117,13 @@ class ThuChiService {
       ct.ten as ct_ten, 
       dm.id as dm_id, 
       dm.ten as dm_ten
-    FROM thu_chi tc
-    LEFT JOIN cong_trinh ct 
-      ON tc.id_cong_trinh = ct.id
-    LEFT JOIN danh_muc_thu_chi dm 
-      ON tc.id_danh_muc_thu_chi = dm.id
+    FROM ${ThuChiTable.tableName} tc
+    LEFT JOIN ${CongTrinhTable.tableName} ct 
+      ON tc.${ThuChiTable.id_cong_trinh} = ct.id
+    LEFT JOIN ${DanhMucThuChiTable.tableName} dm 
+      ON tc.${ThuChiTable.id_danh_muc_thu_chi} = dm.id
     $whereClause
-    ORDER BY tc.ngay DESC
+    ORDER BY tc.${ThuChiTable.ngay} DESC
     ''',
       args,
     );
@@ -278,22 +280,22 @@ class ThuChiService {
   Future<int> update(ThuChi tc) async {
     final db = await _dbHelper.database;
     return await db.update(
-      'thu_chi',
+      ThuChiTable.tableName,
       tc.toMap(),
-      where: 'id = ?',
+      where: '${ThuChiTable.id} = ?',
       whereArgs: [tc.id],
     );
   }
 
   Future<int> delete(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete('thu_chi', where: 'id = ?', whereArgs: [id]);
+    return await db.delete(ThuChiTable.tableName, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> countByDanhMuc(int idDanhMuc) async {
     final db = await _dbHelper.database;
     final res = await db.rawQuery(
-      'SELECT COUNT(*) as c FROM thu_chi WHERE id_danh_muc_thu_chi = ?',
+      'SELECT COUNT(*) as c FROM ${ThuChiTable.tableName} WHERE ${ThuChiTable.id_danh_muc_thu_chi} = ?',
       [idDanhMuc],
     );
     return (res.first['c'] as int?) ?? 0;

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/NhatKyCongTrinh.dart';
 import '../../../data/services/nhat_ky_service.dart';
@@ -116,28 +118,13 @@ class _NhatKyListDesktopState extends State<NhatKyListDesktop> {
       );
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Đã xóa nhật ký",
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+showSuccessToast(context, "Đã xóa nhật ký");
 
       _reload();
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Lỗi khi xóa: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Lỗi khi xóa: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

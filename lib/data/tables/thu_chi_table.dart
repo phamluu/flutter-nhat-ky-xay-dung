@@ -1,3 +1,4 @@
+import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 
 class ThuChiTable {
@@ -28,7 +29,8 @@ class ThuChiTable {
         $is_synced INTEGER DEFAULT 0,
         $updated_at TEXT,
         $is_deleted INTEGER DEFAULT 0,
-        FOREIGN KEY (id_danh_muc_thu_chi) REFERENCES ${DanhMucThuChiTable.tableName}(${DanhMucThuChiTable.id}) ON DELETE SET NULL
+        FOREIGN KEY ($id_danh_muc_thu_chi) REFERENCES ${DanhMucThuChiTable.tableName}(${DanhMucThuChiTable.id}) ON DELETE RESTRICT
+        FOREIGN KEY ($id_cong_trinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id}) ON DELETE RESTRICT
       )
   ''';
 }

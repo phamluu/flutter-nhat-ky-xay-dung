@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/nhan_vien/data/services/nhan_vien_service.dart';
 
 import '../../../../../core/utils/date_utils.dart';
@@ -65,9 +66,7 @@ class _NhanVienCongTrinhFormScreenState extends State<NhanVienCongTrinhFormScree
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedNhanVienId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn nhân viên')),
-      );
+        showWarmToast(context, message: 'Vui lòng chọn nhân viên');
       return;
     }
 

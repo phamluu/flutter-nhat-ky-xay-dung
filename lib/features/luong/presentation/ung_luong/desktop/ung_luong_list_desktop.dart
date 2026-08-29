@@ -2,6 +2,7 @@
 // của tất cả nhân viên công trình - Desktop
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
 import '../../../../../core/utils/currencyFormat.dart';
@@ -61,14 +62,8 @@ class _UngLuongListDesktopState extends State<UngLuongListDesktop> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Không thể tải danh sách ứng lương: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e,  "Không thể tải danh sách ứng lương: ");
+
     }
   }
   num get tongTienUng {

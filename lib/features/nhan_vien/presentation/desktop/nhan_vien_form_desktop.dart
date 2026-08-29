@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../data/services/nhan_vien_service.dart';
 import '../../data/models/NhanVien.dart';
@@ -105,17 +107,10 @@ class _NhanVienFormDesktopState
       }
 
       if (!mounted) return;
+showSuccessToast(context, _isEdit
+    ? "Cập nhật nhân viên thành công"
+    : "Thêm nhân viên thành công");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEdit
-                ? "Cập nhật nhân viên thành công"
-                : "Thêm nhân viên thành công",
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
 
       Navigator.pop(context, true);
     } catch (e) {
@@ -124,18 +119,13 @@ class _NhanVienFormDesktopState
       setState(() {
         _isSaving = false;
       });
-
-      _showError("Không thể lưu nhân viên: $e");
+showErrorToast(context, e, "Không thể lưu nhân viên:");
     }
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+    showErrorToast(context, "",message);
+
   }
 
   // ============================================================

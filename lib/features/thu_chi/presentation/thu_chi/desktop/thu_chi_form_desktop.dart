@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
 
@@ -121,13 +123,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       setState(() {
         _isLoading = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Không thể tải dữ liệu: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, 'Không thể tải dữ liệu: $e');
     }
   }
 
@@ -228,7 +224,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       }
 
       if (!mounted) return;
-
+      showSuccessToast(context, widget.thuChi == null ? "Thêm mới thành công" : "Cập nhật thành công");
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -236,15 +232,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       setState(() {
         _isSaving = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Lưu khoản thu chi thất bại: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+    showErrorToast(context, e, 'Lưu khoản thu chi thất bại: $e');
     }
   }
 
@@ -289,17 +277,11 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       );
 
       if (!mounted) return;
-
+      showSuccessToast(context, "Xóa khoản thu/chi thành công");
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Không thể xóa: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, 'Không thể xóa: $e');
     }
   }
 

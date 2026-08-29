@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../../../core/utils/AuthHelper.dart';
 import '../../../../core/utils/SyncColor.dart';
@@ -97,21 +99,12 @@ class _NhanVienListMobileState extends State<NhanVienListMobile> {
     if (confirm != true) return;
     try {
       await syn.syncOneNhanVien(nv);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã đồng bộ nhân viên"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, "Đã đồng bộ nhân viên");
 
       setState(() => _reload());
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi đồng bộ: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi đồng bộ: ");
+
     }
   }
 
@@ -136,20 +129,12 @@ class _NhanVienListMobileState extends State<NhanVienListMobile> {
     if (confirm != true) return;
     try {
       await syn.cancelSyncNhanVien(nv);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã hủy đồng bộ"),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      showSuccessToast(context, "Đã hủy đồng bộ");
+
       setState(() => _reload());
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi: ");
+     
     }
   }
   @override

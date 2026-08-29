@@ -1,5 +1,7 @@
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 
 import '../../../../data/db_helper.dart';
 import '../models/ChiLuong.dart';
@@ -17,15 +19,15 @@ class ChiLuongRepository {
   }) async {
     final db = await DBHelper.instance.database;
     final conditions = <String>[
-      'nvc.idCongTrinh = ?',
-      'cl.is_deleted = 0',
-      'bl.is_deleted = 0',
-      'nvc.is_deleted = 0',
+      'nvc.${NhanVienCongTrinhTable.idCongTrinh} = ?',
+      'cl.${ChiLuongTable.is_deleted} = 0',
+      'bl.${KyLuongTable.is_deleted} = 0',
+      'nvc.${NhanVienCongTrinhTable.isDeleted} = 0',
     ];
     final args = <dynamic>[idCongTrinh];
     // Từ ngày
     if (tuNgay != null) {
-      conditions.add('cl.ngayChi >= ?');
+      conditions.add('cl.${ChiLuongTable.ngayChi} >= ?');
       args.add(tuNgay.toIso8601String());
     }
     // Đến ngày
@@ -40,47 +42,47 @@ class ChiLuongRepository {
         59,
         999,
       );
-      conditions.add('cl.ngayChi <= ?');
+      conditions.add('cl.${ChiLuongTable.ngayChi} <= ?');
       args.add(denNgayCuoi.toIso8601String());
     }
     final sql = '''
     SELECT
-      cl.id,
-      cl.idBangLuong,
-      cl.soTien,
-      cl.ngayChi,
-      cl.ghiChu,
-      cl.createdAt,
-      cl.server_id,
-      cl.is_synced,
-      cl.updated_at,
+      cl.${ChiLuongTable.id},
+      cl.${ChiLuongTable.idBangLuong},
+      cl.${ChiLuongTable.soTien},
+      cl.${ChiLuongTable.ngayChi},
+      cl.${ChiLuongTable.ghiChu},
+      cl.${ChiLuongTable.createdAt},
+      cl.${ChiLuongTable.server_id},
+      cl.${ChiLuongTable.is_synced},
+      cl.${ChiLuongTable.updated_at},
 
-      bl.idNhanVienCongTrinh,
+      bl.${KyLuongTable.idNhanVienCongTrinh},
       bl.${KyLuongTable.idBangChamCong},
-      bl.tongCong,
-      bl.tongLuong,
-      bl.tongUng,
-      bl.thucNhan,
-      bl.trangThai,
-      bl.ngayChot,
+      bl.${KyLuongTable.tongCong},
+      bl.${KyLuongTable.tongLuong},
+      bl.${KyLuongTable.tongUng},
+      bl.${KyLuongTable.thucNhan},
+      bl.${KyLuongTable.trangThai},
+      bl.${KyLuongTable.ngayChot},
 
-      nvc.idNhanVien,
-      nvc.idCongTrinh,
-      nvc.ngayBatDau,
-      nvc.ngayKetThuc,
-      nvc.vaiTro
+      nvc.${NhanVienCongTrinhTable.idNhanVien},
+      nvc.${NhanVienCongTrinhTable.idCongTrinh},
+      nvc.${NhanVienCongTrinhTable.ngayBatDau},
+      nvc.${NhanVienCongTrinhTable.ngayKetThuc},
+      nvc.${NhanVienCongTrinhTable.vaiTro}
 
-    FROM chi_luong cl
+    FROM ${ChiLuongTable.tableName} cl
 
-    INNER JOIN bang_luong bl
-      ON bl.id = cl.idBangLuong
+    INNER JOIN ${KyLuongTable.tableName} bl
+      ON bl.${KyLuongTable.id} = cl.${ChiLuongTable.idBangLuong}
 
-    INNER JOIN nhan_vien_cong_trinh nvc
-      ON nvc.id = bl.idNhanVienCongTrinh
+    INNER JOIN ${NhanVienCongTrinhTable.tableName} nvc
+      ON nvc.id = bl.${KyLuongTable.idNhanVienCongTrinh}
 
     WHERE ${conditions.join(' AND ')}
 
-    ORDER BY cl.ngayChi DESC, cl.id DESC
+    ORDER BY cl.${ChiLuongTable.ngayChi} DESC, cl.${ChiLuongTable.id} DESC
   ''';
     return await db.rawQuery(sql, args);
   }
@@ -90,10 +92,10 @@ class ChiLuongRepository {
     }
     final db = await _dbHelper.database;
     final result = await db.query(
-      'chi_luong',
-      where: 'idBangLuong = ?',
+      ChiLuongTable.tableName,
+      where: '${ChiLuongTable.idBangLuong} = ?',
       whereArgs: [idBangLuong],
-      orderBy: 'ngayChi DESC',
+      orderBy: '${ChiLuongTable.ngayChi} DESC',
     );
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
@@ -104,16 +106,16 @@ class ChiLuongRepository {
     final result = await db.rawQuery('''
     SELECT 
       cl.*,
-      nv.ho_ten AS tenNhanVien
-    FROM chi_luong cl
-    INNER JOIN bang_luong bl ON cl.idBangLuong = bl.id
-    INNER JOIN nhan_vien_cong_trinh nvct 
-        ON bl.idNhanVienCongTrinh = nvct.id
-    INNER JOIN nhan_vien nv 
-        ON nvct.idNhanVien = nv.id
-    WHERE nvct.idCongTrinh = ?
+      nv.${NhanVienTable.hoTen} AS tenNhanVien
+    FROM ${ChiLuongTable.tableName} cl
+    INNER JOIN ${KyLuongTable.tableName} bl ON cl.${ChiLuongTable.idBangLuong} = bl.${KyLuongTable.id}
+    INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct 
+        ON bl.${KyLuongTable.idNhanVienCongTrinh} = nvct.${NhanVienCongTrinhTable.id}
+    INNER JOIN ${NhanVienTable.tableName} nv 
+        ON nvct.${NhanVienCongTrinhTable.idNhanVien} = nv.${NhanVienTable.id}
+    WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
       AND bl.${KyLuongTable.idBangChamCong} = ?
-    ORDER BY cl.ngayChi DESC
+    ORDER BY cl.${ChiLuongTable.ngayChi} DESC
   ''', [idCongTrinh, idBangChamCong]);
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();
   }
@@ -123,7 +125,7 @@ class ChiLuongRepository {
     }
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(soTien) as total FROM chi_luong WHERE idBangLuong = ?',
+      'SELECT SUM(${ChiLuongTable.soTien}) as total FROM ${ChiLuongTable.tableName} WHERE ${ChiLuongTable.idBangLuong}= ?',
       [idBangLuong],
     );
     final value = result.first['total'];
@@ -132,7 +134,7 @@ class ChiLuongRepository {
   Future<int> delete(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
-      'chi_luong',
+      ChiLuongTable.tableName,
       where: 'id = ?',
       whereArgs: [id],
     );

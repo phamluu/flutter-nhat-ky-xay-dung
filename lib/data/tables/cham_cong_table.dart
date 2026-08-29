@@ -1,3 +1,5 @@
+import 'cong_trinh_table.dart';
+
 class ChamCongTable{
   static const String tableName = 'bang_cham_cong';
   static const String id = 'id';
@@ -23,7 +25,8 @@ class ChamCongTable{
     $isDeleted INTEGER DEFAULT 0,          -- Soft delete (0: Chưa xóa, 1: Đã xóa)
 
     -- Ràng buộc: 1 Công trình trong 1 Tháng chỉ có duy nhất 1 Bảng chấm công
-    UNIQUE($idCongTrinh, $thang)
+    UNIQUE($idCongTrinh, $thang),
+    FOREIGN KEY ($idCongTrinh) REFERENCES ${CongTrinhTable.tableName}(${CongTrinhTable.id}) ON DELETE RESTRICT
 );
 
 -- Index tăng tốc truy vấn theo công trình và tháng

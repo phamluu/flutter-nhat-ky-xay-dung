@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../../data/models/DanhMucThuChi.dart';
 import '../../../data/services/danh_muc_thu_chi_service.dart';
@@ -60,14 +62,8 @@ class _ThemDanhMucThuChiScreenState
             ten: _tenController.text.trim(),
           ),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Thêm hạng mục thu chi thành công',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessToast(context, 'Thêm hạng mục thu chi thành công');
+
       } else {
         await _service.update(
           DanhMucThuChi(
@@ -75,14 +71,8 @@ class _ThemDanhMucThuChiScreenState
             ten: _tenController.text.trim(),
           ),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                  'Sửa hạng mục thu chi thành công'
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessToast(context, 'Sửa hạng mục thu chi thành công');
+
       }
 
       if (!mounted) return;
@@ -90,15 +80,8 @@ class _ThemDanhMucThuChiScreenState
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, "Có lỗi xảy ra: ");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Có lỗi xảy ra: $e",
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     } finally {
       if (mounted) {
         setState(() {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
@@ -130,13 +131,8 @@ class _CongTrinhListMobileState extends State<CongTrinhListMobile> {
 
                         if (confirm == true) {
                           await _service.deleteCongTrinh(ct.id!);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Xóa công trình thành công", style: TextStyle(color: Colors.white),),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+                          showSuccessToast(context, "Xóa công trình thành công");
+
                           setState(() {
                             _loadData();
                           });

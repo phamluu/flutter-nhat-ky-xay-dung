@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/bang_cham_cong_desktop.dart';
 
@@ -113,24 +115,11 @@ class _BangChamCongListDesktopState extends State<BangChamCongListDesktop> {
     try {
       await _repo.delete(idBangChamCong: chamCong.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-              'Xóa bảng chấm công thành công',
-            ),
-            backgroundColor: Colors.green
-        ),
-      );
+      showSuccessToast(context, 'Xóa bảng chấm công thành công');
       _loadData();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể xóa bảng chấm công: $e',
-          ),
-        ),
-      );
+      showErrorToast(context, e, 'Không thể xóa bảng chấm công: ');
     }
   }
   Widget _buildHeader() {

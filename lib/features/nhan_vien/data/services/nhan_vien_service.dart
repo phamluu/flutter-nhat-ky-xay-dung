@@ -8,7 +8,11 @@ class NhanVienService {
 
   Future<int> insertNhanVien(NhanVien nv) async {
     final db = await _dbHelper.database;
-    return await db.insert(NhanVienTable.tableName, nv.toMap());
+    try{
+      return await db.insert(NhanVienTable.tableName, nv.toMap());
+    }catch(e){
+      throw Exception('Lỗi: $e');
+    }
   }
 
   Future<NhanVien?> getNhanVienById(int id) async {
@@ -34,20 +38,28 @@ class NhanVienService {
 
   Future<int> updateNhanVien(NhanVien nv) async {
     final db = await _dbHelper.database;
-    return await db.update(
-      NhanVienTable.tableName,
-      nv.toMap(),
-      where: '${NhanVienTable.id} = ?',
-      whereArgs: [nv.id],
-    );
+    try{
+      return await db.update(
+        NhanVienTable.tableName,
+        nv.toMap(),
+        where: '${NhanVienTable.id} = ?',
+        whereArgs: [nv.id],
+      );
+    }catch(e){
+      throw Exception("Lỗi: $e");
+    }
   }
 
   Future<int> deleteNhanVien(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
-      NhanVienTable.tableName,
-      where: '${NhanVienTable.id} = ?',
-      whereArgs: [id],
-    );
+    try{
+      return await db.delete(
+        NhanVienTable.tableName,
+        where: '${NhanVienTable.id} = ?',
+        whereArgs: [id],
+      );
+    }catch(e){
+        throw Exception('Không thể xóa. Nhân viên này đã có dữ liệu trên hệ thống ');
+    }
   }
 }

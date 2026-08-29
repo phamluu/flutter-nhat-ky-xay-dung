@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChamCong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChiLuong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
@@ -50,8 +51,6 @@ Future<void> exportExcelFull({
     ..writeAsBytesSync(excel.encode()!);
 
   OpenFile.open(path);
+showSuccessToast(context, "Đã xuất file FULL: $path");
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text("Đã xuất file FULL: $path")),
-  );
 }

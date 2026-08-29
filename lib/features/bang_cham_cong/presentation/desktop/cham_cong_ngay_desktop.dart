@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/cham_cong_chi_tiet.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
@@ -121,24 +124,16 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
         _isEdit = false;
         isSaving = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Lưu chấm công thành công",
-          ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      showSuccessToast(context, "Lưu chấm công thành công");
+
       await _load();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isSaving = false;
       });
-      _showError(
-        "Không thể lưu chấm công: $e",
-      );
+      showErrorToast(context, e, "Không thể lưu chấm công");
+
     }
   }
   // ============================================================
@@ -146,12 +141,8 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
   // ============================================================
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+    showWarmToast(context, message: message);
+
   }
 
   // ============================================================

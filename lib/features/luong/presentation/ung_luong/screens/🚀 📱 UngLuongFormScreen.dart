@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
 import '../../../data/repositories/ung_luong_repository.dart';
@@ -98,20 +100,9 @@ class _UngLuongFormScreenState extends State<UngLuongFormScreen> {
       }
 
       Navigator.pop(context, true);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Lưu thành công"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, "Lưu thành công");
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, e, "Lỗi: $e");
     } finally {
       setState(() => isLoading = false);
     }

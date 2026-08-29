@@ -25,7 +25,7 @@ class LuongCoBanTable {
               $isSynced INTEGER DEFAULT 0,
               $updatedAt TEXT,
               $isDelete INTEGER DEFAULT 0,
-              FOREIGN KEY ($idNhanVien) REFERENCES ${NhanVienTable.tableName}(${NhanVienTable.id}) ON DELETE CASCADE
+              FOREIGN KEY ($idNhanVien) REFERENCES ${NhanVienTable.tableName}(${NhanVienTable.id}) ON DELETE RESTRICT
       )
   ''';
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../data/models/ChiLuong.dart';
@@ -56,9 +58,8 @@ class _ChiLuongScreenState extends State<ChiLuongScreen> {
 
     if (tien <= 0) return;
     if (tien > conLai) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vượt quá số tiền còn lại")),
-      );
+      showWarmToast(context, message: "Vượt quá số tiền còn lại");
+
       return;
     }
 
@@ -192,13 +193,8 @@ class _ChiLuongScreenState extends State<ChiLuongScreen> {
 
                             if (confirm == true) {
                               await _service.deleteChiLuong(item.id!);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Xóa công trình thành công", style: TextStyle(color: Colors.white),),
-                                  backgroundColor: Colors.green,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
+                              showSuccessToast(context, "Xóa công trình thành công");
+                             
                               setState(() {
                                 _load();
                               });

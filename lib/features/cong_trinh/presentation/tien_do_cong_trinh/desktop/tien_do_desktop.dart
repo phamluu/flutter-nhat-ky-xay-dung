@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/TienDoCongTrinhModel.dart';
 import '../../../data/models/summaryCard.dart';
@@ -64,15 +66,8 @@ class _TienDoScreenState extends State<TienDoDesktop> {
       setState(() {
         isLoading = false;
       });
+showErrorToast(context, e, 'Không thể tải dữ liệu: ');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể tải dữ liệu: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -189,27 +184,14 @@ class _TienDoScreenState extends State<TienDoDesktop> {
       if (!mounted) return;
 
       await loadData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Xóa công việc thành công',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      showSuccessToast(context, 'Xóa công việc thành công');
+
       // loadData() cũng có async
       if (!mounted) return;
     } catch (e) {
       if (!mounted) return;
+showErrorToast(context, e, 'Không thể xóa:');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể xóa: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

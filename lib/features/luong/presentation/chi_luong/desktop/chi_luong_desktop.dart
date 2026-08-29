@@ -85,9 +85,8 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
   Future<void> _submit() async {
     final tien = double.tryParse( _tienCtrl.text.replaceAll(',', '').replaceAll('.', ''), ) ?? 0;
     if (tien <= 0) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar( content: Text( "Vui lòng nhập số tiền hợp lệ",),),
-      );
+      showWarmToast(context, message: "Vui lòng nhập số tiền hợp lệ");
+
       return;
     }
     if (tien > conLai) {
