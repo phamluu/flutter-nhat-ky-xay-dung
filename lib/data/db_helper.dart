@@ -42,26 +42,21 @@ class DBHelper{
             Platform.isMacOS)) {
 
       // Trong quá trình phát triển:
-      // final directory = Directory(
-      //   r'E:\PTLApp\data',
-      // );
-      //
-      // if (!await directory.exists()) {
-      //   await directory.create(
-      //     recursive: true,
-      //   );
-      // }
-      //
-      // return join(
-      //   directory.path,
-      //   'ptl_app.db',
-      // );
+      final directory = Directory(
+        r'E:\PTLApp\data',
+      );
+      if (!await directory.exists()) {
+        await directory.create(
+          recursive: true,
+        );
+      }
+      return join( directory.path, 'ptl_app.db');
       // end
 
       // sử dụng
-      final executablePath = Platform.resolvedExecutable;
-      final executableDirectory = File(executablePath).parent;
-      return join( executableDirectory.path, 'ptl_app.db', );
+      // final executablePath = Platform.resolvedExecutable;
+      // final executableDirectory = File(executablePath).parent;
+      // return join( executableDirectory.path, 'ptl_app.db', );
       // end sử dụng
 
 
@@ -69,10 +64,7 @@ class DBHelper{
 
     // Android / iOS
     final databaseDirectory = await getDatabasesPath();
-    return join(
-      databaseDirectory,
-      'ptl_app.db',
-    );
+    return join( databaseDirectory, 'ptl_app.db', );
   }
 
   Future<Database> _initDB() async {

@@ -15,77 +15,33 @@ import 'danh_muc_thu_chi_service.dart';
 
 class ThuChiService {
   final _dbHelper = DBHelper.instance;
+  final _danhMucRepo = DanhMucThuChiService();
+  final _congTrinhRepo = CongtrinhReponsitory();
+  final _tamUng = UngLuongRepository();
+  final _chiLuong = ChiLuongRepository();
 
-  /*********** DROPDOWN *//////////////
-  Future<List<int>> getYears(int idCongTrinh) async {
-    final db = await _dbHelper.database;
-    final rs = await db.rawQuery('''
-    SELECT
-      MIN(strftime('%Y', ${ThuChiTable.ngay})) AS nam_bat_dau,
-      MAX(strftime('%Y', ${ThuChiTable.ngay})) AS nam_ket_thuc
-    FROM ${ThuChiTable.tableName}
-    WHERE ${ThuChiTable.id_cong_trinh} = ?
-      AND ${ThuChiTable.ngay} IS NOT NULL
-  ''', [idCongTrinh]);
-    final namBatDau = int.tryParse(
-      rs.first['nam_bat_dau']?.toString() ?? '',
-    );
-    final namKetThuc = int.tryParse(
-      rs.first['nam_ket_thuc']?.toString() ?? '',
-    );
-    if (namBatDau == null || namKetThuc == null) {
-      return [];
-    }
-    final result = <int>[];
-    for (int nam = namKetThuc; nam >= namBatDau; nam--) {
-      result.add(nam);
-    }
-    return result;
-  }
-
-  Future<List<int>> getMonths(int idCongTrinh) async {
-    final db = await _dbHelper.database;
-    final rs = await db.rawQuery('''
-    SELECT
-      MIN(strftime('%m', ${ThuChiTable.ngay})) AS thang_bat_dau,
-      MAX(strftime('%m', ${ThuChiTable.ngay})) AS thang_ket_thuc
-    FROM ${ThuChiTable.tableName}
-    WHERE ${ThuChiTable.id_cong_trinh} = ?
-      AND ${ThuChiTable.ngay} IS NOT NULL
-  ''', [idCongTrinh]);
-    final thangBatDau = int.tryParse(
-      rs.first['thang_bat_dau']?.toString() ?? '',
-    );
-    final thangKetThuc = int.tryParse(
-      rs.first['thang_ket_thuc']?.toString() ?? '',
-    );
-    if (thangBatDau == null || thangKetThuc == null) {
-      return [];
-    }
-    final result = <int>[];
-    for (int thang = thangKetThuc; thang >= thangBatDau; thang--) {
-      result.add(thang);
-    }
-    return result;
-  }
   /**************** ***************/
 
   Future<int> insert(ThuChi tc) async {
     final db = await _dbHelper.database;
     return await db.insert(ThuChiTable.tableName, tc.toMap());
   }
-
-  Future<List<ThuChi>> getAll() async {
+  Future<int> update(ThuChi tc) async {
     final db = await _dbHelper.database;
-    final maps = await db.query(ThuChiTable.tableName, orderBy: 'ngay DESC');
-    return maps.map((e) => ThuChi.fromMap(e)).toList();
+    return await db.update(
+      ThuChiTable.tableName,
+      tc.toMap(),
+      where: '${ThuChiTable.id} = ?',
+      whereArgs: [tc.id],
+    );
   }
 
-  Future<List<ThuChi>> getAllWithDetails([
-    int? idCongTrinh,
-    DateTime? tuNgay,
-    DateTime? denNgay,
-  ]) async {
+  Future<int> delete(int id) async {
+    final db = await _dbHelper.database;
+    return await db.delete(ThuChiTable.tableName, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<ThuChi>> getAllWithDetails([int? idCongTrinh, DateTime? tuNgay, DateTime? denNgay,]) async {
     final db = await _dbHelper.database;
     final conditions = <String>[];
     final args = <dynamic>[];
@@ -147,10 +103,7 @@ class ThuChiService {
       );
     }).toList();
   }
-  final _danhMucRepo = DanhMucThuChiService();
-  final _congTrinhRepo = CongtrinhReponsitory();
-  final _tamUng = UngLuongRepository();
-  final _chiLuong = ChiLuongRepository();
+
   Future<ThuChiViewModel> loadThuChiViewModel([int? idCongTrinh]) async {
     final allThuChis = await getAllWithDetails(idCongTrinh);
     final danhMucs = await _danhMucRepo.getAll();
@@ -226,8 +179,7 @@ class ThuChiService {
       ..thuChiCongTrinhs = congTrinhVMs;
   }
 
-  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh,
-      {DateTime? tuNgay, DateTime? denNgay}) async {
+  Future<ThuChiCongTrinhViewModel> loadThuChiCongTrinh(int? idCongTrinh,{DateTime? tuNgay, DateTime? denNgay}) async {
     final allThuChis = await getAllWithDetails(idCongTrinh, tuNgay, denNgay);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinh = await _congTrinhRepo.getCongTrinh(idCongTrinh);
@@ -277,21 +229,6 @@ class ThuChiService {
       );
   }
 
-  Future<int> update(ThuChi tc) async {
-    final db = await _dbHelper.database;
-    return await db.update(
-      ThuChiTable.tableName,
-      tc.toMap(),
-      where: '${ThuChiTable.id} = ?',
-      whereArgs: [tc.id],
-    );
-  }
-
-  Future<int> delete(int id) async {
-    final db = await _dbHelper.database;
-    return await db.delete(ThuChiTable.tableName, where: 'id = ?', whereArgs: [id]);
-  }
-
   Future<int> countByDanhMuc(int idDanhMuc) async {
     final db = await _dbHelper.database;
     final res = await db.rawQuery(
@@ -299,5 +236,27 @@ class ThuChiService {
       [idDanhMuc],
     );
     return (res.first['c'] as int?) ?? 0;
+  }
+
+  Future<(DateTime?, DateTime?)> getThuChiDateRange(int? idCongTrinh) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT 
+      MIN(${ThuChiTable.ngay}) AS min_date, 
+      MAX(${ThuChiTable.ngay}) AS max_date 
+    FROM ${ThuChiTable.tableName}
+    WHERE ${ThuChiTable.id_cong_trinh} = ?
+  ''', [idCongTrinh]);
+    if (result.isNotEmpty) {
+      // Ép kiểu về String? trước
+      final minStr = result.first['min_date'] as String?;
+      final maxStr = result.first['max_date'] as String?;
+
+      // Parse từ String sang DateTime
+      final first = minStr != null ? DateTime.tryParse(minStr) : null;
+      final last = maxStr != null ? DateTime.tryParse(maxStr) : null;
+      return (first, last);
+    }
+    return (null, null);
   }
 }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import '../../../../../core/utils/currencyFormat.dart';
+import '../../../../../core/utils/date_input_formatter.dart';
 import '../../../data/models/ThuChi.dart';
 import '../../../data/services/thu_chi_service.dart';
 import '../widgets/buildInfoRow.dart';
@@ -19,31 +23,46 @@ import 'thu_chi_item_desktop.dart';
 class ThuChiCongTrinhDesktop extends StatefulWidget {
   final int? idCongTrinh;
   final String? tenCongTrinh;
+
   const ThuChiCongTrinhDesktop({
     super.key,
     this.idCongTrinh,
     this.tenCongTrinh,
   });
+
   @override
   State<ThuChiCongTrinhDesktop> createState() => _ThuChiCongTrinhDesktopState();
 }
+
 class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   final _thuChiService = ThuChiService();
   late Future<ThuChiCongTrinhViewModel> _futureThuChi;
-  List<int> _years = [];
-  List<int> _months = [];
+
   // FILTER
-  // ============================================================
-  String _filterType = 'all';
-  int _selectedYear = DateTime.now().year;
-  int _selectedMonth = DateTime.now().month;
   DateTime? _fromDate;
   DateTime? _toDate;
+  DateTime? _firstDate;
+  DateTime? _lastDate;
+
+  // Controllers cho ô nhập
+  final TextEditingController _fromDateController = TextEditingController();
+  final TextEditingController _toDateController = TextEditingController();
+
+  final _dateFormat = DateFormat('dd/MM/yyyy');
+
   @override
   void initState() {
     super.initState();
     _load();
   }
+
+  @override
+  void dispose() {
+    _fromDateController.dispose();
+    _toDateController.dispose();
+    super.dispose();
+  }
+
   // ============================================================
   // LOAD DATA
   // ============================================================
@@ -54,33 +73,37 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       tuNgay: range?.$1,
       denNgay: range?.$2,
     );
-    _loadYears();
-    _loadMonths();
+
+    _loadDateRange();
   }
-  Future<void> _loadYears() async {
-    final listYear = await _thuChiService.getYears(widget.idCongTrinh!);
-    if (!mounted) return;
-    setState(() {
-      _years = listYear;
-      if (_selectedYear == null && _years.isNotEmpty) {
-        _selectedYear = _years.first;
-      }
-    });
+
+  Future<void> _loadDateRange() async {
+    final (firstDate, lastDate) = await _thuChiService.getThuChiDateRange(widget.idCongTrinh);
+    if (mounted) {
+      setState(() {
+        _firstDate = firstDate ?? DateTime.now();
+        _lastDate = lastDate ?? DateTime.now();
+
+        // CẬP NHẬT CẢ BIẾN STATE VÀ CONTROLLER
+        if (_fromDate == null && _firstDate != null) {
+          _fromDate = _firstDate; // Gán object DateTime
+          _fromDateController.text = _dateFormat.format(_firstDate!);
+        }
+        if (_toDate == null && _lastDate != null) {
+          _toDate = _lastDate; // Gán object DateTime
+          _toDateController.text = _dateFormat.format(_lastDate!);
+        }
+      });
+    }
   }
-  Future<void> _loadMonths() async {
-    final listMonth = await _thuChiService.getMonths(widget.idCongTrinh!);
-    if (!mounted) return;
-    setState(() {
-      _months = listMonth;
-      if (_selectedMonth == null && _months.isNotEmpty) {
-        _selectedMonth = _months.first;
-      }
-    });
-  }
+
   Future<void> _refresh() async {
-    setState(_load);
+    setState(() {
+      _load();
+    });
     await _futureThuChi;
   }
+
   Future<void> _addThuChi() async {
     final result = await Navigator.push(
       context,
@@ -91,81 +114,15 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       ),
     );
     if (result == true && mounted) {
-      setState(_load);
-    }
-  }
-
-  // ============================================================
-  // FILTER DATE RANGE
-  // ============================================================
-
-  (DateTime, DateTime)? _getFilterDateRange() {
-    switch (_filterType) {
-      case 'month':
-        final from = DateTime(
-          _selectedYear,
-          _selectedMonth,
-          1,
-        );
-        final to = DateTime(
-          _selectedYear,
-          _selectedMonth + 1,
-          0,
-        );
-
-        return (
-          DateTime(
-            from.year,
-            from.month,
-            from.day,
-          ),
-          DateTime(
-            to.year,
-            to.month,
-            to.day,
-          ),
-        );
-      case 'year':
-        return (
-          DateTime(
-            _selectedYear,
-            1,
-            1,
-          ),
-          DateTime(
-            _selectedYear,
-            12,
-            31,
-          ),
-        );
-
-      case 'range':
-        if (_fromDate == null || _toDate == null) {
-          return null;
-        }
-        return (
-          DateTime(
-            _fromDate!.year,
-            _fromDate!.month,
-            _fromDate!.day,
-          ),
-          DateTime(
-            _toDate!.year,
-            _toDate!.month,
-            _toDate!.day,
-          ),
-        );
-
-      case 'all':
-      default:
-        return null;
+      setState(() {
+        _load();
+      });
     }
   }
 
   // ============================================================
   // BUILD
   // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,17 +139,14 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return buildLoading();
                 }
-
                 if (snapshot.hasError) {
                   return _buildError(
                     snapshot.error.toString(),
                   );
                 }
-
                 if (!snapshot.hasData) {
                   return buildEmpty();
                 }
-
                 return _buildDesktopContent(
                   snapshot.data!,
                 );
@@ -205,108 +159,12 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   }
 
   // ============================================================
-  // TOP BAR
-  // ============================================================
-
-  Widget _buildTopBar() {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 28,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade200,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xffeaf2ff),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.account_balance_wallet_outlined,
-              color: Color(0xff2563eb),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Quản lý thu chi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xff172033),
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                widget.tenCongTrinh?.isNotEmpty == true
-                    ? widget.tenCongTrinh!
-                    : 'Theo dõi tài chính công trình',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-          const Spacer(),
-          buildTopAction(
-            icon: Icons.refresh,
-            label: 'Làm mới',
-            onPressed: _refresh,
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton.icon(
-            onPressed: _addThuChi,
-            icon: const Icon(
-              Icons.add,
-              size: 18,
-            ),
-            label: const Text(
-              'Thêm khoản thu chi',
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff2563eb),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 13,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
   // DESKTOP CONTENT
   // ============================================================
 
-  Widget _buildDesktopContent(
-    ThuChiCongTrinhViewModel vm,
-  ) {
+  Widget _buildDesktopContent(ThuChiCongTrinhViewModel vm) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // final isCompact = constraints.maxWidth < 1300;
         final isCompact = false;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(28),
@@ -351,6 +209,86 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   }
 
   // ============================================================
+  // FILTER DATE RANGE
+  // ============================================================
+
+  (DateTime, DateTime)? _getFilterDateRange() {
+    // Nếu cả 2 đều trống -> Không lọc
+    if (_fromDate == null && _toDate == null) {
+      return null;
+    }
+
+    // Tự động bù ngày còn lại nếu 1 trong 2 ô bị null
+    final start = _fromDate ?? _firstDate ?? DateTime(2000);
+    final end = _toDate ?? _lastDate ?? DateTime.now();
+
+    return (
+    DateTime(start.year, start.month, start.day, 0, 0, 0),
+    DateTime(end.year, end.month, end.day, 23, 59, 59),
+    );
+  }
+
+  // ============================================================
+  // TOP BAR
+  // ============================================================
+
+  Widget _buildTopBar() {
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xffeaf2ff),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.account_balance_wallet_outlined,
+              color: Color(0xff2563eb),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Quản lý thu chi',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xff172033),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                widget.tenCongTrinh?.isNotEmpty == true
+                    ? widget.tenCongTrinh!
+                    : 'Theo dõi tài chính công trình',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
   // PAGE TITLE
   // ============================================================
 
@@ -380,33 +318,42 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             ],
           ),
         ),
+        const Spacer(),
+        buildTopAction(
+          icon: Icons.refresh,
+          label: 'Làm mới',
+          onPressed: _refresh,
+        ),
+        const SizedBox(width: 10),
+        ElevatedButton.icon(
+          onPressed: _addThuChi,
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Thêm khoản thu chi'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xff2563eb),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 13,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   String _getFilterDescription() {
-    switch (_filterType) {
-      case 'month':
-        return 'Theo dõi thu chi tháng $_selectedMonth/$_selectedYear';
-
-      case 'year':
-        return 'Theo dõi thu chi năm $_selectedYear';
-
-      case 'range':
-        if (_fromDate != null && _toDate != null) {
-          final format = DateFormat('dd/MM/yyyy');
-
-          return 'Theo dõi thu chi từ '
-              '${format.format(_fromDate!)} đến '
-              '${format.format(_toDate!)}';
-        }
-
-        return 'Theo dõi các khoản thu, chi và số dư của công trình';
-
-      case 'all':
-      default:
-        return 'Theo dõi các khoản thu, chi và số dư của công trình';
+    if (_fromDate != null && _toDate != null) {
+      return 'Theo dõi thu chi từ '
+          '${_dateFormat.format(_fromDate!)} đến '
+          '${_dateFormat.format(_toDate!)}';
     }
+
+    return 'Theo dõi các khoản thu, chi và số dư của công trình';
   }
 
   // ============================================================
@@ -417,7 +364,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
-        vertical: 14,
+        vertical: 12,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -428,36 +375,15 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          if (constraints.maxWidth < 750) {
+          final datePicker = _buildDateRangeSelector();
+
+          if (constraints.maxWidth < 650) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildFilterTitle(),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildFilterButton(
-                      label: 'Tất cả',
-                      value: 'all',
-                    ),
-                    _buildFilterButton(
-                      label: 'Theo tháng',
-                      value: 'month',
-                    ),
-                    _buildFilterButton(
-                      label: 'Theo năm',
-                      value: 'year',
-                    ),
-                    _buildFilterButton(
-                      label: 'Khoảng thời gian',
-                      value: 'range',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildFilterValueControl(),
+                datePicker,
               ],
             );
           }
@@ -465,30 +391,8 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
           return Row(
             children: [
               _buildFilterTitle(),
-              const SizedBox(width: 20),
-              _buildFilterButton(
-                label: 'Tất cả',
-                value: 'all',
-              ),
-              const SizedBox(width: 6),
-              _buildFilterButton(
-                label: 'Theo tháng',
-                value: 'month',
-              ),
-              const SizedBox(width: 6),
-              _buildFilterButton(
-                label: 'Theo năm',
-                value: 'year',
-              ),
-              const SizedBox(width: 6),
-              _buildFilterButton(
-                label: 'Khoảng thời gian',
-                value: 'range',
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: _buildFilterValueControl(),
-              ),
+              const SizedBox(width: 24),
+              datePicker,
             ],
           );
         },
@@ -518,247 +422,227 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     );
   }
 
-  Widget _buildFilterButton({
-    required String label,
-    required String value,
-  }) {
-    final selected = _filterType == value;
-    return InkWell(
-      borderRadius: BorderRadius.circular(7),
-      onTap: () async {
-        if (value == 'range') {
-          await _selectDateRange();
-          return;
-        }
-
-        if (_filterType == value) {
-          return;
-        }
-
-        setState(() {
-          _filterType = value;
-          _load();
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 11,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xffeff6ff) : Colors.white,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(
-            color: selected ? const Color(0xff2563eb) : Colors.grey.shade300,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected ? const Color(0xff2563eb) : const Color(0xff475569),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterValueControl() {
-    switch (_filterType) {
-      case 'month':
-        return _buildMonthSelector();
-
-      case 'year':
-        return _buildYearSelector();
-
-      case 'range':
-        return _buildRangeSelector();
-
-      case 'all':
-      default:
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Đang hiển thị toàn bộ thời gian',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        );
-    }
-  }
-
-  // ============================================================
-  // MONTH SELECTOR
-  // ============================================================
-
-  Widget _buildMonthSelector() {
-    final months = List.generate(
-      12,
-      (index) => index + 1,
-    );
+  Widget _buildDateRangeSelector() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildDropdown<int>(
-          value: _selectedMonth,
-          items: _months,
-          itemLabel: (month) => 'Tháng ${month.toString().padLeft(2, '0')}',
-          onChanged: (value) {
-            if (value == null) return;
+        // Ô nhập Từ ngày
+        _buildDateInputField(
+          hintText: 'Từ ngày',
+          controller: _fromDateController,
+          onDateChanged: (date) {
             setState(() {
-              _selectedMonth = value;
-              _load();
-            });
-          },
-        ),
-        const SizedBox(width: 8),
-        buildDropdown<int>(
-          value: _selectedYear,
-          items: _years,
-          itemLabel: (year) => '$year',
-          onChanged: (value) {
-            if (value == null) return;
-            setState(() {
-              _selectedYear = value;
+              _fromDate = date;
+              if (date == null) _fromDate = null;
             });
             _load();
           },
+          onCalendarPressed: _selectFromDate,
         ),
+
+        const SizedBox(width: 10),
+        const Icon(
+          Icons.arrow_forward_rounded,
+          size: 18,
+          color: Color(0xff94a3b8),
+        ),
+        const SizedBox(width: 10),
+
+        // Ô nhập Đến ngày
+        _buildDateInputField(
+          hintText: 'Đến ngày',
+          controller: _toDateController,
+          onDateChanged: (date) {
+            setState(() {
+              _toDate = date;
+            });
+            if (_fromDate != null && _toDate != null) _load();
+          },
+          onCalendarPressed: _selectToDate,
+        ),
+
+        // Nút Xóa bộ lọc (chỉ hiện khi đã chọn/nhập ngày)
+        if (_fromDate != null || _toDate != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Xóa bộ lọc',
+            onPressed: _clearDateFilter,
+            icon: const Icon(
+              Icons.close,
+              size: 18,
+              color: Color(0xff64748b),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  // ============================================================
-  // YEAR SELECTOR
-  // ============================================================
-
-  Widget _buildYearSelector() {
-    return buildDropdown<int>(
-      value: _selectedYear,
-      items: _years,
-      itemLabel: (year) => 'Năm $year',
-      onChanged: (value) {
-        if (value == null) return;
-
-        setState(() {
-          _selectedYear = value;
-          _load();
-        });
-      },
-    );
-  }
-
-  // ============================================================
-  // DATE RANGE
-  // ============================================================
-
-  Widget _buildRangeSelector() {
-    if (_fromDate == null || _toDate == null) {
-      return OutlinedButton.icon(
-        onPressed: _selectDateRange,
-        icon: const Icon(
-          Icons.date_range_outlined,
-          size: 17,
-        ),
-        label: const Text(
-          'Chọn khoảng thời gian',
-        ),
-      );
-    }
-
-    final format = DateFormat('dd/MM/yyyy');
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(7),
-      onTap: _selectDateRange,
-      child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xffeff6ff),
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(
-            color: const Color(0xffbfdbfe),
+  // Component Ô nhập ngày nhảy tự động dấu /
+  Widget _buildDateInputField({
+    required String hintText,
+    required TextEditingController controller,
+    required Function(DateTime?) onDateChanged,
+    required VoidCallback onCalendarPressed,
+  }) {
+    return SizedBox(
+      width: 155,
+      height: 38,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        maxLength: 10,
+        inputFormatters: [
+          DateInputFormatter(), // Tự gạch / khi gõ
+        ],
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        onTap: () {
+          if (controller.text.isNotEmpty) {
+            controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: controller.text.length,
+            );
+          }
+        },
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+          counterText: '',
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          filled: true,
+          fillColor: Colors.white,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(7),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(7),
+            borderSide: const BorderSide(color: Color(0xff2563eb)),
+          ),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xff2563eb)),
+            onPressed: onCalendarPressed,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.date_range_outlined,
-              size: 17,
-              color: Color(0xff2563eb),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${format.format(_fromDate!)} - '
-              '${format.format(_toDate!)}',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xff2563eb),
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(
-              Icons.edit_calendar_outlined,
-              size: 15,
-              color: Color(0xff2563eb),
-            ),
-          ],
-        ),
+        onChanged: (val) {
+          if (val.length == 10) {
+            try {
+              // Tách chuỗi dd/MM/yyyy để ép kiểu DateTime chính xác tuyệt đối
+              final parts = val.split('/');
+              if (parts.length == 3) {
+                final day = int.parse(parts[0]);
+                final month = int.parse(parts[1]);
+                final year = int.parse(parts[2]);
+
+                final parsed = DateTime(year, month, day);
+
+                // Kiểm tra giới hạn khoảng ngày (nếu có)
+                if (_firstDate != null && _lastDate != null) {
+                  final min = DateTime(_firstDate!.year, _firstDate!.month, _firstDate!.day);
+                  final max = DateTime(_lastDate!.year, _lastDate!.month, _lastDate!.day, 23, 59, 59);
+
+                  if (parsed.isBefore(min) || parsed.isAfter(max)) {
+                    showErrorToast(context,"", 'Ngày nằm ngoài phạm vi (${_firstDate?.day}/${_firstDate?.month}/${_firstDate?.year} '
+                        '- ${_lastDate?.day}/${_lastDate?.month}/${_lastDate?.year})');
+                    return;
+                  }
+                }
+
+                // Gán giá trị và gọi kích hoạt load lại danh sách ngay lập tức
+                onDateChanged(parsed);
+                _load();
+              }
+            } catch (e) {
+              // Ngày nhập không đúng định dạng hợp lệ (vd: 31/02/2026)
+            }
+          } else if (val.isEmpty) {
+            onDateChanged(null);
+            _load();
+          }
+        },
       ),
     );
   }
 
-  Future<void> _selectDateRange() async {
-    final range = await showDateRangePicker(
+  Future<void> _selectFromDate() async {
+    final now = DateTime.now();
+    final minDate = _firstDate ?? DateTime(2000);
+    final maxDate = _toDate ?? _lastDate ?? DateTime(2100);
+
+    DateTime initial = _fromDate ?? now;
+    if (initial.isBefore(minDate)) initial = minDate;
+    if (initial.isAfter(maxDate)) initial = maxDate;
+
+    final date = await showDatePicker(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      initialDateRange: _fromDate != null && _toDate != null
-          ? DateTimeRange(
-              start: _fromDate!,
-              end: _toDate!,
-            )
-          : DateTimeRange(
-              start: DateTime(
-                DateTime.now().year,
-                DateTime.now().month,
-                1,
-              ),
-              end: DateTime.now(),
-            ),
-      locale: const Locale(
-        'vi',
-        'VN',
-      ),
+      initialDate: initial,
+      firstDate: minDate,
+      lastDate: maxDate,
+      locale: const Locale('vi', 'VN'),
     );
 
-    if (range == null || !mounted) {
-      return;
-    }
+    if (date == null || !mounted) return;
 
     setState(() {
-      _filterType = 'range';
-      _fromDate = range.start;
-      _toDate = range.end;
-      _load();
+      _fromDate = DateTime(date.year, date.month, date.day);
+      _fromDateController.text = _dateFormat.format(_fromDate!);
     });
+
+    _load();
+  }
+
+  Future<void> _selectToDate() async {
+    final now = DateTime.now();
+    final minDate = _fromDate ?? _firstDate ?? DateTime(2000);
+    final maxDate = _lastDate ?? DateTime(2100);
+
+    DateTime initial = _toDate ?? _fromDate ?? now;
+    if (initial.isBefore(minDate)) initial = minDate;
+    if (initial.isAfter(maxDate)) initial = maxDate;
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: minDate,
+      lastDate: maxDate,
+      locale: const Locale('vi', 'VN'),
+    );
+
+    if (date == null || !mounted) return;
+
+    setState(() {
+      _toDate = DateTime(date.year, date.month, date.day);
+      _toDateController.text = _dateFormat.format(_toDate!);
+    });
+
+    _load();
+  }
+
+  void _clearDateFilter() {
+    setState(() {
+      _fromDate = null;
+      _toDate = null;
+      _fromDateController.clear();
+      _toDateController.clear();
+
+      if (_firstDate != null) {
+        _fromDateController.text = _dateFormat.format(_firstDate!);
+      }
+      if (_lastDate != null) {
+        _toDateController.text = _dateFormat.format(_lastDate!);
+      }
+    });
+
+    _load();
   }
 
   // ============================================================
   // SUMMARY
   // ============================================================
 
-  Widget _buildSummary(
-    ThuChiCongTrinhViewModel vm,
-  ) {
+  Widget _buildSummary(ThuChiCongTrinhViewModel vm) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 32) / 3;
@@ -768,9 +652,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             children: [
               summaryCard(
                 title: 'Tổng thu',
-                value: currencyFormat.format(
-                  vm.tongThu,
-                ),
+                value: currencyFormat.format(vm.tongThu),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
                 background: const Color(0xffecfdf3),
@@ -778,9 +660,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               const SizedBox(height: 12),
               summaryCard(
                 title: 'Tổng chi',
-                value: currencyFormat.format(
-                  vm.tongChi,
-                ),
+                value: currencyFormat.format(vm.tongChi),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
                 background: const Color(0xfffef2f2),
@@ -788,9 +668,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               const SizedBox(height: 12),
               summaryCard(
                 title: 'Còn lại',
-                value: currencyFormat.format(
-                  vm.conLai,
-                ),
+                value: currencyFormat.format(vm.conLai),
                 icon: Icons.account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
@@ -809,9 +687,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               width: cardWidth,
               child: summaryCard(
                 title: 'Tổng thu',
-                value: currencyFormat.format(
-                  vm.tongThu,
-                ),
+                value: currencyFormat.format(vm.tongThu),
                 icon: Icons.arrow_downward_rounded,
                 color: const Color(0xff16a34a),
                 background: const Color(0xffecfdf3),
@@ -822,9 +698,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               width: cardWidth,
               child: summaryCard(
                 title: 'Tổng chi',
-                value: currencyFormat.format(
-                  vm.tongChi,
-                ),
+                value: currencyFormat.format(vm.tongChi),
                 icon: Icons.arrow_upward_rounded,
                 color: const Color(0xffdc2626),
                 background: const Color(0xfffef2f2),
@@ -834,9 +708,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             Expanded(
               child: summaryCard(
                 title: 'Còn lại',
-                value: currencyFormat.format(
-                  vm.conLai,
-                ),
+                value: currencyFormat.format(vm.conLai),
                 icon: Icons.account_balance_wallet_outlined,
                 color: vm.conLai >= 0
                     ? const Color(0xff2563eb)
@@ -856,23 +728,17 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // TRANSACTION AREA
   // ============================================================
 
-  Widget _buildTransactionArea(
-    ThuChiCongTrinhViewModel vm,
-  ) {
+  Widget _buildTransactionArea(ThuChiCongTrinhViewModel vm) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
           buildTransactionHeader(vm.thuChiDanhMucs.length),
-          const Divider(
-            height: 1,
-          ),
+          const Divider(height: 1),
           buildTamUngChiLuong(vm),
           if (vm.thuChiDanhMucs.isEmpty &&
               (vm.thuChiKhacs.thuchis == null ||
@@ -882,9 +748,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             Column(
               children: [
                 ...vm.thuChiDanhMucs.map(
-                  (dmVM) => _buildDanhMucCard(
-                    dmVM,
-                  ),
+                      (dmVM) => _buildDanhMucCard(dmVM),
                 ),
                 if (vm.thuChiKhacs.thuchis != null &&
                     vm.thuChiKhacs.thuchis!.isNotEmpty)
@@ -900,34 +764,22 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // CATEGORY CARD
   // ============================================================
 
-  Widget _buildDanhMucCard(dynamic dmVM,) {
+  Widget _buildDanhMucCard(dynamic dmVM) {
     final items = dmVM.thuchis ?? [];
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        14,
-        14,
-        14,
-        0,
-      ),
+      margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-              vertical: 13,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
             decoration: const BoxDecoration(
               color: Color(0xfff8fafc),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(10),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
             ),
             child: Row(
               children: [
@@ -957,16 +809,11 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                 ),
                 const Text(
                   'Số dư',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(0xff94a3b8),
-                  ),
+                  style: TextStyle(fontSize: 11, color: Color(0xff94a3b8)),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  currencyFormat.format(
-                    dmVM.conLai,
-                  ),
+                  currencyFormat.format(dmVM.conLai),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -983,10 +830,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 'Chưa có khoản thu chi',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
               ),
             )
           else
@@ -995,10 +839,8 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               child: Column(
                 children: [
                   ...items.map(
-                    (tc) => Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 6,
-                      ),
+                        (tc) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: ThuChiItemDesktop(
                         tc: tc,
                         onRefresh: () {
@@ -1019,34 +861,22 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // OTHER
   // ============================================================
 
-  Widget _buildKhacCard(ThuChiCongTrinhViewModel vm,) {
+  Widget _buildKhacCard(ThuChiCongTrinhViewModel vm) {
     final items = vm.thuChiKhacs.thuchis ?? [];
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        14,
-        14,
-        14,
-        14,
-      ),
+      margin: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-              vertical: 13,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
             decoration: const BoxDecoration(
               color: Color(0xfff8fafc),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(10),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
             ),
             child: Row(
               children: [
@@ -1075,9 +905,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                   ),
                 ),
                 Text(
-                  currencyFormat.format(
-                    vm.thuChiKhacs.conLai,
-                  ),
+                  currencyFormat.format(vm.thuChiKhacs.conLai),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -1094,10 +922,8 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             child: Column(
               children: [
                 ...items.map(
-                  (tc) => Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 6,
-                    ),
+                      (tc) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
                     child: ThuChiItemDesktop(
                       tc: tc,
                       onRefresh: () {
@@ -1118,7 +944,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // RIGHT OVERVIEW
   // ============================================================
 
-  Widget _buildOverviewPanel(ThuChiCongTrinhViewModel vm,) {
+  Widget _buildOverviewPanel(ThuChiCongTrinhViewModel vm) {
     return Column(
       children: [
         _buildBalancePanel(vm),
@@ -1128,13 +954,9 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     );
   }
 
-  Widget _buildBalancePanel(
-    ThuChiCongTrinhViewModel vm,
-  ) {
+  Widget _buildBalancePanel(ThuChiCongTrinhViewModel vm) {
     final total = vm.tongThu.abs() + vm.tongChi.abs();
-
     final incomePercent = total == 0 ? 0.0 : vm.tongThu.abs() / total;
-
     final expensePercent = total == 0 ? 0.0 : vm.tongChi.abs() / total;
 
     return Container(
@@ -1142,9 +964,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1213,19 +1033,13 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        currencyFormat.format(
-                          vm.conLai,
-                        ),
+                        currencyFormat.format(vm.conLai),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: vm.conLai >= 0
-                              ? const Color(
-                                  0xff2563eb,
-                                )
-                              : const Color(
-                                  0xffdc2626,
-                                ),
+                              ? const Color(0xff2563eb)
+                              : const Color(0xffdc2626),
                         ),
                       ),
                     ],
@@ -1240,33 +1054,22 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   }
 
   String _getFinancialDescription() {
-    switch (_filterType) {
-      case 'month':
-        return 'Tỷ lệ thu chi tháng $_selectedMonth/$_selectedYear';
-
-      case 'year':
-        return 'Tỷ lệ thu chi năm $_selectedYear';
-
-      case 'range':
-        return 'Tỷ lệ thu chi trong khoảng đã chọn';
-
-      case 'all':
-      default:
-        return 'Tỷ lệ giữa tổng thu và tổng chi';
+    if (_fromDate != null && _toDate != null) {
+      return 'Tỷ lệ thu chi từ '
+          '${_dateFormat.format(_fromDate!)} đến '
+          '${_dateFormat.format(_toDate!)}';
     }
+
+    return 'Tỷ lệ giữa tổng thu và tổng chi';
   }
 
-  Widget _buildQuickInfo(
-    ThuChiCongTrinhViewModel vm,
-  ) {
+  Widget _buildQuickInfo(ThuChiCongTrinhViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1290,35 +1093,17 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             ],
           ),
           const SizedBox(height: 16),
-          buildInfoRow(
-            'Phạm vi',
-            _getFilterLabel(),
-          ),
+          buildInfoRow('Phạm vi', _getFilterLabel()),
           const SizedBox(height: 12),
-          buildInfoRow(
-            'Danh mục',
-            '${vm.thuChiDanhMucs.length}',
-          ),
+          buildInfoRow('Danh mục', '${vm.thuChiDanhMucs.length}'),
           const SizedBox(height: 12),
-          buildInfoRow(
-            'Tổng thu',
-            currencyFormat.format(
-              vm.tongThu,
-            ),
-          ),
+          buildInfoRow('Tổng thu', currencyFormat.format(vm.tongThu)),
           const SizedBox(height: 12),
-          buildInfoRow(
-            'Tổng chi',
-            currencyFormat.format(
-              vm.tongChi,
-            ),
-          ),
+          buildInfoRow('Tổng chi', currencyFormat.format(vm.tongChi)),
           const SizedBox(height: 12),
           buildInfoRow(
             'Số dư',
-            currencyFormat.format(
-              vm.conLai,
-            ),
+            currencyFormat.format(vm.conLai),
             valueColor: vm.conLai >= 0
                 ? const Color(0xff2563eb)
                 : const Color(0xffdc2626),
@@ -1329,27 +1114,12 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   }
 
   String _getFilterLabel() {
-    switch (_filterType) {
-      case 'month':
-        return 'Tháng $_selectedMonth/$_selectedYear';
-
-      case 'year':
-        return 'Năm $_selectedYear';
-
-      case 'range':
-        if (_fromDate != null && _toDate != null) {
-          final format = DateFormat('dd/MM/yyyy');
-
-          return '${format.format(_fromDate!)} - '
-              '${format.format(_toDate!)}';
-        }
-
-        return 'Khoảng thời gian';
-
-      case 'all':
-      default:
-        return 'Toàn bộ công trình';
+    if (_fromDate != null && _toDate != null) {
+      return '${_dateFormat.format(_fromDate!)} - '
+          '${_dateFormat.format(_toDate!)}';
     }
+
+    return 'Toàn bộ công trình';
   }
 
   // ============================================================
@@ -1357,6 +1127,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // ============================================================
 
   Widget _buildNoTransaction() {
+    final hasFilter = _fromDate != null && _toDate != null;
     return Padding(
       padding: const EdgeInsets.symmetric(
         vertical: 60,
@@ -1388,7 +1159,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
           ),
           const SizedBox(height: 6),
           Text(
-            _filterType == 'all'
+            !hasFilter
                 ? 'Hãy thêm khoản thu hoặc chi đầu tiên cho công trình.'
                 : 'Không có khoản thu chi trong khoảng thời gian đã chọn.',
             textAlign: TextAlign.center,
@@ -1398,16 +1169,11 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             ),
           ),
           const SizedBox(height: 18),
-          if (_filterType == 'all')
+          if (!hasFilter)
             ElevatedButton.icon(
               onPressed: _addThuChi,
-              icon: const Icon(
-                Icons.add,
-                size: 17,
-              ),
-              label: const Text(
-                'Thêm khoản thu chi',
-              ),
+              icon: const Icon(Icons.add, size: 17),
+              label: const Text('Thêm khoản thu chi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff2563eb),
                 foregroundColor: Colors.white,
@@ -1426,17 +1192,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     );
   }
 
-  // ============================================================
-  // LOADING
-  // ============================================================
-
-  // ============================================================
-  // ERROR
-  // ============================================================
-
-  Widget _buildError(
-    String error,
-  ) {
+  Widget _buildError(String error) {
     return Center(
       child: Container(
         width: 420,
@@ -1444,9 +1200,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.grey.shade200,
-          ),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1467,32 +1221,21 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             const SizedBox(height: 16),
             const Text(
               'Không thể tải dữ liệu',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 7),
             Text(
               'Đã xảy ra lỗi khi tải thông tin thu chi.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () {
                 setState(_load);
               },
-              icon: const Icon(
-                Icons.refresh,
-                size: 17,
-              ),
-              label: const Text(
-                'Thử lại',
-              ),
+              icon: const Icon(Icons.refresh, size: 17),
+              label: const Text('Thử lại'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff2563eb),
                 foregroundColor: Colors.white,
@@ -1511,8 +1254,4 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       ),
     );
   }
-
-  // ============================================================
-  // EMPTY PAGE
-  // ============================================================
 }
