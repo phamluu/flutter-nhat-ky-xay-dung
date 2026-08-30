@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
@@ -142,10 +143,7 @@ class _CongTrinhFormDesktopState
       setState(() {
         _isSaving = false;
       });
-
-      _showError(
-        'Không thể lưu công trình: $e',
-      );
+      showErrorToast(context, e, 'Không thể lưu công trình: $e');
     }
   }
 

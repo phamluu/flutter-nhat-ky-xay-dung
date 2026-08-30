@@ -12,35 +12,27 @@ import 'nhan_vien_form_desktop.dart';
 
 class NhanVienListDesktop extends StatefulWidget {
   const NhanVienListDesktop({super.key});
-
   @override
   State<NhanVienListDesktop> createState() => _NhanVienListDesktopState();
 }
 
 class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
   bool isLoggedIn = false;
-
   final _service = NhanVienService();
   final SyncService syn = SyncService();
-
   late Future<List<NhanVien>> _future;
-
   @override
   void initState() {
     super.initState();
     _reload();
     checkLogin();
   }
-
   void _reload() {
     _future = _service.getAllNhanVien();
   }
-
   Future<void> checkLogin() async {
     final loggedIn = await AuthHelper.isLoggedIn();
-
     if (!mounted) return;
-
     setState(() {
       isLoggedIn = loggedIn;
     });
@@ -55,7 +47,6 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
         ),
       ),
     );
-
     if (result == true && mounted) {
       setState(() => _reload());
     }
@@ -70,7 +61,6 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
         ),
       ),
     );
-
     if (result == true && mounted) {
       setState(() => _reload());
     }
@@ -103,19 +93,14 @@ class _NhanVienListDesktopState extends State<NhanVienListDesktop> {
     );
 
     if (confirm != true) return;
-
     try {
       await _service.deleteNhanVien(nv.id!);
-
       if (!mounted) return;
-
       setState(() => _reload());
-showSuccessToast(context, "Đã xóa nhân viên");
-
+      showSuccessToast(context, "Đã xóa nhân viên");
     } catch (e) {
       if (!mounted) return;
-showErrorToast(context, e, "Lỗi xóa nhân viên: ");
-
+      showErrorToast(context, e, "Lỗi xóa nhân viên: ");
     }
   }
 
@@ -143,10 +128,8 @@ showErrorToast(context, e, "Lỗi xóa nhân viên: ");
     );
 
     if (confirm != true) return;
-
     try {
       await syn.syncOneNhanVien(nv);
-
       if (!mounted) return;
         showSuccessToast(context, "Đã đồng bộ nhân viên");
       setState(() => _reload());
@@ -155,7 +138,6 @@ showErrorToast(context, e, "Lỗi xóa nhân viên: ");
         showErrorToast(context, e, "Lỗi đồng bộ: $e");
     }
   }
-
   Future<void> _cancelSyncNhanVien(NhanVien nv) async {
     final confirm = await showDialog<bool>(
       context: context,

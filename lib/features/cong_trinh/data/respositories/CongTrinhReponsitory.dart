@@ -1,4 +1,8 @@
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 
 import '../models/CongTrinh.dart';
@@ -51,6 +55,55 @@ class CongtrinhReponsitory {
   Future<int> deleteCongTrinh(int id) async {
     final db = await _dbHelper.database;
     try{
+      // Kiểm tra các ràng buộc với thu chi, nhân viên công trình, kỳ lương, kế hoạch, nhật ký,
+          final results = await Future.wait([
+              db.query(ThuChiTable.tableName,
+                  columns: [ThuChiTable.id_cong_trinh],
+                  where: '${ThuChiTable.id_cong_trinh} = ?',
+                  whereArgs: [id],
+                  limit: 1
+                  ),
+              db.query(NhanVienCongTrinhTable.tableName,
+                  columns: [NhanVienCongTrinhTable.idCongTrinh],
+                  where: '${NhanVienCongTrinhTable.idCongTrinh} = ?',
+                  whereArgs: [id],
+                  limit: 1
+              ),
+              db.query(ChamCongTable.tableName,
+                  columns: [ChamCongTable.idCongTrinh],
+                  where: '${ChamCongTable.idCongTrinh} = ?',
+                  whereArgs: [id],
+                  limit: 1
+                  ),
+              db.query(TienDoCongTrinhTable.tableName,
+                  columns: [TienDoCongTrinhTable.idCongTrinh],
+                  where: '${TienDoCongTrinhTable.idCongTrinh} = ?',
+                  whereArgs: [id],
+                  limit: 1
+                  ),
+              db.query(NhatKyTable.tableName,
+                  columns: [NhatKyTable.idCongTrinh],
+                  where: '${NhatKyTable.idCongTrinh} = ?',
+                  whereArgs: [id],
+                  limit: 1
+                  )
+            ]);
+
+            if(results[0].isNotEmpty){
+              throw Exception('Công trình có dữ liệu thu chi. Hãy xóa dữ liệu thu chi trước');
+            }
+            if(results[1].isNotEmpty){
+              throw Exception('Công trình có dữ liệu nhân viên công trình. Hãy xóa dữ liệu nhân viên công trình trước');
+            }
+            if(results[2].isNotEmpty){
+              throw Exception('Công trình có dữ liệu bảng chấm công. Hãy xóa dữ liệu bảng chấm công trước');
+            }
+            if(results[3].isNotEmpty){
+              throw Exception('Công trình có dữ liệu kế hoạch công việc. Hãy xóa dữ liệu kế hoạch công việc trước');
+            }
+            if(results[4].isNotEmpty){
+              throw Exception('Công trình có dữ liệu nhật ký công trin. Hãy xóa dữ liệu nhật ký công trình trước');
+            }
       return await db.delete(
         CongTrinhTable.tableName,
         where: '${CongTrinhTable.id} = ?',

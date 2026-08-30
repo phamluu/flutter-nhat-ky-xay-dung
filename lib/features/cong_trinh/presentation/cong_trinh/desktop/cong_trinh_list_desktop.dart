@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
+import '../../../../../core/utils/date_utils.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
 import 'cong_trinh_detail_desktop.dart';
@@ -195,29 +196,17 @@ showErrorToast(context, e, 'Không thể xóa công trình');
     }
   }
 
-  List<CongTrinh> _filterData(
-      List<CongTrinh> data,
-      ) {
+  List<CongTrinh> _filterData(List<CongTrinh> data ) {
     if (_searchText.trim().isEmpty) {
       return data;
     }
-
-    final keyword = _searchText
-        .trim()
-        .toLowerCase();
-
+    final keyword = _searchText.trim().toLowerCase();
     return data.where((item) {
       final ten = item.ten.toLowerCase();
-
-      final diaChi =
-          item.diaChi?.toLowerCase() ?? '';
-
-      return ten.contains(keyword) ||
-          diaChi.contains(keyword);
+      final diaChi = item.diaChi?.toLowerCase() ?? '';
+      return ten.contains(keyword) || diaChi.contains(keyword);
     }).toList();
   }
-
-
 
   // =========================================================
   // HEADER
@@ -233,18 +222,12 @@ showErrorToast(context, e, 'Không thể xóa công trình');
             children: [
               Text(
                 'Công trình',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle( fontSize: 26, fontWeight: FontWeight.bold, ),
               ),
               SizedBox(height: 4),
               Text(
                 'Quản lý danh sách các công trình xây dựng',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle( color: Colors.grey, fontSize: 14, ),
               ),
             ],
           ),
@@ -253,9 +236,7 @@ showErrorToast(context, e, 'Không thể xóa công trình');
         FilledButton.icon(
           onPressed: _openThemCongTrinh,
           icon: const Icon(Icons.add),
-          label: const Text(
-            'Thêm công trình',
-          ),
+          label: const Text( 'Thêm công trình',),
         ),
       ],
     );
@@ -278,19 +259,13 @@ showErrorToast(context, e, 'Không thể xóa công trình');
               });
             },
             decoration: InputDecoration(
-              hintText:
-              'Tìm kiếm công trình...',
-              prefixIcon:
-              const Icon(Icons.search),
-              suffixIcon:
-              _searchText.isNotEmpty
+              hintText: 'Tìm kiếm công trình...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchText.isNotEmpty
                   ? IconButton(
-                icon: const Icon(
-                  Icons.clear,
-                ),
+                icon: const Icon( Icons.clear, ),
                 onPressed: () {
                   _searchController.clear();
-
                   setState(() {
                     _searchText = '';
                   });
@@ -307,14 +282,10 @@ showErrorToast(context, e, 'Không thể xóa công trình');
             ),
           ),
         ),
-
         const SizedBox(width: 12),
-
         OutlinedButton.icon(
           onPressed: _loadData,
-          icon: const Icon(
-            Icons.refresh,
-          ),
+          icon: const Icon( Icons.refresh,),
           label: const Text('Làm mới'),
         ),
       ],
@@ -325,9 +296,7 @@ showErrorToast(context, e, 'Không thể xóa công trình');
   // TABLE
   // =========================================================
 
-  Widget _buildTable(
-      List<CongTrinh> data,
-      ) {
+  Widget _buildTable(List<CongTrinh> data, ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -399,7 +368,15 @@ showErrorToast(context, e, 'Không thể xóa công trình');
               ),
             ),
           ),
-
+          const Expanded(
+            flex: 3,
+            child: Text(
+              'Ngày',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           const Expanded(
             flex: 3,
             child: Text(
@@ -448,21 +425,12 @@ showErrorToast(context, e, 'Không thể xóa công trình');
   // TABLE ROW
   // =========================================================
 
-  Widget _buildTableRow(
-      CongTrinh ct,
-      ) {
-    final progress =
-    ((ct.tienDo ?? 0) / 100)
-        .clamp(0.0, 1.0);
-
+  Widget _buildTableRow( CongTrinh ct,) {
+    final progress = ((ct.tienDo ?? 0) / 100).clamp(0.0, 1.0);
     return InkWell(
-      onDoubleTap: () {
-        _openChiTiet(ct);
-      },
+      onDoubleTap: () { _openChiTiet(ct); },
       child: Container(
-        constraints: const BoxConstraints(
-          minHeight: 82,
-        ),
+        constraints: const BoxConstraints( minHeight: 82, ),
         padding:
         const EdgeInsets.symmetric(
           horizontal: 16,
@@ -475,17 +443,13 @@ showErrorToast(context, e, 'Không thể xóa công trình');
               width: 70,
               child: _buildThumbnail(ct),
             ),
-
             const SizedBox(width: 12),
-
             // TÊN
             Expanded(
               flex: 3,
               child: Column(
-                mainAxisAlignment:
-                MainAxisAlignment.center,
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     ct.ten,
@@ -493,26 +457,49 @@ showErrorToast(context, e, 'Không thể xóa công trình');
                     overflow:
                     TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight:
-                      FontWeight.w600,
-                      fontSize: 15,
+                      fontWeight: FontWeight.w600, fontSize: 15,
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
                   Text(
                     'Mã: ${ct.id ?? '-'}',
-                    style:
-                    const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
+                    style: const TextStyle( color: Colors.grey, fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-
+            // Ngày
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Text(
+                    DateUtilsCore.formatDate(ct.ngayBatDau ?? '-'),
+                    maxLines: 2,
+                    overflow:
+                    TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text( ' - ',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle( color: Colors.black87,),
+                  ),
+                  Text(
+                    DateUtilsCore.formatDate(ct.ngayKetThuc ?? '-'),
+                    maxLines: 2,
+                    overflow:
+                    TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // ĐỊA CHỈ
             Expanded(
               flex: 3,

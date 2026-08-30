@@ -50,24 +50,18 @@ class _TienDoScreenState extends State<TienDoDesktop> {
     }
 
     try {
-      final data = await service.getList(
-        widget.idCongTrinh,
-      );
-
+      final data = await service.getList(widget.idCongTrinh,);
       if (!mounted) return;
-
       setState(() {
         list = data;
         isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         isLoading = false;
       });
-showErrorToast(context, e, 'Không thể tải dữ liệu: ');
-
+      showErrorToast(context, e, 'Không thể tải dữ liệu: ');
     }
   }
 
@@ -97,6 +91,7 @@ showErrorToast(context, e, 'Không thể tải dữ liệu: ');
       MaterialPageRoute(
         builder: (_) => TienDoFormDesktop(
           idCongTrinh: widget.idCongTrinh,
+          tenCongTrinh: widget.tenCongTrinh,
         ),
       ),
     );
@@ -113,6 +108,7 @@ showErrorToast(context, e, 'Không thể tải dữ liệu: ');
       MaterialPageRoute(
         builder: (_) => TienDoDetailDesktop(
           model: item,
+          tenCongTrinh: widget.tenCongTrinh,
         ),
       ),
     );
@@ -125,6 +121,7 @@ showErrorToast(context, e, 'Không thể tải dữ liệu: ');
       MaterialPageRoute(
         builder: (_) => TienDoFormDesktop(
           idCongTrinh: widget.idCongTrinh,
+          tenCongTrinh: widget.tenCongTrinh,
           model: item,
         ),
       ),

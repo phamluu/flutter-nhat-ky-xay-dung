@@ -44,10 +44,7 @@ class UngLuongRepository {
   // Tính tổng số tiền ứng còn lại, k tính số tiền đã trừ trong bảng lương hiện tại
   // Tính tổng số tiền đã ứng
   // Tính tổng số tiền đã khấu trừ, ngoại trừ bảng lương hiện tại
-  Future<double> tongTienUngLuongForNhanVien({
-    required int idNhanVienCongTrinh,
-    int? idBangLuong,
-  }) async {
+  Future<double> tongTienUngLuongForNhanVien({ required int idNhanVienCongTrinh, int? idBangLuong, }) async {
     final db = await _dbHelper.database;
 
     // 1. Tính tổng tất cả tiền nhân viên đã ứng (chưa bị xóa)
@@ -458,18 +455,28 @@ class UngLuongRepository {
 
   // Xóa ứng lương
   Future<int> deleteUngLuong(int id) async {
-    bool isDoiUngTruLuong = await this.isDoiUngTruLuong(id);
-    if (isDoiUngTruLuong) {
-      throw Exception(
-        'Khoản ứng đã được đối trừ, không thể xóa',
-      );
-    }
     final db = await _dbHelper.database;
-    return await db.delete(
-      UngLuongTable.tableName,
-      where: '${UngLuongTable.id} = ?',
-      whereArgs: [id],
-    );
+    final results = await Future.wait([
+      db.query(
+        ChiTietDoiTruUngLuongTable.tableName,
+        columns: [ChiTietDoiTruUngLuongTable.idUngLuong],
+        where: '${ChiTietDoiTruUngLuongTable.idUngLuong} = ?',
+        whereArgs: [id],
+        limit: 1,
+      ),
+    ]);
+    if (results[0].isNotEmpty) {
+      throw Exception('Khoản ứng đã được đối trừ, không thể xóa');
+    }
+    try{
+      return await db.delete(
+        UngLuongTable.tableName,
+        where: '${UngLuongTable.id} = ?',
+        whereArgs: [id],
+      );
+    }catch(e){
+      throw Exception('Lỗi không thể xóa:');
+    }
   }
 
   //************* ỨNG LƯƠNG TỪNG NHÂN VIÊN **************

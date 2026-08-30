@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import '../../../../../core/utils/trang_thai_tien_do.dart';
 import '../../../data/models/TienDoCongTrinhModel.dart';
@@ -8,11 +9,12 @@ import '../../../data/services/TienDoService.dart';
 
 class TienDoFormDesktop extends StatefulWidget {
   final int idCongTrinh;
+  final String? tenCongTrinh;
   final TienDoCongTrinhModel? model;
-
   const TienDoFormDesktop({
     super.key,
     required this.idCongTrinh,
+    this.tenCongTrinh,
     this.model,
   });
 
@@ -22,52 +24,34 @@ class TienDoFormDesktop extends StatefulWidget {
 
 class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
   final _formKey = GlobalKey<FormState>();
-
-  final service = TienDoService(
-    TienDoRepository(),
-  );
-
+  final service = TienDoService( TienDoRepository(), );
   final _tenCtrl = TextEditingController();
   final _phanTramCtrl = TextEditingController();
   final _moTaCtrl = TextEditingController();
   final _ngayBatDauCtrl = TextEditingController();
   final _ngayKetThucCtrl = TextEditingController();
   final _trongSoCtrl = TextEditingController();
-
   int _trangThai = 0;
   bool _isSaving = false;
-
   bool get isEdit => widget.model != null;
 
   @override
   void initState() {
     super.initState();
-
     final m = widget.model;
-
     if (m != null) {
       _tenCtrl.text = m.tenCongViec;
-      _phanTramCtrl.text =
-          (m.phanTramThucTe ?? 0).toString();
-
+      _phanTramCtrl.text = (m.phanTramThucTe ?? 0).toString();
       _moTaCtrl.text = m.moTa ?? '';
-
-      _ngayBatDauCtrl.text =
-          m.ngayBatDau ?? '';
-
-      _ngayKetThucCtrl.text =
-          m.ngayKetThuc ?? '';
-
-      _trongSoCtrl.text =
-          (m.trongSo ?? 1).toString();
-
+      _ngayBatDauCtrl.text = m.ngayBatDau ?? '';
+      _ngayKetThucCtrl.text = m.ngayKetThuc ?? '';
+      _trongSoCtrl.text = (m.trongSo ?? 1).toString();
       _trangThai = m.trangThai ?? 0;
     } else {
       _phanTramCtrl.text = '0';
       _trongSoCtrl.text = '1';
     }
   }
-
   @override
   void dispose() {
     _tenCtrl.dispose();
@@ -76,7 +60,6 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
     _ngayBatDauCtrl.dispose();
     _ngayKetThucCtrl.dispose();
     _trongSoCtrl.dispose();
-
     super.dispose();
   }
 
@@ -85,10 +68,8 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
   // ============================================================
 
   Future<void> pickDate(
-      TextEditingController controller,
-      ) async {
+      TextEditingController controller, ) async {
     DateTime initialDate = DateTime.now();
-
     if (controller.text.isNotEmpty) {
       final parsed = DateTime.tryParse(
         controller.text,
@@ -121,13 +102,8 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
-    final phanTram =
-        double.tryParse(_phanTramCtrl.text) ?? 0;
-
-    final trongSo =
-        double.tryParse(_trongSoCtrl.text) ?? 1;
-
+    final phanTram = double.tryParse(_phanTramCtrl.text) ?? 0;
+    final trongSo = double.tryParse(_trongSoCtrl.text) ?? 1;
     final model = TienDoCongTrinhModel(
       id: widget.model?.id,
       idCongTrinh: widget.idCongTrinh,
@@ -139,25 +115,20 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
       trongSo: trongSo,
       trangThai: _trangThai,
     );
-
     setState(() {
       _isSaving = true;
     });
-
     try {
       await service.save(model);
-
       if (!mounted) return;
-
+      showSuccessToast(context, "Lưu thành công");
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _isSaving = false;
       });
-showErrorToast(context, e, 'Không thể lưu tiến độ: ');
-
+      showErrorToast(context, e, 'Không thể lưu tiến độ: ');
     }
   }
 
@@ -176,9 +147,7 @@ showErrorToast(context, e, 'Không thể lưu tiến độ: ');
           CrossAxisAlignment.stretch,
           children: [
             _buildHeader(),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: _buildForm(),
             ),
@@ -195,30 +164,21 @@ showErrorToast(context, e, 'Không thể lưu tiến độ: ');
   Widget _buildHeader() {
     return Row(
       children: [
-        // Back
+        // Nút Back
         Tooltip(
           message: 'Quay lại',
           child: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
+            onTap: () => Navigator.pop(context),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               width: 42,
               height: 42,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-              child: const Icon(
-                Icons.arrow_back,
-                size: 21,
-                color: Color(0xff37474f),
-              ),
+              child: const Icon(Icons.arrow_back, size: 21, color: Color(0xff37474f)),
             ),
           ),
         ),
@@ -231,13 +191,10 @@ showErrorToast(context, e, 'Không thể lưu tiến độ: ');
           height: 46,
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.1),
-            borderRadius:
-            BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
-            isEdit
-                ? Icons.edit_note_outlined
-                : Icons.add_task_outlined,
+            isEdit ? Icons.edit_note_outlined : Icons.add_task_outlined,
             color: Colors.blue.shade700,
             size: 24,
           ),
@@ -245,94 +202,90 @@ showErrorToast(context, e, 'Không thể lưu tiến độ: ');
 
         const SizedBox(width: 12),
 
-        // Title
+        // Title & Ten Cong Trinh
         Expanded(
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                isEdit
-                    ? 'Sửa tiến độ công việc'
-                    : 'Thêm công việc',
-                style: const TextStyle(
-                  fontSize: 23,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff263238),
-                ),
+              Row(
+                children: [
+                  Text(
+                    isEdit ? 'Sửa tiến độ công việc' : 'Thêm công việc',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff263238),
+                    ),
+                  ),
+                  // Badge Tên công trình
+                  if (widget.tenCongTrinh != null && widget.tenCongTrinh!.isNotEmpty) ...[
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_city_outlined, size: 14, color: Colors.blue.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.tenCongTrinh!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 4),
               Text(
                 isEdit
                     ? 'Cập nhật thông tin và tiến độ công việc'
                     : 'Nhập thông tin công việc cần theo dõi',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
             ],
           ),
         ),
 
-        // Cancel
+        // Nút Hủy
         OutlinedButton(
-          onPressed: _isSaving
-              ? null
-              : () {
-            Navigator.pop(context);
-          },
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 13,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-              BorderRadius.circular(8),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text('Hủy'),
         ),
 
         const SizedBox(width: 10),
 
-        // Save
+        // Nút Lưu
         ElevatedButton.icon(
           onPressed: _isSaving ? null : save,
           icon: _isSaving
               ? const SizedBox(
             width: 18,
             height: 18,
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
           )
-              : const Icon(
-            Icons.save_outlined,
-            size: 19,
-          ),
-          label: Text(
-            _isSaving
-                ? 'Đang lưu...'
-                : 'Lưu',
-          ),
+              : const Icon(Icons.save_outlined, size: 19),
+          label: Text(_isSaving ? 'Đang lưu...' : 'Lưu'),
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-            Colors.blue.shade600,
+            backgroundColor: Colors.blue.shade600,
             foregroundColor: Colors.white,
             elevation: 0,
-            padding:
-            const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 13,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius:
-              BorderRadius.circular(8),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         ),
       ],

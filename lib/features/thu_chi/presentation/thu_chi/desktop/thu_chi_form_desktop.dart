@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
 
+import '../../../../../core/utils/currencyFormat.dart';
 import '../../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import '../../../data/models/DanhMucThuChi.dart';
 import '../../../data/models/ThuChi.dart';
@@ -74,18 +76,16 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     try {
       final dms = await _dmService.getAll();
       final cts = await _ctService.getDanhSachCongTrinh();
-
       if (!mounted) return;
-
       setState(() {
         _danhMucs = dms;
         _conTrinhs = cts;
-
         if (widget.thuChi != null) {
           final tc = widget.thuChi!;
-
-          _soTienController.text = tc.soTien.toString();
-
+          if (widget.thuChi!.soTien != null) {
+            _soTienController.text =formatCurrency( widget.thuChi!.soTien!);
+          }
+          // _soTienController.text = tc.soTien.toString();
           _ghiChuController.text = tc.ghiChu ?? '';
 
           try {
@@ -97,19 +97,14 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
               DateTime.now(),
             );
           }
-
           _loai = tc.loai;
-
           _selectedDanhMucId = tc.idDanhMucThuChi;
-
           _selectedCongTrinhId = tc.idCongTrinh;
         } else {
           _selectedCongTrinhId = widget.idCongTrinh;
-
           _ngayController.text = _dateFormat.format(
             DateTime.now(),
           );
-
           if (_danhMucs.isNotEmpty) {
             _selectedDanhMucId = _danhMucs.first.id;
           }
@@ -188,21 +183,21 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       int.parse(dateParts[0]),
     );
 
-    final soTien = double.tryParse(
-      _soTienController.text
-          .replaceAll(',', '')
-          .replaceAll('.', ''),
-    );
+    // final soTien = double.tryParse(
+    //   _soTienController.text
+    //       .replaceAll(',', '')
+    //       .replaceAll('.', ''),
+    // );
 
-    if (soTien == null) {
-      return;
-    }
+    // if (soTien == null) {
+    //   return;
+    // }
 
     final tc = ThuChi(
       id: widget.thuChi?.id,
       idDanhMucThuChi: _selectedDanhMucId,
       loai: _loai,
-      soTien: soTien,
+      soTien: parseCurrency( _soTienController.text, ),
       ghiChu: _ghiChuController.text.isEmpty
           ? null
           : _ghiChuController.text.trim(),
@@ -272,9 +267,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     if (ok != true) return;
 
     try {
-      await _thuChiService.delete(
-        widget.thuChi!.id!,
-      );
+      await _thuChiService.delete( widget.thuChi!.id!, );
 
       if (!mounted) return;
       showSuccessToast(context, "Xóa khoản thu/chi thành công");
@@ -301,9 +294,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(isEdit),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -324,8 +315,6 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
   Widget _buildHeader(bool isEdit) {
     return Row(
       children: [
-
-
         // ==============================
         // TITLE
         // ==============================
@@ -763,37 +752,46 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
   Widget _buildAmountField() {
     return TextFormField(
       controller: _soTienController,
-      keyboardType: const TextInputType.numberWithOptions(
-        decimal: true,
-      ),
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-      decoration: _inputDecoration(
-        label: 'Số tiền',
-        icon: Icons.payments_outlined,
-        suffix: const Text('₫'),
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        CurrencyInputFormatter(),
+      ],
+      decoration:
+      InputDecoration(
+        labelText: 'Số tiền',
+        hintText: 'Nhập số tiền ứng',
+        prefixIcon: const Icon(Icons.account_balance_wallet_outlined, ),
+        suffixText: 'VNĐ',
+        filled: true,
+        fillColor: const Color( 0xFFF9FAFB, ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8,),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular( 8,),
+          borderSide: const BorderSide(
+            color: Color( 0xFFD1D5DB,),
+          ),
+        ),
+
+        focusedBorder:
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular( 8, ),
+          borderSide: const BorderSide(
+            color: Colors.blue,
+            width: 2,
+          ),
+        ),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
           return 'Vui lòng nhập số tiền';
         }
-
-        final parsed = double.tryParse(
-          value
-              .replaceAll(',', '')
-              .replaceAll('.', ''),
-        );
-
-        if (parsed == null) {
-          return 'Số tiền không hợp lệ';
+        final amount = parseCurrency(value, );
+        if (amount <= 0) {
+          return 'Số tiền phải lớn hơn 0';
         }
-
-        if (parsed < 0) {
-          return 'Số tiền phải >= 0';
-        }
-
         return null;
       },
     );

@@ -509,28 +509,30 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
             const SizedBox( height: 20, ),
 
             // BUTTON
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton.icon(
-                onPressed: loading || conLai <= 0 ? null : _submit,
+            Expanded(
+              child: SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton.icon(
+                  onPressed: loading || conLai <= 0 ? null : _submit,
 
-                icon: loading ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
+                  icon: loading ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Icon( Icons.check,),
+
+                  label: Text(
+                    loading
+                        ? "Đang xử lý..."
+                        : conLai <= 0
+                        ? "Đã chi đủ"
+                        : "Chi lương",
                   ),
-                )
-                    : const Icon( Icons.check,),
-
-                label: Text(
-                  loading
-                      ? "Đang xử lý..."
-                      : conLai <= 0
-                      ? "Đã chi đủ"
-                      : "Chi lương",
                 ),
               ),
             ),

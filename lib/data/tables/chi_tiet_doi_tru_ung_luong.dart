@@ -1,3 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
+
 class ChiTietDoiTruUngLuongTable {
   static const String tableName = 'chi_tiet_doi_tru_ung_luong';
   static const String id = 'id';
@@ -20,7 +23,9 @@ class ChiTietDoiTruUngLuongTable {
       $serverId INTEGER,
       $isSynced INTEGER DEFAULT 0,
       $updatedAt TEXT,
-      $isDeleted INTEGER DEFAULT 0
+      $isDeleted INTEGER DEFAULT 0,
+      FOREIGN KEY ($idUngLuong) REFERENCES ${UngLuongTable.tableName}(${UngLuongTable.id}) ON DELETE RESTRICT,
+      FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id}) ON DELETE RESTRICT,
     )
   ''';
 }

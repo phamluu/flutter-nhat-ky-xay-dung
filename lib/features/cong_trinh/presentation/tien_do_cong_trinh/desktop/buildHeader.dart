@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/models/TienDoCongTrinhModel.dart';
 import 'iconButton.dart';
 
-Widget buildHeader(BuildContext context, TienDoCongTrinhModel model,
+Widget buildHeader(BuildContext context, TienDoCongTrinhModel model, String? tenCongTrinh,
     VoidCallback? onEdit,
     VoidCallback? onDelete,
     VoidCallback? onBack) {
@@ -51,18 +51,46 @@ Widget buildHeader(BuildContext context, TienDoCongTrinhModel model,
 
         Expanded(
           child: Column(
-            mainAxisAlignment:
-            MainAxisAlignment.center,
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Chi tiết tiến độ',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xff1e293b),
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Chi tiết tiến độ',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xff1e293b),
+                    ),
+                  ),
+                  if (tenCongTrinh != null && tenCongTrinh!.isNotEmpty) ...[
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_city_outlined, size: 14, color: Colors.blue.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            tenCongTrinh!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 3),
               Text(

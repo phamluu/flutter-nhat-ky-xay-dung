@@ -28,8 +28,7 @@ class UngLuongFormDesktop extends StatefulWidget {
       _UngLuongFormScreenState();
 }
 
-class _UngLuongFormScreenState
-    extends State<UngLuongFormDesktop> {
+class _UngLuongFormScreenState extends State<UngLuongFormDesktop> {
   final _formKey =GlobalKey<FormState>();
   final _service =UngLuongRepository();
   final soTienCtrl =TextEditingController();
@@ -81,8 +80,7 @@ class _UngLuongFormScreenState
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!
-        .validate()) {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
     if (selectedDate == null) {
@@ -441,8 +439,7 @@ class _UngLuongFormScreenState
         ),
       ),
       validator: (value) {
-        if (value == null ||
-            value.trim().isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Nhập số tiền';
         }
         final amount = parseCurrency(value, );

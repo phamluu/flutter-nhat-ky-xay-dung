@@ -17,6 +17,7 @@ import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'tables/cong_trinh_table.dart';
@@ -41,25 +42,18 @@ class DBHelper{
             Platform.isLinux ||
             Platform.isMacOS)) {
 
+      // sử dụng
+      // final appDir = await getApplicationSupportDirectory();
+      // return join(appDir.path, 'ptl_app.db');
+      // end sử dụng
+
       // Trong quá trình phát triển:
-      final directory = Directory(
-        r'E:\PTLApp\data',
-      );
+      final directory = Directory( r'E:\PTLApp\data');
       if (!await directory.exists()) {
-        await directory.create(
-          recursive: true,
-        );
+        await directory.create( recursive: true,);
       }
       return join( directory.path, 'ptl_app.db');
       // end
-
-      // sử dụng
-      // final executablePath = Platform.resolvedExecutable;
-      // final executableDirectory = File(executablePath).parent;
-      // return join( executableDirectory.path, 'ptl_app.db', );
-      // end sử dụng
-
-
     }
 
     // Android / iOS

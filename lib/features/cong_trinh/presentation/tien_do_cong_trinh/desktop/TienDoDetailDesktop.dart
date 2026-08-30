@@ -10,7 +10,7 @@ import 'timelineItem.dart';
 
 class TienDoDetailDesktop extends StatelessWidget {
   final TienDoCongTrinhModel model;
-
+  final String? tenCongTrinh;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onBack;
@@ -18,6 +18,7 @@ class TienDoDetailDesktop extends StatelessWidget {
   const TienDoDetailDesktop({
     super.key,
     required this.model,
+    this.tenCongTrinh,
     this.onEdit,
     this.onDelete,
     this.onBack,
@@ -97,7 +98,7 @@ class TienDoDetailDesktop extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            buildHeader(context, model, onEdit, onDelete, onBack),
+            buildHeader(context, model,  tenCongTrinh, onEdit, onDelete, onBack),
 
             Expanded(
               child: SingleChildScrollView(

@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 
 import '../../../../data/db_helper.dart';
@@ -52,6 +54,28 @@ class NhanVienService {
 
   Future<int> deleteNhanVien(int id) async {
     final db = await _dbHelper.database;
+    final results = await Future.wait([
+      db.query(
+        LuongCoBanTable.tableName,
+        columns: [LuongCoBanTable.idNhanVien],
+        where: '${LuongCoBanTable.idNhanVien} = ?',
+        whereArgs: [id],
+        limit: 1,
+      ),
+      db.query(
+        NhanVienCongTrinhTable.tableName,
+        columns: [NhanVienCongTrinhTable.idNhanVien],
+        where: '${NhanVienCongTrinhTable.idNhanVien} = ?',
+        whereArgs: [id],
+        limit: 1,
+      ),
+    ]);
+    if (results[0].isNotEmpty) {
+      throw Exception('Nhân viên đã có dữ liệu lương cơ bản. Hãy xóa dữ liệu lương cơ bản trước');
+    }
+    if (results[1].isNotEmpty) {
+      throw Exception('Nhân viên đã có dữ liệu nhân viên công trình. Hãy xóa dữ liệu nhân viên công trình trước');
+    }
     try{
       return await db.delete(
         NhanVienTable.tableName,

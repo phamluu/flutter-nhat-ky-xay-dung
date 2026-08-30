@@ -1,6 +1,8 @@
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import '../../../../data/db_helper.dart';
 import '../models/NhanVienCongTrinh.dart';
 
@@ -57,11 +59,38 @@ class NhanVienCongTrinhService {
 
   Future<int> delete(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
-      'nhan_vien_cong_trinh',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    // Kiểm tra có dữ liệu  chấm công, ứng lương
+    final results = await Future.wait([
+      db.query(
+        ChamCongChiTietTable.tableName,
+        columns: [ChamCongChiTietTable.idNhanVienCongTrinh],
+        where: '${ChamCongChiTietTable.idNhanVienCongTrinh} = ?',
+        whereArgs: [id],
+        limit: 1,
+      ),
+      db.query(
+        UngLuongTable.tableName,
+        columns: [UngLuongTable.idNhanVienCongTrinh],
+        where: '${UngLuongTable.idNhanVienCongTrinh} = ?',
+        whereArgs: [id],
+        limit: 1,
+      ),
+    ]);
+    if (results[0].isNotEmpty) {
+      throw Exception('Nhân viên đã có dữ liệu chấm công. Hãy xóa dữ liệu chấm công trước');
+    }
+    if (results[1].isNotEmpty) {
+      throw Exception('Nhân viên đã có dữ liệu ứng lương. Hãy xóa dữ liệu ứng lương trước');
+    }
+    try{
+      return  db.delete(
+        NhanVienCongTrinhTable.tableName,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }catch(e){
+      throw Exception('Không thể xóa do nhân viên đã có dữ liệu chấm công hoặc ứng lương liên quan.');
+    }
   }
 
   Future<NhanVienCongTrinh?> getById(int id) async {
