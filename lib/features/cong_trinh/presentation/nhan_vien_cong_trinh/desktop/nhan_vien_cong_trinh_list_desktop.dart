@@ -474,23 +474,10 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
     );
   }
 
-  Widget _buildTableRow(
-      NhanVienCongTrinh item,
-      int index,
-      ) {
-    final hoTen =
-        item?.tenNhanVien ?? "Chưa đặt tên";
-
-    final vaiTro =
-    item.vaiTro?.isNotEmpty == true
-        ? item.vaiTro!
-        : "-";
-
-    final phone =
-    item.soDienThoai?.isNotEmpty == true
-        ? item.soDienThoai!
-        : "N/A";
-
+  Widget _buildTableRow( NhanVienCongTrinh item, int index, ) {
+    final hoTen = item?.tenNhanVien ?? "Chưa đặt tên";
+    final vaiTro =item.vaiTro?.isNotEmpty == true ? item.vaiTro! : "-";
+    final phone = item.soDienThoai?.isNotEmpty == true ? item.soDienThoai! : "-";
     return Container(
       constraints: const BoxConstraints(
         minHeight: 76,
@@ -524,9 +511,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
             child: Row(
               children: [
                 _avatar(hoTen),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Text(
                     hoTen,
@@ -556,9 +541,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
                   size: 17,
                   color: Colors.grey.shade500,
                 ),
-
                 const SizedBox(width: 7),
-
                 Text(
                   phone,
                   style: TextStyle(

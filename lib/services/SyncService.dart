@@ -1,5 +1,15 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_dong_bo.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_xoa.dart';
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_hinh_anh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/TienDoCongTrinhModel.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVien.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiNhanVienCongTrinh.dart';
@@ -7,6 +17,7 @@ import 'package:nhat_ky_xay_dung/services/sync/ApiNhatKy.dart';
 import 'package:nhat_ky_xay_dung/services/sync/ApiTienDo.dart';
 
 import '../data/db_helper.dart';
+import '../data/tables/cong_trinh_table.dart';
 import '../features/bang_cham_cong/data/models/cham_cong_chi_tiet.dart';
 import '../features/cong_trinh/data/models/CongTrinh.dart';
 import '../features/cong_trinh/data/models/NhanVienCongTrinh.dart';
@@ -28,17 +39,17 @@ class SyncService {
     final db = await dbHelper.database;
     final result = await db.rawQuery('''
       SELECT 
-        (SELECT COUNT(*) FROM cong_trinh WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM tien_do_cong_trinh WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM nhat_ky WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM nhat_ky_hinh_anh WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM nhan_vien WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM nhan_vien_cong_trinh WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM cham_cong WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM thu_chi WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM ung_luong WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM bang_luong WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) +
-        (SELECT COUNT(*) FROM chi_luong WHERE is_synced = ${TrangThaiDongBo.dadongbo.value}) 
+        (SELECT COUNT(*) FROM ${CongTrinhTable.tableName} WHERE ${CongTrinhTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${TienDoCongTrinhTable.tableName} WHERE ${TienDoCongTrinhTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${NhatKyTable.tableName} WHERE ${NhatKyTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${NhatKyHinhAnhTable.tableName} WHERE ${NhatKyHinhAnhTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${NhanVienTable.tableName} WHERE ${NhanVienTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${NhanVienCongTrinhTable.tableName} WHERE ${NhanVienCongTrinhTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${ChamCongTable.tableName} WHERE ${ChamCongTable.isSynced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${ThuChiTable.tableName} WHERE ${ThuChiTable.is_synced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${UngLuongTable.tableName} WHERE ${UngLuongTable.is_synced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${KyLuongTable.tableName} WHERE ${KyLuongTable.is_synced} = ${TrangThaiDongBo.dadongbo.value}) +
+        (SELECT COUNT(*) FROM ${ChiLuongTable.tableName} WHERE ${ChiLuongTable.is_synced} = ${TrangThaiDongBo.dadongbo.value}) 
       AS total
     ''');
     return (result.first['total'] as int?) ?? 0;
@@ -47,17 +58,17 @@ class SyncService {
     final db = await dbHelper.database;
     final result = await db.rawQuery('''
       SELECT 
-        (SELECT COUNT(*) FROM cong_trinh WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM tien_do_cong_trinh WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM nhat_ky WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM nhat_ky_hinh_anh WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM nhan_vien WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM nhan_vien_cong_trinh WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM cham_cong WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM thu_chi WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM ung_luong WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM bang_luong WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
-        (SELECT COUNT(*) FROM chi_luong WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) 
+        (SELECT COUNT(*) FROM ${CongTrinhTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${TienDoCongTrinhTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${NhatKyTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${NhatKyHinhAnhTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${NhanVienTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${NhanVienCongTrinhTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${ChamCongTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${ThuChiTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${UngLuongTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${KyLuongTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) +
+        (SELECT COUNT(*) FROM ${ChiLuongTable.tableName} WHERE is_synced = ${TrangThaiDongBo.chuadongbo.value} OR is_synced IS NULL) 
       AS total
     ''');
     return (result.first['total'] as int?) ?? 0;
@@ -80,7 +91,7 @@ class SyncService {
   Future<void> syncCongTrinh() async {
     final db = await dbHelper.database;
     final list = await db.query(
-      'cong_trinh',
+      CongTrinhTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -91,7 +102,7 @@ class SyncService {
           final congTrinh = CongTrinh.fromMap(item);
           final res = await apiCongTrinh.createCongTrinh(congTrinh);
           await db.update(
-            'cong_trinh',
+            CongTrinhTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -105,7 +116,7 @@ class SyncService {
             await apiCongTrinh.deleteCongTrinh(serverId as int);
           }
           await db.update(
-            'cong_trinh',
+            CongTrinhTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -114,7 +125,7 @@ class SyncService {
           final congTrinh = CongTrinh.fromMap(item);
           await apiCongTrinh.updateCongTrinh(congTrinh);
           await db.update(
-            'cong_trinh',
+            CongTrinhTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -132,7 +143,7 @@ class SyncService {
   Future<void> syncNhanVien() async {
     final db = await dbHelper.database;
 
-    final list = await db.query('nhan_vien',
+    final list = await db.query(NhanVienTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -144,7 +155,7 @@ class SyncService {
           final res = await apiNhanVien.createNhanVien(nhanVien);
 
           await db.update(
-            'nhan_vien',
+            NhanVienTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -156,7 +167,7 @@ class SyncService {
           await apiNhanVien.updateNhanVien(nhanVien);
 
           await db.update(
-            'nhan_vien',
+            NhanVienTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -178,7 +189,7 @@ class SyncService {
         }
       }
       await db.update(
-        'nhan_vien',
+        NhanVienTable.tableName,
         {
           'is_synced': TrangThaiDongBo.chuadongbo.value,
         },
@@ -199,7 +210,7 @@ class SyncService {
         final res = await apiNhanVien.createNhanVien(nhanVien);
         nhanVien.server_id = res['id'];
         await db.update(
-          'nhan_vien',
+          NhanVienTable.tableName,
           {
             'server_id': nhanVien.server_id,
             'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -211,7 +222,7 @@ class SyncService {
         await apiNhanVien.updateNhanVien(nhanVien);
 
         await db.update(
-          'nhan_vien',
+          NhanVienTable.tableName,
           {'is_synced': TrangThaiDongBo.dadongbo.value},
           where: 'id = ?',
           whereArgs: [nhanVien.id],
@@ -231,7 +242,7 @@ class SyncService {
     final db = await dbHelper.database;
 
     final list = await db.query(
-      'nhan_vien_cong_trinh',
+      NhanVienCongTrinhTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -244,7 +255,7 @@ class SyncService {
           final res = await apiNhanVienCongTrinh.create(nhanVienCt);
 
           await db.update(
-            'nhan_vien_cong_trinh',
+            NhanVienCongTrinhTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -256,7 +267,7 @@ class SyncService {
           await apiNhanVienCongTrinh.update(nhanVienCt);
 
           await db.update(
-            'nhan_vien_cong_trinh',
+            NhanVienCongTrinhTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -275,7 +286,7 @@ class SyncService {
     final db = await dbHelper.database;
 
     final list = await db.query(
-      'tien_do_cong_trinh',
+      TienDoCongTrinhTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -287,7 +298,7 @@ class SyncService {
           final res = await apiTienDo.create(tienDo);
 
           await db.update(
-            'tien_do_cong_trinh',
+            TienDoCongTrinhTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -299,7 +310,7 @@ class SyncService {
           await apiTienDo.update(tienDo);
 
           await db.update(
-            'tien_do_cong_trinh',
+            TienDoCongTrinhTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -317,7 +328,7 @@ class SyncService {
   Future<void> syncNhatKy() async {
     final db = await dbHelper.database;
 
-    final list = await db.query('nhat_ky',
+    final list = await db.query(NhatKyTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -328,7 +339,7 @@ class SyncService {
         if (item['server_id'] == null) {
           final res = await apiNhatKy.create(nhatKy);
           await db.update(
-            'nhat_ky',
+            NhatKyTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -340,7 +351,7 @@ class SyncService {
           await apiNhatKy.update(nhatKy);
 
           await db.update(
-            'nhat_ky',
+            NhatKyTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],
@@ -358,7 +369,7 @@ class SyncService {
   Future<void> syncChamCong() async {
     final db = await dbHelper.database;
 
-    final list = await db.query('cham_cong',
+    final list = await db.query(ChamCongTable.tableName,
       where: 'is_synced = ? OR is_synced IS NULL',
       whereArgs: [TrangThaiDongBo.chuadongbo.value],
     );
@@ -370,7 +381,7 @@ class SyncService {
           final res = await apiChamCong.create(chamCong);
 
           await db.update(
-            'cham_cong',
+            ChamCongTable.tableName,
             {
               'server_id': res['id'],
               'is_synced': TrangThaiDongBo.dadongbo.value,
@@ -382,7 +393,7 @@ class SyncService {
           await apiChamCong.update(chamCong);
 
           await db.update(
-            'cham_cong',
+            ChamCongTable.tableName,
             {'is_synced': TrangThaiDongBo.dadongbo.value},
             where: 'id = ?',
             whereArgs: [item['id']],

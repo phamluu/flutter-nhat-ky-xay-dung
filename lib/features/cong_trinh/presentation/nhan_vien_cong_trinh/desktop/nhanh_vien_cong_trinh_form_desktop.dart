@@ -1,3 +1,4 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
@@ -180,7 +181,7 @@ showSuccessToast(context,  isEdit
       setState(() {
         _saving = false;
       });
-showErrorToast(context, e,  "Lỗi lưu dữ liệu: ");
+showErrorToast(context, e,  "Không thể thêm nhân viên công trình: ");
 
     }
   }
@@ -561,36 +562,62 @@ showErrorToast(context, e,  "Lỗi lưu dữ liệu: ");
   // ============================================================
 
   Widget _buildNhanVienDropdown() {
-    return DropdownButtonFormField<int>(
-      value: _selectedNhanVienId,
-      isExpanded: true,
-      decoration: _inputDecoration(
-        label: "Nhân viên",
-        hint: "Chọn nhân viên",
-        icon: Icons.person_outline,
-      ),
-      items: _nhanViens.map((nv) {
-        return DropdownMenuItem<int>(
-          value: nv.id,
-          child: Text(
-            nv.hoTen ?? "Không tên",
-            overflow: TextOverflow.ellipsis,
-          ),
+    return DropdownSearch<int>(
+      // Giá trị đang được chọn
+      selectedItem: _selectedNhanVienId,
+      enabled: !_saving,
+
+      // Lọc tìm kiếm (hỗ trợ tìm kiếm không phân biệt hoa/thường)
+      items: _nhanViens
+          .where((nv) => nv.id != null)
+          .map((nv) => nv.id!)
+          .toList(),
+
+      // Chuyển đổi ID sang Tên nhân viên để hiển thị trên Dropdown
+      itemAsString: (int? id) {
+        final nv = _nhanViens.firstWhere(
+              (element) => element.id == id,
+          orElse: () => NhanVien(hoTen: 'Không tên'),
         );
-      }).toList(),
-      onChanged: _saving
-          ? null
-          : (value) {
+        return nv.hoTen ?? 'Không tên';
+      },
+
+      // Cấu hình ô nhập tìm kiếm và popup
+      popupProps: PopupProps.menu(
+        showSearchBox: true,
+        searchFieldProps: TextFieldProps(
+          decoration: InputDecoration(
+            hintText: "Nhập tên nhân viên cần tìm...",
+            prefixIcon: const Icon(Icons.search),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ),
+
+      // Giữ giao diện InputDecoration giống như cũ
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: _inputDecoration(
+          label: "Nhân viên",
+          hint: "Chọn nhân viên",
+          icon: Icons.person_outline,
+        ),
+      ),
+
+      // Xử lý sự kiện khi chọn
+      onChanged: (value) {
         setState(() {
-          _selectedNhanVienId =
-              value;
+          _selectedNhanVienId = value;
         });
       },
+
+      // Validation form
       validator: (value) {
         if (value == null) {
           return "Vui lòng chọn nhân viên";
         }
-
         return null;
       },
     );

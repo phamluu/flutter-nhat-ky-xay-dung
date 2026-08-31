@@ -43,16 +43,16 @@ class DBHelper{
             Platform.isMacOS)) {
 
       // sử dụng
-      // final appDir = await getApplicationSupportDirectory();
-      // return join(appDir.path, 'ptl_app.db');
+      final appDir = await getApplicationSupportDirectory();
+      return join(appDir.path, 'ptl_app.db');
       // end sử dụng
 
       // Trong quá trình phát triển:
-      final directory = Directory( r'E:\PTLApp\data');
-      if (!await directory.exists()) {
-        await directory.create( recursive: true,);
-      }
-      return join( directory.path, 'ptl_app.db');
+      // final directory = Directory( r'E:\PTLApp\data');
+      // if (!await directory.exists()) {
+      //   await directory.create( recursive: true,);
+      // }
+      // return join( directory.path, 'ptl_app.db');
       // end
     }
 
@@ -92,8 +92,6 @@ class DBHelper{
     await db.execute(NhatKyTable.createTable);
     await db.execute(NhatKyHinhAnhTable.createTable);
     await db.execute(KyLuongTable.createTable);
-    await db.execute(KyLuongChiTietTable.createTable);
-    await db.execute(ChiTietDoiTruUngLuongTable.createTable);
     await db.execute(ChiLuongTable.createTable);
     await db.execute(DanhMucThuChiTable.createTable);
     await db.execute(LuongCoBanTable.createTable);
@@ -101,6 +99,8 @@ class DBHelper{
     await db.execute(UngLuongTable.createTable);
     await db.execute(ChamCongTable.createTable);
     await db.execute(ChamCongChiTietTable.createTable);
+    await db.execute(KyLuongChiTietTable.createTable);
+    await db.execute(ChiTietDoiTruUngLuongTable.createTable);
 
   }
   Future<void> _dropAllTables(Database db) async {

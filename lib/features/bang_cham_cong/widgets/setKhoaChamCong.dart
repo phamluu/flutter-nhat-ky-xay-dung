@@ -17,7 +17,7 @@ Future<void> setkhoaChamCong({
       builder: (context) => AlertDialog(
         title: const Text('Không thể mở khóa'),
         content: const Text(
-          'Tháng này đã chốt lương nên không thể mở chốt công.',
+          'Tháng này đã tồn tại chốt lương nên không thể mở chốt công. Hãy hủy chốt lương trước',
         ),
         actions: [
           TextButton(
@@ -29,9 +29,7 @@ Future<void> setkhoaChamCong({
     );
     return;
   }
-
   final actionText = isKhoa ? 'khóa' : 'mở khóa';
-
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -57,10 +55,6 @@ Future<void> setkhoaChamCong({
   );
 
   if (ok != true) return;
-
-  final thang =
-      '$selectedYear-${selectedMonth.toString().padLeft(2, '0')}';
-
   try {
     final _bangChamCongRepo = BangChamCongRepository();
     await _bangChamCongRepo.setKhoaChamCong(idBangChamCong: idBangChamCong, daKhoa: isKhoa);

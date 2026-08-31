@@ -1,4 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 import 'package:sqflite/sqflite.dart';
@@ -28,7 +30,7 @@ class ThongKeService {
   Future<int> getSoLuongNhatKy([int? IdCongTrinh]) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM ${NhanVienCongTrinhTable.tableName} ${IdCongTrinh != null ? "WHERE ${NhanVienCongTrinhTable.idCongTrinh} = ?" : ""}',
+      'SELECT COUNT(*) as count FROM ${NhatKyTable.tableName} ${IdCongTrinh != null ? "WHERE ${NhatKyTable.idCongTrinh} = ?" : ""}',
       IdCongTrinh != null ? [IdCongTrinh] : [],
     );
 
@@ -58,7 +60,7 @@ class ThongKeService {
 
   Future<int> getSoLuongDMThuChi() async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM danh_muc_thu_chi');
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM ${DanhMucThuChiTable.tableName}');
     return Sqflite.firstIntValue(result) ?? 0;
   }
   Future<int> getSoLuongUngLuong([int? idCongTrinh]) async {
@@ -67,7 +69,7 @@ class ThongKeService {
     final sql = '''
     SELECT COUNT(ul.id) AS count
     FROM ung_luong ul
-    LEFT JOIN nhan_vien_cong_trinh nvct ON nvct.id = ul.idNhanVienCongTrinh
+    LEFT JOIN ${NhanVienCongTrinhTable.tableName} nvct ON nvct.id = ul.idNhanVienCongTrinh
     ${idCongTrinh != null ? 'WHERE nvct.idCongTrinh = ?' : ''}
   ''';
 
@@ -76,25 +78,6 @@ class ThongKeService {
     return Sqflite.firstIntValue(r) ?? 0;
   }
 
-
-  // Số lượng có mặt ngày hôm nay của 1 công trình
-  // Future<int> getSoLuongCoMat(int? idCongTrinh) async {
-  //   final db = await _dbHelper.database;
-  //
-  //   // Lấy ngày hiện tại theo định dạng yyyy-MM-dd
-  //   final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
-  //
-  //   final result = await db.rawQuery('''
-  //   SELECT COUNT(DISTINCT cc.id_nhan_vien_cong_trinh) as count
-  //   FROM cham_cong cc
-  //   JOIN nhan_vien_cong_trinh nvct ON cc.id_nhan_vien_cong_trinh = nvct.id
-  //   WHERE nvct.idCongTrinh = ?
-  //     AND cc.ngay = ?
-  //     AND (cc.trang_thai_sang = 1 OR cc.trang_thai_chieu = 1)
-  // ''', [idCongTrinh, today]);
-  //
-  //   return Sqflite.firstIntValue(result) ?? 0;
-  // }
   Future<int> getSoLanThuChi([int? IdCongTrinh]) async {
     final db = await _dbHelper.database;
 

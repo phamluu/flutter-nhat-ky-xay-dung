@@ -21,7 +21,6 @@ import 'cham_cong_chi_tiet_repo.dart';
 
 class ChotChiLuongRepository {
   final _dbHelper = DBHelper.instance;
-  final ChamCongChiTietRepo _chamCongChiTietRepo = ChamCongChiTietRepo();
 
   Future<void> chotOrHuyChotLuong({
     int? idBangLuong,

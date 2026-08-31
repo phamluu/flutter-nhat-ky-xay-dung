@@ -17,7 +17,7 @@ class ChotCongButton extends StatelessWidget {
     final bool isDisabled = daChotLuong;
 
     return ElevatedButton.icon(
-      onPressed: isDisabled ? null : onPressed,
+      onPressed: onPressed,
       icon: Icon(
         daKhoa ? Icons.lock_open : Icons.lock,
         color: Colors.white,

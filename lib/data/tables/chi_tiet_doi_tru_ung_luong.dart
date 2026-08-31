@@ -25,7 +25,7 @@ class ChiTietDoiTruUngLuongTable {
       $updatedAt TEXT,
       $isDeleted INTEGER DEFAULT 0,
       FOREIGN KEY ($idUngLuong) REFERENCES ${UngLuongTable.tableName}(${UngLuongTable.id}) ON DELETE RESTRICT,
-      FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id}) ON DELETE RESTRICT,
+      FOREIGN KEY ($idBangLuong) REFERENCES ${KyLuongTable.tableName}(${KyLuongTable.id}) ON DELETE RESTRICT
     )
   ''';
 }

@@ -33,9 +33,8 @@ class ChamCongChiTietTable {
 
     -- Ràng buộc: Trong 1 Bảng công, 1 Nhân viên chỉ có 1 dòng dữ liệu cho 1 Ngày
     UNIQUE($idChamCong, $idNhanVienCongTrinh, $ngay),
-    
-    -- Xóa Bảng chốt công ở cham_cong sẽ tự động xóa sạch các dòng chi tiết tương ứng
-    FOREIGN KEY ($idChamCong) REFERENCES ${ChamCongTable.tableName}(${ChamCongTable.id}) ON DELETE CASCADE
+
+    FOREIGN KEY ($idChamCong) REFERENCES ${ChamCongTable.tableName}(${ChamCongTable.id}) ON DELETE RESTRICT
 );
 
 -- Index tăng tốc tìm kiếm chi tiết công theo Bảng chốt công & Nhân viên

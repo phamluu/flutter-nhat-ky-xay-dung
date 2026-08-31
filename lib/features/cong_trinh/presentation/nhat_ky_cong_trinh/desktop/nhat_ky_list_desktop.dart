@@ -53,9 +53,7 @@ class _NhatKyListDesktopState extends State<NhatKyListDesktop> {
   // ADD / EDIT
   // ============================================================
 
-  Future<void> _openForm({
-    NhatKyCongTrinh? nhatKy,
-  }) async {
+  Future<void> _openForm({ NhatKyCongTrinh? nhatKy, }) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -75,9 +73,7 @@ class _NhatKyListDesktopState extends State<NhatKyListDesktop> {
   // DELETE
   // ============================================================
 
-  Future<void> _deleteNhatKy(
-      NhatKyCongTrinh nhatKy,
-      ) async {
+  Future<void> _deleteNhatKy( NhatKyCongTrinh nhatKy,) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -111,20 +107,14 @@ class _NhatKyListDesktopState extends State<NhatKyListDesktop> {
     );
 
     if (confirm != true) return;
-
     try {
-      await _service.deleteNhatKy(
-        nhatKy.id!,
-      );
-
+      await _service.deleteNhatKy(nhatKy.id!,);
       if (!mounted) return;
-showSuccessToast(context, "Đã xóa nhật ký");
-
+        showSuccessToast(context, "Đã xóa nhật ký");
       _reload();
     } catch (e) {
       if (!mounted) return;
-showErrorToast(context, e, "Lỗi khi xóa: ");
-
+        showErrorToast(context, e, "Lỗi khi xóa: ");
     }
   }
 
@@ -132,9 +122,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
   // DETAIL
   // ============================================================
 
-  Future<void> _openDetail(
-      NhatKyCongTrinh nhatKy,
-      ) async {
+  Future<void> _openDetail( NhatKyCongTrinh nhatKy, ) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -166,10 +154,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
-
               const SizedBox(height: 20),
-
               Expanded(
                 child: _buildContent(),
               ),
@@ -178,7 +163,6 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
         ),
       ),
     );
-
   }
 
   // ============================================================
@@ -263,7 +247,6 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
   Widget _buildContent() {
     return FutureBuilder<List<NhatKyViewModel>>(
       future: _future,
-
       builder: (context, snapshot) {
         if (snapshot.connectionState ==
             ConnectionState.waiting) {
@@ -271,19 +254,13 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
             child: CircularProgressIndicator(),
           );
         }
-
         if (snapshot.hasError) {
-          return _buildError(
-            snapshot.error,
-          );
+          return _buildError( snapshot.error, );
         }
-
         final data = snapshot.data ?? [];
-
         if (data.isEmpty) {
           return _buildEmpty();
         }
-
         return _buildTable(data);
       },
     );
@@ -293,9 +270,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
   // TABLE
   // ============================================================
 
-  Widget _buildTable(
-      List<NhatKyViewModel> data,
-      ) {
+  Widget _buildTable( List<NhatKyViewModel> data,) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -304,29 +279,21 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
           color: Colors.grey.shade200,
         ),
       ),
-
       clipBehavior: Clip.antiAlias,
-
       child: Column(
         children: [
           _buildTableHeader(),
-
           Expanded(
             child: ListView.separated(
               itemCount: data.length,
-
               separatorBuilder: (_, __) {
                 return Divider(
                   height: 1,
                   color: Colors.grey.shade200,
                 );
               },
-
               itemBuilder: (context, index) {
-                return _buildTableRow(
-                  data[index],
-                  index,
-                );
+                return _buildTableRow( data[index], index, );
               },
             ),
           ),
@@ -425,22 +392,16 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
   // TABLE ROW
   // ============================================================
 
-  Widget _buildTableRow(
-      NhatKyViewModel item,
-      int index,
-      ) {
+  Widget _buildTableRow( NhatKyViewModel item, int index, ) {
     final nk = item.nhatKy;
-
     return InkWell(
       onTap: () {
         _openDetail(nk);
       },
-
       child: Container(
         constraints: const BoxConstraints(
           minHeight: 92,
         ),
-
         padding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 12,

@@ -3,6 +3,7 @@ import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/buildTrangThai.dart' hide TrangThaiChiLuong;
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
@@ -11,7 +12,6 @@ import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/u
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
 import '../../../luong/presentation/chi_luong/desktop/chi_luong_desktop.dart';
-import '../../../luong/presentation/ung_luong/screens/UngLuongScreen.dart';
 import '../../data/models/bang_cham_cong.dart';
 import '../../data/repositories/ChotChiLuongRepository.dart';
 import '../../data/services/ChotChiLuongService.dart';
@@ -22,11 +22,11 @@ import '../../widgets/setKhoaChamCong.dart';
 import '../widgets/badgeCell.dart';
 import '../widgets/textCell.dart';
 import '_buildColumns.dart';
+import 'bang_cham_cong_nhan_vien_desktop.dart';
 import 'buildDesktopHeader.dart';
 import 'buildEmptyTable.dart';
 import 'buildLegend.dart';
 import 'buildSummary.dart';
-import 'buildTrangThai.dart' hide TrangThaiChiLuong;
 import 'getChamCongColor.dart';
 import 'getChamCongTextColor.dart';
 import 'isShowNgay.dart';
@@ -53,6 +53,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   late final ChotChiLuongRepository _chotRepo;
   late final ChamCongService _chamCongService;
   late final BangChamCongRepository _bangChamCongRepository;
+  late final ChamCongLuongRepo _chamCongLuongRepo;
   bool daKhoaCC = false;
   bool coChotLuong = false;
   bool _isLoading = false;
@@ -76,6 +77,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     );
     _bangChamCongRepository = BangChamCongRepository();
     _chotRepo = ChotChiLuongRepository();
+    _chamCongLuongRepo = ChamCongLuongRepo();
     _initAndLoad();
   }
   Future<void> _initAndLoad() async {
@@ -212,6 +214,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             tooltip: "Tùy chọn hiển thị",
             icon: const Icon(Icons.settings_outlined),
             onSelected: _handleMenuSelection,
+            position: PopupMenuPosition.under,
+            offset: const Offset(0, 8),
             itemBuilder: (_) => [
               CheckedPopupMenuItem<String>(
                 value: "chucvu",
@@ -236,14 +240,72 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               ),
             ],
           ),
+          const SizedBox(width: 12),
+          PopupMenuButton<void>(
+            tooltip: "Tùy chọn thêm",
+            icon: const Icon(Icons.more_vert),
+            position: PopupMenuPosition.under,
+            offset: const Offset(0, 8),
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<void>(
+                onTap: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text('Xác nhận xóa toàn bộ dữ liệu chấm công + lương'),
+                      content: Text(
+                          'Bạn có chắc chắn muốn xóa toàn bộ dữ liệu chấm công + lương của '
+                              'tháng ${widget.bangChamCong?.thang}/${widget.bangChamCong?.nam}?'
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Hủy'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          child: Text('Xóa',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm != true) return;
+                  try {
+                    await _chamCongLuongRepo.DeleteData(widget.bangChamCong?.id);
+                    if (!mounted) return;
+                    showSuccessToast(context, 'Đã xóa thành công!');
+                    _load();
+                  } catch (e) {
+                    if (!mounted) return;
+                    showErrorToast(context, e, "Không thể xóa dữ liệu");
+                  }
+                },
+                child: const Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text("Xóa dữ liệu", style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
 
+
   void _handleMenuSelection(String value) {
     setState(() {
       switch (value) {
+        case "deleteAll":
+
         case "chucvu":
           _showChucVu = !_showChucVu;
           ChamCongFilterState.showChucVu = _showChucVu;
@@ -303,7 +365,20 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     return DataRow(
       color: MaterialStateProperty.all(index.isEven ? Colors.grey.shade50 : Colors.white),
       cells: [
-        textCell(nv.chamCong.ten ?? '', isBold: true),
+        DataCell(
+          InkWell(
+            onTap: () => _navigateToChiTietNhanVien(nv),
+            child: Text(
+              nv.chamCong.ten ?? '',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ),
+        // textCell(nv.chamCong.ten ?? '', isBold: true),
         if (_showChucVu) textCell(nv.chamCong.chucVu ?? ''),
         ..._buildNgayCells(nv.chamCong),
         badgeCell(nv.chamCong.tongSoCong.toString(), Colors.blue),
@@ -421,7 +496,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                   _load();
                 } catch (e) {
                   if (!mounted) return;
-                  showErrorToast(context, e, "Lỗi: ");
+                  showErrorToast(context, e, "Không thể chốt lương");
                 }
               },
               borderRadius: BorderRadius.circular(6),
@@ -532,7 +607,21 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   // ============================================================
   // NAVIGATION HELPERS
   // ============================================================
-
+  Future<void> _navigateToChiTietNhanVien(ChamCongLuongNhanVienModel nv)async{
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChamCongChiTietNhanVienDesktop(
+          model: nv,
+          tenCongTrinh: widget.tenCongTrinh,
+          thangKey: widget.bangChamCong!.thangValue,
+          thang: widget.bangChamCong!.thang!,
+          nam: widget.bangChamCong!.nam!,
+        ),
+      ),
+    );
+    _load();
+  }
   Future<void> _navigateToDay({required ChamCongNhanVienModel nv, required String ngayKey, int? idChamCongNgay}) async {
     await Navigator.push(
       context,
