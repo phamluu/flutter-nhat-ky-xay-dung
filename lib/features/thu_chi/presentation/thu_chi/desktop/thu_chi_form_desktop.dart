@@ -3,16 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
-
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
-
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import '../../../data/models/DanhMucThuChi.dart';
 import '../../../data/models/ThuChi.dart';
 import '../../../data/services/danh_muc_thu_chi_service.dart';
 import '../../../data/services/thu_chi_service.dart';
-
+// Import file chứa TableHeader, HangHoaInput, tableCell, tableInputDecoration
+import '../widgets/_sectionTitle.dart';
+import '../widgets/_tableForm.dart';
 
 class ThuChiFormDesktop extends StatefulWidget {
   final ThuChi? thuChi;
@@ -30,21 +30,19 @@ class ThuChiFormDesktop extends StatefulWidget {
 
 class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
   final _formKey = GlobalKey<FormState>();
-
   final _soTienController = TextEditingController();
   final _ghiChuController = TextEditingController();
   final _ngayController = TextEditingController();
-
   final _thuChiService = ThuChiService();
-
   final _dmService = DanhMucThuChiService();
-
   final _ctService = CongtrinhReponsitory();
-
   final _dateFormat = DateFormat("dd/MM/yyyy");
 
-  int _loai = 0;
+  // State cho bảng hàng hóa
+  final List<HangHoaInput> _hangHoaList = [];
+  final TextEditingController _soDongController = TextEditingController(text: '1');
 
+  int _loai = 0;
   List<DanhMucThuChi> _danhMucs = [];
   int? _selectedDanhMucId;
 
@@ -58,6 +56,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
   void initState() {
     super.initState();
     _initData();
+    _themHangHoa(1); // Mặc định tạo 1 dòng ban đầu
   }
 
   @override
@@ -65,56 +64,102 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     _soTienController.dispose();
     _ghiChuController.dispose();
     _ngayController.dispose();
+    _soDongController.dispose();
+    for (var item in _hangHoaList) {
+      item.dispose();
+    }
     super.dispose();
   }
 
   // ============================================================
-  // LOAD DATA
+  // XỬ LÝ THÊM / XÓA DÒNG HÀNG HÓA
   // ============================================================
+
+  void _themHangHoa([int? count]) {
+    final soDong = count ?? int.tryParse(_soDongController.text) ?? 1;
+    setState(() {
+      for (int i = 0; i < soDong; i++) {
+        final item = HangHoaInput();
+        item.soLuongController.addListener(_onItemChange);
+        item.donGiaController.addListener(_onItemChange);
+        _hangHoaList.add(item);
+      }
+    });
+  }
+
+  void _onItemChange() {
+    setState(() {}); // Rebuild để tính lại Thành tiền
+  }
+
+  void _xoaHangHoa(int index) {
+    setState(() {
+      _hangHoaList[index].dispose();
+      _hangHoaList.removeAt(index);
+    });
+  }
 
   Future<void> _initData() async {
     try {
       final dms = await _dmService.getAll();
       final cts = await _ctService.getDanhSachCongTrinh();
+
       if (!mounted) return;
+
       setState(() {
         _danhMucs = dms;
         _conTrinhs = cts;
-        if (widget.thuChi != null) {
-          final tc = widget.thuChi!;
-          if (widget.thuChi!.soTien != null) {
-            _soTienController.text =formatCurrency( widget.thuChi!.soTien!);
-          }
-          // _soTienController.text = tc.soTien.toString();
-          _ghiChuController.text = tc.ghiChu ?? '';
 
+        if (widget.thuChi != null) {
+          // ==========================================
+          // TRƯỜNG HỢP SỬA: LOAD DỮ LIỆU CŨ VÀO DÒNG HÀNG HÓA
+          // ==========================================
+          final tc = widget.thuChi!;
+
+          // Khởi tạo 1 dòng HangHoaInput với dữ liệu có sẵn
+          final item = HangHoaInput(
+            ten: tc.tenHangHoa ?? '', // Hoặc tên hàng hóa tương ứng từ DB của bạn
+            donVi: tc.donViTinh ?? '',            // Đơn vị (nếu DB có lưu)
+            soLuong: tc.soLuong.toString(),         // Số lượng mặc định hoặc từ DB
+            donGia: tc.donGia != null ? tc.donGia.toString() : '0',
+          );
+
+          // Lắng nghe sự thay đổi để tính lại thành tiền
+          item.soLuongController.addListener(_onItemChange);
+          item.donGiaController.addListener(_onItemChange);
+
+          _hangHoaList.clear();
+          _hangHoaList.add(item);
+
+          // Nạp thông tin chung
+          _soTienController.text = tc.donGia != null ? formatCurrency(tc.donGia!) : '';
+          _ghiChuController.text = tc.ghiChu ?? '';
           try {
-            _ngayController.text = _dateFormat.format(
-              DateTime.parse(tc.ngay),
-            );
+            _ngayController.text = _dateFormat.format(DateTime.parse(tc.ngay));
           } catch (_) {
-            _ngayController.text = _dateFormat.format(
-              DateTime.now(),
-            );
+            _ngayController.text = _dateFormat.format(DateTime.now());
           }
           _loai = tc.loai;
           _selectedDanhMucId = tc.idDanhMucThuChi;
           _selectedCongTrinhId = tc.idCongTrinh;
+
         } else {
+          // ==========================================
+          // TRƯỜNG HỢP THÊM MỚI: TẠO 1 DÒNG TRỐNG
+          // ==========================================
           _selectedCongTrinhId = widget.idCongTrinh;
-          _ngayController.text = _dateFormat.format(
-            DateTime.now(),
-          );
+          _ngayController.text = _dateFormat.format(DateTime.now());
           if (_danhMucs.isNotEmpty) {
             _selectedDanhMucId = _danhMucs.first.id;
           }
+
+          _hangHoaList.clear();
+          _themHangHoa(1);
         }
 
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _isLoading = false;
       });
@@ -122,26 +167,38 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     }
   }
 
-  // ============================================================
-  // BACK
-  // ============================================================
+  @override
+  Widget build(BuildContext context) {
+    final isEdit = widget.thuChi != null;
+    return Container(
+      color: const Color(0xfff5f6f8),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(isEdit),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildForm(isEdit),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _goBack() {
     Navigator.pop(context);
   }
 
-  // ============================================================
-  // DATE
-  // ============================================================
-
   Future<void> _pickDate() async {
     final now = DateTime.now();
-
     DateTime initial;
-
     try {
       final parts = _ngayController.text.split('/');
-
       initial = DateTime(
         int.parse(parts[2]),
         int.parse(parts[1]),
@@ -150,7 +207,6 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     } catch (_) {
       initial = now;
     }
-
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -158,53 +214,23 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       lastDate: DateTime(2100),
       locale: const Locale('vi', 'VN'),
     );
-
-    if (picked != null) {
-      setState(() {
-        _ngayController.text = _dateFormat.format(picked);
-      });
-    }
+    if (!mounted || picked == null) return;
+    setState(() {
+      _ngayController.text = _dateFormat.format(picked);
+    });
   }
-
-  // ============================================================
-  // SAVE
-  // ============================================================
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    // Parse ngày giao dịch
     final dateParts = _ngayController.text.split('/');
-
     final tcDate = DateTime(
       int.parse(dateParts[2]),
       int.parse(dateParts[1]),
       int.parse(dateParts[0]),
-    );
-
-    // final soTien = double.tryParse(
-    //   _soTienController.text
-    //       .replaceAll(',', '')
-    //       .replaceAll('.', ''),
-    // );
-
-    // if (soTien == null) {
-    //   return;
-    // }
-
-    final tc = ThuChi(
-      id: widget.thuChi?.id,
-      idDanhMucThuChi: _selectedDanhMucId,
-      loai: _loai,
-      soTien: parseCurrency( _soTienController.text, ),
-      ghiChu: _ghiChuController.text.isEmpty
-          ? null
-          : _ghiChuController.text.trim(),
-      ngay: tcDate.toIso8601String(),
-      idCongTrinh: _selectedCongTrinhId,
-      ngayTao: widget.thuChi?.ngayTao ??
-          DateTime.now().toIso8601String(),
     );
 
     setState(() {
@@ -212,41 +238,87 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     });
 
     try {
-      if (widget.thuChi == null) {
-        await _thuChiService.insert(tc);
-      } else {
+      if (widget.thuChi != null) {
+        // ==========================================
+        // TRƯỜNG HỢP SỬA: CẬP NHẬT 1 BẢN GHI DUY NHẤT
+        // ==========================================
+        final item = _hangHoaList.isNotEmpty ? _hangHoaList.first : HangHoaInput();
+
+        // Ưu tiên lấy tên hàng hóa từ bảng chi tiết, nếu trống lấy ghi chú cũ
+        final ghiChuValue = item.tenController.text.trim().isNotEmpty
+            ? item.tenController.text.trim()
+            : _ghiChuController.text.trim();
+
+        final tc = ThuChi(
+          id: widget.thuChi!.id,
+          idDanhMucThuChi: _selectedDanhMucId,
+          loai: _loai,
+          donGia: item.donGia  > 0 ? item.donGia : parseCurrency(_soTienController.text),
+          ghiChu: ghiChuValue.isEmpty ? null : ghiChuValue,
+          ngay: tcDate.toIso8601String(),
+          idCongTrinh: _selectedCongTrinhId,
+          ngayTao: widget.thuChi!.ngayTao,
+        );
+
         await _thuChiService.update(tc);
+
+      } else {
+        // ==========================================
+        // TRƯỜNG HỢP THÊM MỚI: LƯU TẤT CẢ CÁC DÒNG ĐÃ NHẬP
+        // ==========================================
+        // Lọc bỏ những dòng hoàn toàn trống (không nhập tên và không nhập đơn giá/số lượng)
+        final validItems = _hangHoaList.where((item) {
+          return item.tenController.text.trim().isNotEmpty || item.donGia > 0 || item.soLuong > 0;
+        }).toList();
+
+        if (validItems.isEmpty) {
+          throw 'Vui lòng nhập thông tin ít nhất 1 hàng hóa';
+        }
+
+        // Tạo danh sách object ThuChi từ validItems
+        final listThuChi = validItems.map((item) {
+          return ThuChi(
+            idDanhMucThuChi: _selectedDanhMucId,
+            loai: _loai,
+            donGia: item.donGia,
+            tenHangHoa: item.tenController.text.trim().isEmpty? null: item.tenController.text.trim(),
+            donViTinh: item.donViController.text.trim().isEmpty? null: item.donViController.text.trim(),
+            soLuong: item.soLuong,
+            ngay: tcDate.toIso8601String(),
+            idCongTrinh: _selectedCongTrinhId,
+            ngayTao: DateTime.now().toIso8601String(),
+          );
+        }).toList();
+
+// Gọi insert 1 lần duy nhất
+        await _thuChiService.insertAll(listThuChi);
       }
 
       if (!mounted) return;
-      showSuccessToast(context, widget.thuChi == null ? "Thêm mới thành công" : "Cập nhật thành công");
+      showSuccessToast(
+        context,
+        widget.thuChi == null ? "Thêm mới thành công" : "Cập nhật thành công",
+      );
       Navigator.pop(context, true);
+
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
         _isSaving = false;
       });
-    showErrorToast(context, e, 'Lưu khoản thu chi thất bại: $e');
+      showErrorToast(context, e, 'Lưu khoản thu chi thất bại: $e');
     }
   }
 
-  // ============================================================
-  // DELETE
-  // ============================================================
-
   Future<void> _delete() async {
-    if (widget.thuChi?.id == null) {
-      return;
-    }
+    if (widget.thuChi?.id == null) return;
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Xóa khoản thu/chi?'),
-        content: const Text(
-          'Bạn chắc chắn muốn xóa khoản này?',
-        ),
+        content: const Text('Bạn chắc chắn muốn xóa khoản này?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -267,8 +339,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     if (ok != true) return;
 
     try {
-      await _thuChiService.delete( widget.thuChi!.id!, );
-
+      await _thuChiService.delete(widget.thuChi!.id!);
       if (!mounted) return;
       showSuccessToast(context, "Xóa khoản thu/chi thành công");
       Navigator.pop(context, true);
@@ -278,140 +349,61 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     }
   }
 
-  // ============================================================
-  // BUILD
-  // ============================================================
-
-  @override
-  Widget build(BuildContext context) {
-    final isEdit = widget.thuChi != null;
-
-    return Container(
-      color: const Color(0xfff5f6f8),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(isEdit),
-            const SizedBox(height: 20),
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                child: CircularProgressIndicator(),
-              )
-                  : _buildForm(isEdit),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // HEADER
-  // ============================================================
-
   Widget _buildHeader(bool isEdit) {
     return Row(
       children: [
-        // ==============================
-        // TITLE
-        // ==============================
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEdit
-                    ? 'Sửa khoản thu chi'
-                    : 'Thêm khoản thu chi',
+                isEdit ? 'Sửa khoản thu chi' : 'Thêm khoản thu chi',
                 style: const TextStyle(
                   fontSize: 23,
                   fontWeight: FontWeight.bold,
                   color: Color(0xff263238),
                 ),
               ),
-
               const SizedBox(height: 4),
-
               Text(
                 widget.idCongTrinh != null
                     ? 'Khoản thu chi của công trình'
                     : 'Nhập thông tin khoản thu hoặc chi',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
             ],
           ),
         ),
-
-        // ==============================
-        // DELETE
-        // ==============================
-
         if (isEdit)
           OutlinedButton.icon(
             onPressed: _delete,
-            icon: const Icon(
-              Icons.delete_outline,
-              size: 19,
-            ),
+            icon: const Icon(Icons.delete_outline, size: 19),
             label: const Text('Xóa'),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.red,
-              side: const BorderSide(
-                color: Colors.red,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
+              side: const BorderSide(color: Colors.red),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
-
         const SizedBox(width: 10),
-        // Quay lại
-        // ==============================
-        // NÚT QUAY LẠI
-        // ==============================
-
-        Tooltip(
-          message: 'Quay lại',
-          child: InkWell(
-            onTap: _goBack,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                ),
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                size: 21,
-                color: Color(0xff37474f),
-              ),
+        IconButton(
+          onPressed: _goBack,
+          icon: const Icon(Icons.arrow_back),
+          iconSize: 21,
+          tooltip: 'Quay lại',
+          style: IconButton.styleFrom(
+            fixedSize: const Size(42, 42),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.grey.shade300),
             ),
           ),
         ),
-
         const SizedBox(width: 14),
-
-        // ==============================
-        // ICON
-        // ==============================
-
         Container(
           width: 46,
           height: 46,
@@ -422,20 +414,11 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
-            isEdit
-                ? Icons.edit_outlined
-                : Icons.receipt_long_outlined,
-            color: _loai == 1
-                ? Colors.green.shade700
-                : Colors.red.shade700,
+            isEdit ? Icons.edit_outlined : Icons.receipt_long_outlined,
+            color: _loai == 1 ? Colors.green.shade700 : Colors.red.shade700,
           ),
         ),
-
         const SizedBox(width: 12),
-        // ==============================
-        // SAVE
-        // ==============================
-
         ElevatedButton.icon(
           onPressed: _isSaving ? null : _save,
           icon: _isSaving
@@ -447,21 +430,13 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
               color: Colors.white,
             ),
           )
-              : const Icon(
-            Icons.save_outlined,
-            size: 19,
-          ),
-          label: Text(
-            _isSaving ? 'Đang lưu...' : 'Lưu',
-          ),
+              : const Icon(Icons.save_outlined, size: 19),
+          label: Text(_isSaving ? 'Đang lưu...' : 'Lưu'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue.shade600,
             foregroundColor: Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 13,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -471,65 +446,37 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     );
   }
 
-  // ============================================================
-  // FORM
-  // ============================================================
-
   Widget _buildForm(bool isEdit) {
     return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 900,
-        ),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.only(
-              bottom: 30,
-            ),
-            children: [
-              _buildMainCard(),
-
-              const SizedBox(height: 16),
-
-              _buildNoteCard(),
-
-              const SizedBox(height: 16),
-
-              _buildDateCard(),
-            ],
-          ),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 30),
+          children: [
+            _buildMainCard(),
+            const SizedBox(height: 16),
+            _buildNoteCard(),
+          ],
         ),
       ),
     );
   }
-
-  // ============================================================
-  // MAIN CARD
-  // ============================================================
 
   Widget _buildMainCard() {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle(
+          sectionTitle(
             icon: Icons.account_balance_wallet_outlined,
             title: 'Thông tin khoản thu chi',
           ),
-
           const SizedBox(height: 20),
-
           const Text(
             'Loại giao dịch',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
-
           const SizedBox(height: 8),
-
           Row(
             children: [
               Expanded(
@@ -540,9 +487,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
                   color: Colors.red,
                 ),
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: _typeButton(
                   value: 1,
@@ -553,35 +498,39 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildDanhMucField(),
-              ),
-
+              Expanded(child: _buildDanhMucField()),
               const SizedBox(width: 16),
-
-              Expanded(
-                child: _buildCongTrinhField(),
-              ),
+              Expanded(child: _buildCongTrinhField()),
             ],
           ),
-
           const SizedBox(height: 20),
-
-          _buildAmountField(),
+          SizedBox(
+            width: 420,
+            child: TextFormField(
+              controller: _ngayController,
+              readOnly: true,
+              onTap: _pickDate,
+              decoration: _inputDecoration(
+                label: 'Ngày giao dịch',
+                icon: Icons.event_outlined,
+                suffix: const Icon(Icons.calendar_today_outlined, size: 19),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Vui lòng chọn ngày';
+                }
+                return null;
+              },
+            ),
+          ),
         ],
       ),
     );
   }
-
-  // ============================================================
-  // TYPE BUTTON
-  // ============================================================
 
   Widget _typeButton({
     required int value,
@@ -590,7 +539,6 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     required Color color,
   }) {
     final selected = _loai == value;
-
     return InkWell(
       onTap: () {
         setState(() {
@@ -599,22 +547,13 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       },
       borderRadius: BorderRadius.circular(10),
       child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 180,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 14,
-        ),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: selected
-              ? color.withOpacity(0.1)
-              : Colors.grey.shade50,
+          color: selected ? color.withOpacity(0.1) : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: selected
-                ? color
-                : Colors.grey.shade300,
+            color: selected ? color : Colors.grey.shade300,
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -632,55 +571,34 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
               child: Icon(
                 icon,
                 size: 18,
-                color: selected
-                    ? color
-                    : Colors.grey.shade600,
+                color: selected ? color : Colors.grey.shade600,
               ),
             ),
-
             const SizedBox(width: 10),
-
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? color
-                    : Colors.grey.shade700,
+                color: selected ? color : Colors.grey.shade700,
               ),
             ),
-
             const Spacer(),
-
-            if (selected)
-              Icon(
-                Icons.check_circle,
-                color: color,
-                size: 20,
-              ),
+            if (selected) Icon(Icons.check_circle, color: color, size: 20),
           ],
         ),
       ),
     );
   }
 
-  // ============================================================
-  // DANH MỤC
-  // ============================================================
-
   Widget _buildDanhMucField() {
     return DropdownButtonFormField<int?>(
-      value: _danhMucs.any(
-            (dm) => dm.id == _selectedDanhMucId,
-      )
+      value: _danhMucs.any((dm) => dm.id == _selectedDanhMucId)
           ? _selectedDanhMucId
           : null,
       items: [
         const DropdownMenuItem<int?>(
           value: null,
-          child: Text(
-            'Không chọn danh mục',
-          ),
+          child: Text('Không chọn danh mục'),
         ),
         ..._danhMucs.map(
               (dm) => DropdownMenuItem<int?>(
@@ -701,25 +619,17 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     );
   }
 
-  // ============================================================
-  // CÔNG TRÌNH
-  // ============================================================
-
   Widget _buildCongTrinhField() {
     final disabled = widget.idCongTrinh != null;
 
     return DropdownButtonFormField<int?>(
-      value: _conTrinhs.any(
-            (ct) => ct.id == _selectedCongTrinhId,
-      )
+      value: _conTrinhs.any((ct) => ct.id == _selectedCongTrinhId)
           ? _selectedCongTrinhId
           : null,
       items: [
         const DropdownMenuItem<int?>(
           value: null,
-          child: Text(
-            'Chọn công trình',
-          ),
+          child: Text('Chọn công trình'),
         ),
         ..._conTrinhs.map(
               (ct) => DropdownMenuItem<int?>(
@@ -745,192 +655,141 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     );
   }
 
-  // ============================================================
-  // AMOUNT
-  // ============================================================
-
-  Widget _buildAmountField() {
-    return TextFormField(
-      controller: _soTienController,
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        CurrencyInputFormatter(),
-      ],
-      decoration:
-      InputDecoration(
-        labelText: 'Số tiền',
-        hintText: 'Nhập số tiền ứng',
-        prefixIcon: const Icon(Icons.account_balance_wallet_outlined, ),
-        suffixText: 'VNĐ',
-        filled: true,
-        fillColor: const Color( 0xFFF9FAFB, ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8,),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular( 8,),
-          borderSide: const BorderSide(
-            color: Color( 0xFFD1D5DB,),
-          ),
-        ),
-
-        focusedBorder:
-        OutlineInputBorder(
-          borderRadius: BorderRadius.circular( 8, ),
-          borderSide: const BorderSide(
-            color: Colors.blue,
-            width: 2,
-          ),
-        ),
-      ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Vui lòng nhập số tiền';
-        }
-        final amount = parseCurrency(value, );
-        if (amount <= 0) {
-          return 'Số tiền phải lớn hơn 0';
-        }
-        return null;
-      },
-    );
-  }
-
-  // ============================================================
-  // NOTE
-  // ============================================================
-
   Widget _buildNoteCard() {
+    final isEdit = widget.thuChi != null;
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle(
-            icon: Icons.notes_outlined,
-            title: 'Ghi chú',
-          ),
-
-          const SizedBox(height: 18),
-
-          TextFormField(
-            controller: _ghiChuController,
-            maxLines: 4,
-            decoration: _inputDecoration(
-              label: 'Nội dung ghi chú',
-              icon: Icons.description_outlined,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // DATE
-  // ============================================================
-
-  Widget _buildDateCard() {
-    return _card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionTitle(
-            icon: Icons.calendar_month_outlined,
-            title: 'Thời gian',
-          ),
-
-          const SizedBox(height: 18),
-
-          SizedBox(
-            width: 420,
-            child: TextFormField(
-              controller: _ngayController,
-              readOnly: true,
-              onTap: _pickDate,
-              decoration: _inputDecoration(
-                label: 'Ngày giao dịch',
-                icon: Icons.event_outlined,
-                suffix: const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 19,
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              sectionTitle(
+                icon: Icons.inventory_2_outlined,
+                title: 'Chi tiết hàng hóa',
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng chọn ngày';
-                }
-
-                return null;
-              },
+              // Chỉ cho phép nhập thêm nhiều dòng khi THÊM MỚI
+              if (!isEdit)
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 70,
+                      child: TextFormField(
+                        controller: _soDongController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        decoration: tableInputDecoration(hintText: 'Số dòng'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => _themHangHoa(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Thêm dòng'),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(3),
+              1: FlexColumnWidth(1.5),
+              2: FlexColumnWidth(1.2),
+              3: FlexColumnWidth(1.8),
+              4: FlexColumnWidth(1.8),
+              5: FixedColumnWidth(48),
+            },
+            border: TableBorder.all(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(8),
             ),
+            children: [
+              TableRow(
+                decoration: BoxDecoration(color: Colors.grey.shade100),
+                children: [
+                  const TableHeader('Tên hàng hóa'),
+                  const TableHeader('Đơn vị'),
+                  const TableHeader('Số lượng'),
+                  const TableHeader('Đơn giá'),
+                  const TableHeader('Thành tiền'),
+                  // Nếu đang Sửa thì ẩn cột nút Xóa dòng
+                  if (!isEdit) const TableHeader('') else const TableHeader(''),
+                ],
+              ),
+              ..._hangHoaList.asMap().entries.map((entry) {
+                int index = entry.key;
+                HangHoaInput item = entry.value;
+
+                return TableRow(
+                  children: [
+                    tableCell(
+                      TextFormField(
+                        controller: item.tenController,
+                        decoration: tableInputDecoration(hintText: 'Tên hàng hóa'),
+                      ),
+                    ),
+                    tableCell(
+                      TextFormField(
+                        controller: item.donViController,
+                        decoration: tableInputDecoration(hintText: 'Cái'),
+                      ),
+                    ),
+                    tableCell(
+                      TextFormField(
+                        controller: item.soLuongController,
+                        keyboardType: TextInputType.number,
+                        decoration: tableInputDecoration(hintText: '0'),
+                      ),
+                    ),
+                    tableCell(
+                      TextFormField(
+                        controller: item.donGiaController,
+                        keyboardType: TextInputType.number,
+                        decoration: tableInputDecoration(hintText: '0'),
+                      ),
+                    ),
+                    tableCell(
+                      Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          formatCurrency(item.thanhTien),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    tableCell(
+                      // Khi chỉnh sửa thì không cho phép xóa dòng duy nhất này
+                      isEdit
+                          ? const SizedBox()
+                          : IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                        onPressed: () => _xoaHangHoa(index),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // COMMON CARD
-  // ============================================================
-
-  Widget _card({
-    required Widget child,
-  }) {
+  Widget _card({required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: child,
     );
   }
-
-  // ============================================================
-  // SECTION TITLE
-  // ============================================================
-
-  Widget _sectionTitle({
-    required IconData icon,
-    required String title,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            size: 19,
-            color: Colors.blue.shade700,
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xff263238),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // INPUT DECORATION
-  // ============================================================
 
   InputDecoration _inputDecoration({
     required String label,
@@ -939,31 +798,21 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
   }) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(
-        icon,
-        size: 20,
-      ),
+      prefixIcon: Icon(icon, size: 20),
       suffixIcon: suffix,
       filled: true,
       fillColor: const Color(0xfffafafa),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-          color: Colors.grey.shade300,
-        ),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-          color: Colors.grey.shade300,
-        ),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-          color: Colors.blue.shade600,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: Colors.blue.shade600, width: 1.5),
       ),
     );
   }

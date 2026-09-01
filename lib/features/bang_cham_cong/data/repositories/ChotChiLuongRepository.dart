@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_khoa_cong.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_xoa.dart';
+import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
@@ -11,6 +12,7 @@ import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/bang_luong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ky_luong_chi_tiet.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/enums.dart';
+import 'package:nhat_ky_xay_dung/features/luong/data/models/ChiLuong.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/LuongCoBan.dart';
 import '../../../../core/utils/trang_thai_cham_cong.dart';
 import '../../../../data/db_helper.dart';
@@ -22,11 +24,7 @@ import 'cham_cong_chi_tiet_repo.dart';
 class ChotChiLuongRepository {
   final _dbHelper = DBHelper.instance;
 
-  Future<void> chotOrHuyChotLuong({
-    int? idBangLuong,
-    required int idNhanVienCongTrinh,
-    required int idBangChamCong
-  }) async
+  Future<void> chotOrHuyChotLuong({ int? idBangLuong, required int idNhanVienCongTrinh, required int idBangChamCong }) async
   {
     // Kiểm tra trạng thái hiện tại
     bool daChotLuong = await checkDaChotLuong(idBangLuong: idBangLuong, idNhanVienCongTrinh: idNhanVienCongTrinh, idBangChamCong: idBangChamCong);
@@ -169,18 +167,28 @@ class ChotChiLuongRepository {
     );
   }
 
-  Luongcoban? timLuongApDung({ required List<Luongcoban> listLuongCoBan, required String ngay, }) {
+  Luongcoban? timLuongApDung({ required List<Luongcoban> listLuongCoBan, required String ngay,}) {
     Luongcoban? luongPhuHop;
+    final ngayCanTim = DateTime.tryParse(ngay);
+    if (ngayCanTim == null) return null;
+    final ngayTim = DateTime( ngayCanTim.year, ngayCanTim.month, ngayCanTim.day,);
     for (final luong in listLuongCoBan) {
-      final ngayApDung = luong.ngayApDung;
-      if (ngayApDung == null || ngayApDung.isEmpty) {
+      final ngayApDungStr = luong.ngayApDung;
+      if (ngayApDungStr == null || ngayApDungStr.isEmpty) {
         luongPhuHop ??= luong;
         continue;
       }
-      // Chưa đến ngày áp dụng thì bỏ qua
-      if (ngayApDung.compareTo(ngay) <= 0) {
+      final ngayApDungDate = DateTime.tryParse(ngayApDungStr);
+      if (ngayApDungDate == null) continue;
+      final ngayApDung = DateTime(
+        ngayApDungDate.year,
+        ngayApDungDate.month,
+        ngayApDungDate.day,
+      );
+      // Chỉ so sánh năm/tháng/ngày
+      if (ngayApDung.compareTo(ngayTim) <= 0) {
         luongPhuHop = luong;
-      }else{
+      } else {
         break;
       }
     }
@@ -367,18 +375,14 @@ class ChotChiLuongRepository {
     return result.first;
   }
   /// 👉 thêm chi lương
-  Future<void> insertChiLuong({
-    required int idBangLuong,
-    required double soTien,
-    String? ghiChu,
-  }) async
+  Future<void> insertChiLuong({ required int idBangLuong, required double soTien, String? ghiChu }) async
   {
     final db = await _dbHelper.database;
-    await db.insert('chi_luong', {
-      'idBangLuong': idBangLuong,
-      'soTien': soTien,
-      'ngayChi': DateTime.now().toIso8601String(),
-      'ghiChu': ghiChu,
+    await db.insert(ChiLuongTable.tableName, {
+      ChiLuongTable.idBangLuong: idBangLuong,
+      ChiLuongTable.soTien: soTien,
+      ChiLuongTable.ngayChi: DateTime.now().toIso8601String(),
+      ChiLuongTable.ghiChu: ghiChu,
     });
   }
 
@@ -409,4 +413,13 @@ class ChotChiLuongRepository {
     return true;
   }
 
+  Future<double> tongDaChi(int? idBangLuong) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT COALESCE(SUM(${ChiLuongTable.soTien}), 0) AS tong
+    FROM ${ChiLuongTable.tableName}
+    WHERE ${ChiLuongTable.idBangLuong} = ?
+  ''', [idBangLuong]);
+    return (result.first['tong'] as num?)?.toDouble() ?? 0.0;
+  }
 }

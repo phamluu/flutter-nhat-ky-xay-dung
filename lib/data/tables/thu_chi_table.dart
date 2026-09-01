@@ -6,7 +6,11 @@ class ThuChiTable {
   static const String id = 'id';
   static const String id_danh_muc_thu_chi = 'id_danh_muc_thu_chi';
   static const String loai = 'loai';
-  static const String so_tien = 'so_tien';
+  // static const String so_tien = 'so_tien';
+  static const String tenHangHoa = 'ten_hang';
+  static const String donViTinh = 'don_vi_tinh';
+  static const String soLuong = 'so_luong';
+  static const String donGia = 'don_gia';
   static const String ghi_chu = 'ghi_chu';
   static const String ngay = 'ngay';
   static const String id_cong_trinh = 'id_cong_trinh';
@@ -20,7 +24,10 @@ class ThuChiTable {
         $id INTEGER PRIMARY KEY AUTOINCREMENT,
         $id_danh_muc_thu_chi INTEGER,
         $loai INTEGER NOT NULL, -- 0: chi, 1: thu
-        $so_tien REAL NOT NULL,
+        $tenHangHoa TEXT NOT NULL,
+        $donViTinh TEXT,
+        $soLuong REAL,
+        $donGia REAL,
         $ghi_chu TEXT,
         $ngay TEXT NOT NULL,
         $id_cong_trinh INTEGER,

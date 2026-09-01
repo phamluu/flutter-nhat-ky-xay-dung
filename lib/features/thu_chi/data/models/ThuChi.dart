@@ -1,3 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
+
+import '../../../../data/tables/thu_chi_table.dart';
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import 'DanhMucThuChi.dart';
 
@@ -6,20 +9,28 @@ class ThuChi {
   final int? idDanhMucThuChi;
   final DanhMucThuChi? danhMucThuChi;
   final int loai; // 0: chi, 1: thu
-  final double soTien;
+  final double? donGia;
+  final double? soLuong;
+  final String? tenHangHoa;
+  final String? donViTinh;
   final String? ghiChu;
   final String ngay;
   final int? idCongTrinh;
   final CongTrinh? congTrinh;
   final String ngayTao;
   final int? isSynced;
-
+  double get thanhTien{
+    return (donGia ?? 0) * (soLuong ?? 0);
+}
   ThuChi({
     this.id,
     this.idDanhMucThuChi,
     this.danhMucThuChi,
     required this.loai,
-    required this.soTien,
+    this.donGia,
+    this.soLuong,
+    this.tenHangHoa,
+    this.donViTinh,
     this.ghiChu,
     required this.ngay,
     this.idCongTrinh,
@@ -30,37 +41,36 @@ class ThuChi {
 
   Map<String, dynamic> toMap() {
     final map = {
-      'id': id,
-      'id_danh_muc_thu_chi': idDanhMucThuChi,
-      'loai': loai,
-      'so_tien': soTien,
-      'ghi_chu': ghiChu,
-      'ngay': ngay,
-      'id_cong_trinh': idCongTrinh,
-      'ngay_tao': ngayTao,
+      ThuChiTable.id: id,
+      ThuChiTable.id_danh_muc_thu_chi: idDanhMucThuChi,
+      ThuChiTable.loai: loai,
+      ThuChiTable.donGia: donGia,
+      ThuChiTable.tenHangHoa: tenHangHoa,
+      ThuChiTable.donViTinh: donViTinh,
+      ThuChiTable.soLuong:soLuong,
+      ThuChiTable.ngay: ngay,
+      ThuChiTable.id_cong_trinh: idCongTrinh,
+      ThuChiTable.ngay_tao: ngayTao,
     };
-    if (congTrinh != null) {
-      map['cong_trinh'] = congTrinh!.toMapUpdate();
-    }
-    if (danhMucThuChi != null) {
-      map['danh_muc_thu_chi'] = danhMucThuChi!.toMap();
-    }
     return map;
   }
 
   factory ThuChi.fromMap(Map<String, dynamic> map,
       {CongTrinh? congTrinh, DanhMucThuChi? danhMucThuChi}) {
     return ThuChi(
-      id: map['id'],
-      idDanhMucThuChi: map['id_danh_muc_thu_chi'],
+      id: map[ThuChiTable.id],
+      idDanhMucThuChi: map[ThuChiTable.id_danh_muc_thu_chi],
       danhMucThuChi: danhMucThuChi,
-      loai: map['loai'],
-      soTien: map['so_tien'],
-      ghiChu: map['ghi_chu'],
-      ngay: map['ngay'],
-      idCongTrinh: map['id_cong_trinh'],
+      loai: map[ThuChiTable.loai],
+      donViTinh: map[ThuChiTable.donViTinh],
+      tenHangHoa: map[ThuChiTable.tenHangHoa],
+      soLuong: map[ThuChiTable.soLuong],
+      donGia: map[ThuChiTable.donGia],
+      ghiChu: map[ThuChiTable.ghi_chu],
+      ngay: map[ThuChiTable.ngay],
+      idCongTrinh: map[ThuChiTable.id_cong_trinh],
       congTrinh: congTrinh,
-      ngayTao: map['ngay_tao'],
+      ngayTao: map[ThuChiTable.ngay_tao],
     );
   }
 }
@@ -156,14 +166,14 @@ class ThuChiDanhMucViewModel {
     if (thuchis == null || thuchis!.isEmpty) return 0;
     return thuchis!
         .where((tc) => tc.loai == 1)
-        .fold(0.0, (sum, tc) => sum + tc.soTien);
+        .fold(0.0, (sum, tc) => sum + tc.thanhTien);
   }
 
   double get tongChi {
     if (thuchis == null || thuchis!.isEmpty) return 0;
     return thuchis!
         .where((tc) => tc.loai == 0)
-        .fold(0.0, (sum, tc) => sum + tc.soTien);
+        .fold(0.0, (sum, tc) => sum + tc.thanhTien);
   }
 
   double get conLai => tongThu - tongChi;
@@ -179,14 +189,14 @@ class ThuChiKhacViewModel {
           ? 0
           : thuchis!
           .where((tc) => tc.loai == 1)
-          .fold(0.0, (sum, tc) => sum + tc.soTien);
+          .fold(0.0, (sum, tc) => sum + tc.thanhTien);
 
   double get tongChi =>
       (thuchis == null || thuchis!.isEmpty)
           ? 0
           : thuchis!
           .where((tc) => tc.loai == 0)
-          .fold(0.0, (sum, tc) => sum + tc.soTien);
+          .fold(0.0, (sum, tc) => sum + tc.thanhTien);
 
   double get conLai => tongThu - tongChi;
 }

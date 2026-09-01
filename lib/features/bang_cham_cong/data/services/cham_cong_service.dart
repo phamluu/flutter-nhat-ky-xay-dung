@@ -42,6 +42,7 @@ class ChamCongService {
       BangLuong? bangLuong = await _bangLuongRepo.getBangLuongForNhanVien(idBangChamCong, nv.id);
       final ungLuongs = await _ungLuongRepo.tongTienUngLuongForNhanVien(idNhanVienCongTrinh: nv.id!, idBangLuong: bangLuong?.id);
       final truUng = await _ungLuongRepo.tongTruUng(bangLuong?.id);
+      final tongDaChi = await _bangLuongRepo.tongDaChi(bangLuong?.id);
       // 3. Gán vào model nhân viên
 
       final chamCong = ChamCongNhanVienModel(
@@ -59,7 +60,7 @@ class ChamCongService {
         tongLuongChot: bangLuong?.tongLuong,
         tongUngChot: bangLuong?.tongUng,
         thucNhanChot: bangLuong?.thucNhan,
-        tongDaChi: 0.0,
+        tongDaChi: tongDaChi,
       );
       result.add(
         ChamCongLuongNhanVienModel(

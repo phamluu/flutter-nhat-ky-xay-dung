@@ -544,7 +544,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              formatCurrency(0),
+              formatCurrency(nv.luong.tongDaChi),
               style: const TextStyle(fontSize: 13,fontWeight: FontWeight.w700,),
             ),
             const SizedBox(width: 12),

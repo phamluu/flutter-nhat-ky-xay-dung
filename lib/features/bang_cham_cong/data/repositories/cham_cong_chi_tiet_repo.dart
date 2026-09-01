@@ -1,6 +1,7 @@
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/cham_cong_chi_tiet.dart';
 
 import '../../../../core/utils/trang_thai_cham_cong.dart';
@@ -144,11 +145,7 @@ class ChamCongChiTietRepo {
   // lấy toàn bộ chấm công chi tiêt đã chốt lương => list idLuongCoBan dựa vào ngày & idNhanVienCongTrinh
 
   // Lấy lương cơ bản trong 1 ngày cụ thể của 1 nhân viên
-  Future<Luongcoban> luongNgayForNhanVien({
-    int? idNhanVien,
-    int? idNhanVienCongTrinh,
-    String? ngay,
-  }) async {
+  Future<Luongcoban> luongNgayForNhanVien({ int? idNhanVien, int? idNhanVienCongTrinh, String? ngay, }) async {
     if (idNhanVien == null && idNhanVienCongTrinh == null) {
       throw Exception('Không xác định được nhân viên');
     }
@@ -173,8 +170,7 @@ class ChamCongChiTietRepo {
     if (ngay != null && ngay.isNotEmpty) {
       where.add('''
       (
-        lcb.${LuongCoBanTable.ngayApDung} IS NULL
-        OR lcb.${LuongCoBanTable.ngayApDung} <= ?
+        lcb.${LuongCoBanTable.ngayApDung} <= ?
       )
     ''');
       args.add(ngay);
@@ -202,12 +198,21 @@ class ChamCongChiTietRepo {
     ''',
       args,
     );
-    if (results.isEmpty) {
+    // Lấy danh sách lương cơ bản
+    final luongs = await db.rawQuery('''
+      SELECT lcb.* FROM ${LuongCoBanTable.tableName} lcb
+      INNER JOIN ${NhanVienTable.tableName} nv ON lcb.${LuongCoBanTable.idNhanVien} = nv.${NhanVienTable.id}
+      INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct ON nv.${NhanVienTable.id} = nvct.${NhanVienCongTrinhTable.idNhanVien}
+      WHERE (nvct.${NhanVienCongTrinhTable.id} = ? AND date(lcb.${LuongCoBanTable.ngayApDung}) <= date(?))
+      ORDER BY lcb.${LuongCoBanTable.ngayApDung} DESC
+      LIMIT 1
+    ''', [idNhanVienCongTrinh, ngay]);
+    if (luongs.isEmpty) {
       return Luongcoban(mucLuong: 0);
     }
-    final result = results.first;
-    final idLuongCoBan = result['idLuongCoBan'] as int?;
-    final mucLuong = (result['mucLuong'] as num?)?.toDouble() ?? 0.0;
+    final result = luongs.first;
+    final idLuongCoBan = result[LuongCoBanTable.id] as int;
+    final mucLuong = (result[LuongCoBanTable.mucLuong] as num?)?.toDouble() ?? 0.0;
     return Luongcoban(id: idLuongCoBan, mucLuong: mucLuong,);
   }
   // idChamCong là id trong table chấm công chi tiết

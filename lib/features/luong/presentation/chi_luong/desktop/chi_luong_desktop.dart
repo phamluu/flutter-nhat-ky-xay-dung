@@ -46,8 +46,7 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
   @override
   void initState() {
     super.initState();
-    _service = ChiLuongService(
-      ChiLuongRepository(),ChotChiLuongRepository()
+    _service = ChiLuongService(ChiLuongRepository(),ChotChiLuongRepository()
     );
     _load();
   }
@@ -588,11 +587,7 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
           const Divider( height: 1, ),
 
           Expanded(
-            child: loadingData
-                ? const Center(
-              child:
-              CircularProgressIndicator(),
-            )
+            child: loadingData ? const Center( child: CircularProgressIndicator(),)
                 : lichSu.isEmpty
                 ? _buildEmptyHistory()
                 : _buildHistoryTable(),

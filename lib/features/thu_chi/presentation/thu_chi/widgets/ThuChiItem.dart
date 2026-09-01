@@ -51,7 +51,7 @@ class ThuChiItem extends StatelessWidget {
         ),
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: ListTile(
-          title: Text("${tc.loai == 1 ? "Thu" : "Chi"}: ${currencyFormat.format(tc.soTien)}"),
+          title: Text("${tc.loai == 1 ? "Thu" : "Chi"}: ${currencyFormat.format(tc.thanhTien)}"),
           subtitle: Text(tc.ghiChu ?? ""),
             onTap: () async{
               final result = await Navigator.push(

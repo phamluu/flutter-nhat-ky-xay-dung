@@ -26,6 +26,16 @@ class ThuChiService {
     final db = await _dbHelper.database;
     return await db.insert(ThuChiTable.tableName, tc.toMap());
   }
+  Future<void> insertAll(List<ThuChi> list) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (var item in list) {
+        batch.insert(ThuChiTable.tableName, item.toMap());
+      }
+      await batch.commit(noResult: true);
+    });
+  }
   Future<int> update(ThuChi tc) async {
     final db = await _dbHelper.database;
     return await db.update(

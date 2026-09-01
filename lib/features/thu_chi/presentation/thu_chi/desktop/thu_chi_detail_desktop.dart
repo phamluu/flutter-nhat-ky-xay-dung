@@ -171,7 +171,7 @@ class ThuChiDetailDesktop extends StatelessWidget {
                 const SizedBox(height: 9),
 
                 Text(
-                  currencyFormat.format(tc.soTien),
+                  currencyFormat.format(tc.thanhTien),
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,

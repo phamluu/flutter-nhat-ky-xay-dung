@@ -51,7 +51,7 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
       _conTrinhs = cts;
 
       if (widget.thuChi != null) {
-        _soTienController.text = widget.thuChi!.soTien.toString();
+        _soTienController.text = widget.thuChi!.donGia.toString();
         _ghiChuController.text = widget.thuChi!.ghiChu ?? "";
         _ngayController.text =
             _dateFormat.format(DateTime.parse(widget.thuChi!.ngay));
@@ -107,7 +107,7 @@ class _ThemThuChiScreenState extends State<ThemThuChiScreen> {
       id: widget.thuChi?.id,
       idDanhMucThuChi: _selectedDanhMucId,
       loai: _loai,
-      soTien: double.parse(_soTienController.text),
+      donGia: double.parse(_soTienController.text),
       ghiChu: _ghiChuController.text.isEmpty ? null : _ghiChuController.text,
       ngay: tcDate.toIso8601String(),
       idCongTrinh: _selectedCongTrinhId,

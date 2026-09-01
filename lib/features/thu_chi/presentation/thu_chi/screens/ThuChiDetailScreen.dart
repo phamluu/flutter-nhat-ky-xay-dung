@@ -31,7 +31,7 @@ class ThuChiDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildRow("Số tiền:",
-                    currencyFormat.format(tc.soTien),
+                    currencyFormat.format(tc.thanhTien),
                     color: tc.loai == 1 ? Colors.green : Colors.red,
                     isBold: true),
                 const SizedBox(height: 8),

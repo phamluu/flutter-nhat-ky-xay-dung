@@ -177,30 +177,38 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               const SizedBox(height: 22),
               _buildSummary(vm),
               const SizedBox(height: 28),
-              if (isCompact)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTransactionArea(vm),
-                    const SizedBox(height: 20),
-                    _buildOverviewPanel(vm),
-                  ],
-                )
-              else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 7,
-                      child: _buildTransactionArea(vm),
-                    ),
-                    const SizedBox(width: 22),
-                    Expanded(
-                      flex: 3,
-                      child: _buildOverviewPanel(vm),
-                    ),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildTransactionArea(vm),
+                  const SizedBox(height: 20),
+                  _buildOverviewPanel(vm),
+                ],
+              )
+              // if (isCompact)
+              //   Column(
+              //     crossAxisAlignment: CrossAxisAlignment.stretch,
+              //     children: [
+              //       _buildTransactionArea(vm),
+              //       const SizedBox(height: 20),
+              //       _buildOverviewPanel(vm),
+              //     ],
+              //   )
+              // else
+              //   Row(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Expanded(
+              //         flex: 7,
+              //         child: _buildTransactionArea(vm),
+              //       ),
+              //       const SizedBox(width: 22),
+              //       Expanded(
+              //         flex: 3,
+              //         child: _buildOverviewPanel(vm),
+              //       ),
+              //     ],
+              //   ),
             ],
           ),
         );
@@ -834,24 +842,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               ),
             )
           else
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  ...items.map(
-                        (tc) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: ThuChiItemDesktop(
-                        tc: tc,
-                        onRefresh: () {
-                          setState(_load);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ThuChiTableDesktop(items: items, onRefresh: _load,)
         ],
       ),
     );
@@ -863,7 +854,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
 
   Widget _buildKhacCard(ThuChiCongTrinhViewModel vm) {
     final items = vm.thuChiKhacs.thuchis ?? [];
-
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
@@ -917,24 +907,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                ...items.map(
-                      (tc) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: ThuChiItemDesktop(
-                      tc: tc,
-                      onRefresh: () {
-                        setState(_load);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ThuChiTableDesktop(items: items, onRefresh: _load)
         ],
       ),
     );
