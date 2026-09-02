@@ -39,7 +39,7 @@ class ThuChi {
     this.isSynced
   });
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMapInsert() {
     final map = {
       ThuChiTable.id: id,
       ThuChiTable.id_danh_muc_thu_chi: idDanhMucThuChi,
@@ -50,11 +50,24 @@ class ThuChi {
       ThuChiTable.soLuong:soLuong,
       ThuChiTable.ngay: ngay,
       ThuChiTable.id_cong_trinh: idCongTrinh,
-      ThuChiTable.ngay_tao: ngayTao,
+      ThuChiTable.ngay_tao: DateTime.now().toIso8601String(),
     };
     return map;
   }
-
+  Map<String, dynamic> toMapUpdate() {
+    final map = {
+      ThuChiTable.id: id,
+      ThuChiTable.id_danh_muc_thu_chi: idDanhMucThuChi,
+      ThuChiTable.loai: loai,
+      ThuChiTable.donGia: donGia,
+      ThuChiTable.tenHangHoa: tenHangHoa,
+      ThuChiTable.donViTinh: donViTinh,
+      ThuChiTable.soLuong:soLuong,
+      ThuChiTable.ngay: ngay,
+      ThuChiTable.id_cong_trinh: idCongTrinh,
+    };
+    return map;
+  }
   factory ThuChi.fromMap(Map<String, dynamic> map,
       {CongTrinh? congTrinh, DanhMucThuChi? danhMucThuChi}) {
     return ThuChi(

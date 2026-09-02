@@ -25,14 +25,14 @@ class ThuChiService {
 
   Future<int> insert(ThuChi tc) async {
     final db = await _dbHelper.database;
-    return await db.insert(ThuChiTable.tableName, tc.toMap());
+    return await db.insert(ThuChiTable.tableName, tc.toMapInsert());
   }
   Future<void> insertAll(List<ThuChi> list) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       final batch = txn.batch();
       for (var item in list) {
-        batch.insert(ThuChiTable.tableName, item.toMap());
+        batch.insert(ThuChiTable.tableName, item.toMapInsert());
       }
       await batch.commit(noResult: true);
     });
@@ -42,7 +42,7 @@ class ThuChiService {
     try{
       return await db.update(
         ThuChiTable.tableName,
-        tc.toMap(),
+        tc.toMapUpdate(),
         where: '${ThuChiTable.id} = ?',
         whereArgs: [tc.id],
       );
@@ -84,17 +84,17 @@ class ThuChiService {
       '''
     SELECT 
       tc.*, 
-      ct.id as ct_id, 
-      ct.ten as ct_ten, 
-      dm.id as dm_id, 
-      dm.ten as dm_ten
+      ct.${CongTrinhTable.id} as ct_id, 
+      ct.${CongTrinhTable.ten} as ct_ten, 
+      dm.${DanhMucThuChiTable.id} as dm_id, 
+      dm.${DanhMucThuChiTable.ten} as dm_ten
     FROM ${ThuChiTable.tableName} tc
     LEFT JOIN ${CongTrinhTable.tableName} ct 
       ON tc.${ThuChiTable.id_cong_trinh} = ct.id
     LEFT JOIN ${DanhMucThuChiTable.tableName} dm 
       ON tc.${ThuChiTable.id_danh_muc_thu_chi} = dm.id
     $whereClause
-    ORDER BY tc.${ThuChiTable.ngay} DESC
+    ORDER BY tc.${ThuChiTable.ngay_tao} DESC
     ''',
       args,
     );
@@ -198,8 +198,7 @@ class ThuChiService {
     final allThuChis = await getAllWithDetails(idCongTrinh, tuNgay, denNgay);
     final danhMucs = await _danhMucRepo.getAll();
     final congTrinh = await _congTrinhRepo.getCongTrinh(idCongTrinh);
-    final thuChiCtList =
-        allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();
+    final thuChiCtList = allThuChis.where((tc) => tc.idCongTrinh == idCongTrinh).toList();
 
     final List<ThuChiDanhMucViewModel> ctDanhMucs = [];
     final List<ThuChi> ctKhac = [];

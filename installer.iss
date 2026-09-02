@@ -3,6 +3,9 @@
 #define MyAppPublisher "My Company"
 #define MyAppExeName "nhat_ky_xay_dung.exe"
 
+#define AppOrgFolder "dhlc.art"
+#define AppDataFolder "nhat_ky_xay_dung"
+
 [Setup]
 AppId={{YOUR-APP-GUID-HERE}}
 AppName={#MyAppName}
@@ -42,3 +45,25 @@ Name: "{autodesktop}\{#MyAppName}"; \
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
+
+Type: filesandordirs; Name: "{userappdata}\{#MyAppPublisher}\{#MyAppName}"
+Type: filesandordirs; Name: "{userappdata}\{#MyAppName}"
+
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+    DataDir: String;
+begin
+    if CurUninstallStep = usUninstall then
+        begin
+// Lấy đường dẫn động qua biến #define
+            DataDir := ExpandConstant('{userappdata}\{#AppOrgFolder}\{#AppDataFolder}');
+            if DirExists(DataDir) then
+            begin
+                if MsgBox('Bạn có muốn xóa toàn bộ dữ liệu ứng dụng (Database, Cấu hình) không?', mbConfirmation, MB_YESNO) = IDYES then
+                begin
+                    DelTree(DataDir, True, True, True);
+                end;
+            end;
+        end;
+end;
