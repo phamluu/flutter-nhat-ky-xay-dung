@@ -165,7 +165,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   Widget _buildDesktopContent(ThuChiCongTrinhViewModel vm) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = false;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Column(
@@ -185,30 +184,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                   _buildOverviewPanel(vm),
                 ],
               )
-              // if (isCompact)
-              //   Column(
-              //     crossAxisAlignment: CrossAxisAlignment.stretch,
-              //     children: [
-              //       _buildTransactionArea(vm),
-              //       const SizedBox(height: 20),
-              //       _buildOverviewPanel(vm),
-              //     ],
-              //   )
-              // else
-              //   Row(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Expanded(
-              //         flex: 7,
-              //         child: _buildTransactionArea(vm),
-              //       ),
-              //       const SizedBox(width: 22),
-              //       Expanded(
-              //         flex: 3,
-              //         child: _buildOverviewPanel(vm),
-              //       ),
-              //     ],
-              //   ),
             ],
           ),
         );
@@ -763,6 +738,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
                   _buildKhacCard(vm),
               ],
             ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -918,12 +894,19 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
   // ============================================================
 
   Widget _buildOverviewPanel(ThuChiCongTrinhViewModel vm) {
-    return Column(
-      children: [
-        _buildBalancePanel(vm),
-        const SizedBox(height: 16),
-        _buildQuickInfo(vm),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildBalancePanel(vm),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildQuickInfo(vm),
+          ),
+        ],
+      ),
     );
   }
 

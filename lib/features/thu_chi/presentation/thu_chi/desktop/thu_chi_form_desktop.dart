@@ -102,19 +102,15 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     try {
       final dms = await _dmService.getAll();
       final cts = await _ctService.getDanhSachCongTrinh();
-
       if (!mounted) return;
-
       setState(() {
         _danhMucs = dms;
         _conTrinhs = cts;
-
         if (widget.thuChi != null) {
           // ==========================================
           // TRƯỜNG HỢP SỬA: LOAD DỮ LIỆU CŨ VÀO DÒNG HÀNG HÓA
           // ==========================================
           final tc = widget.thuChi!;
-
           // Khởi tạo 1 dòng HangHoaInput với dữ liệu có sẵn
           final item = HangHoaInput(
             ten: tc.tenHangHoa ?? '', // Hoặc tên hàng hóa tương ứng từ DB của bạn
@@ -126,7 +122,9 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
           // Lắng nghe sự thay đổi để tính lại thành tiền
           item.soLuongController.addListener(_onItemChange);
           item.donGiaController.addListener(_onItemChange);
-
+          if (widget.thuChi!.donGia != null) {
+            item.donGiaController.text =formatCurrency(widget.thuChi!.donGia!);
+          }
           _hangHoaList.clear();
           _hangHoaList.add(item);
 
@@ -224,7 +222,6 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     // Parse ngày giao dịch
     final dateParts = _ngayController.text.split('/');
     final tcDate = DateTime(
@@ -232,29 +229,23 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       int.parse(dateParts[1]),
       int.parse(dateParts[0]),
     );
-
     setState(() {
       _isSaving = true;
     });
-
     try {
       if (widget.thuChi != null) {
         // ==========================================
         // TRƯỜNG HỢP SỬA: CẬP NHẬT 1 BẢN GHI DUY NHẤT
         // ==========================================
         final item = _hangHoaList.isNotEmpty ? _hangHoaList.first : HangHoaInput();
-
-        // Ưu tiên lấy tên hàng hóa từ bảng chi tiết, nếu trống lấy ghi chú cũ
-        final ghiChuValue = item.tenController.text.trim().isNotEmpty
-            ? item.tenController.text.trim()
-            : _ghiChuController.text.trim();
-
         final tc = ThuChi(
           id: widget.thuChi!.id,
           idDanhMucThuChi: _selectedDanhMucId,
           loai: _loai,
-          donGia: item.donGia  > 0 ? item.donGia : parseCurrency(_soTienController.text),
-          ghiChu: ghiChuValue.isEmpty ? null : ghiChuValue,
+          donGia: item.donGia,
+          tenHangHoa: item.tenController.text.trim(),
+          donViTinh: item.donVi,
+          soLuong: item.soLuong,
           ngay: tcDate.toIso8601String(),
           idCongTrinh: _selectedCongTrinhId,
           ngayTao: widget.thuChi!.ngayTao,
@@ -374,20 +365,7 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
             ],
           ),
         ),
-        if (isEdit)
-          OutlinedButton.icon(
-            onPressed: _delete,
-            icon: const Icon(Icons.delete_outline, size: 19),
-            label: const Text('Xóa'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+
         const SizedBox(width: 10),
         IconButton(
           onPressed: _goBack,
@@ -747,7 +725,21 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
                       TextFormField(
                         controller: item.donGiaController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CurrencyInputFormatter(),
+                        ],
                         decoration: tableInputDecoration(hintText: '0'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nhập số tiền';
+                          }
+                          final amount = parseCurrency(value, );
+                          if (amount <= 0) {
+                            return 'Số tiền phải lớn hơn 0';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                     tableCell(

@@ -83,14 +83,12 @@ Widget buildTamUngChiLuong(
 
         Padding(
           padding: const EdgeInsets.all(10),
-          child: Column(
+          child: Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+              Expanded(
                 child: buildChiLuongItem(title: 'Tạm ứng', soTien: formatCurrency(vm.tamUngLuong) ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+              Expanded(
                 child: buildChiLuongItem(title: 'Chi lương', soTien: formatCurrency(vm.daChiLuong)),
               )
             ],

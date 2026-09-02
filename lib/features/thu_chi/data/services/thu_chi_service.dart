@@ -1,3 +1,4 @@
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
@@ -38,12 +39,16 @@ class ThuChiService {
   }
   Future<int> update(ThuChi tc) async {
     final db = await _dbHelper.database;
-    return await db.update(
-      ThuChiTable.tableName,
-      tc.toMap(),
-      where: '${ThuChiTable.id} = ?',
-      whereArgs: [tc.id],
-    );
+    try{
+      return await db.update(
+        ThuChiTable.tableName,
+        tc.toMap(),
+        where: '${ThuChiTable.id} = ?',
+        whereArgs: [tc.id],
+      );
+    }catch(e){
+      throw Exception('Không thể update');
+    }
   }
 
   Future<int> delete(int id) async {
