@@ -159,7 +159,7 @@ class _ThuChiTableRowDesktopState extends State<ThuChiTableRowDesktop> {
         duration: const Duration(milliseconds: 120),
         color: _isHovering ? const Color(0xfff8fafc) : Colors.white,
         child: InkWell(
-          onTap: () => _openDetail(context),
+          // onTap: () => _openDetail(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(

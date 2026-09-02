@@ -10,6 +10,7 @@ import '../../../data/services/thu_chi_service.dart';
 import '../widgets/buildInfoRow.dart';
 import '../widgets/buildLoading.dart';
 import '../widgets/buildProgressRow.dart';
+import '../widgets/exportExcel.dart';
 import '../widgets/getYears.dart';
 import 'buildChiLuong.dart';
 import 'buildDropdown.dart';
@@ -73,7 +74,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       tuNgay: range?.$1,
       denNgay: range?.$2,
     );
-
     _loadDateRange();
   }
 
@@ -83,7 +83,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       setState(() {
         _firstDate = firstDate ?? DateTime.now();
         _lastDate = lastDate ?? DateTime.now();
-
         // CẬP NHẬT CẢ BIẾN STATE VÀ CONTROLLER
         if (_fromDate == null && _firstDate != null) {
           _fromDate = _firstDate; // Gán object DateTime
@@ -120,16 +119,11 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
     }
   }
 
-  // ============================================================
-  // BUILD
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff4f6f8),
-      appBar: AppBar(
-        title: _buildTopBar(),
-      ),
+      appBar: AppBar( title: _buildTopBar(), ),
       body: Column(
         children: [
           Expanded(
@@ -301,11 +295,60 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
             ],
           ),
         ),
-        const Spacer(),
-        buildTopAction(
-          icon: Icons.refresh,
-          label: 'Làm mới',
-          onPressed: _refresh,
+        const SizedBox(width: 10),
+        OutlinedButton.icon(
+          onPressed: ()
+            {
+              exportExcelThuChi(
+                  context: context,
+                  data: _futureThuChi,
+                tenCongTrinh: widget.tenCongTrinh
+              );
+            },
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.red,),
+            label: const Text('Xuất pdf',  style: TextStyle(color: Colors.red,)),
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            foregroundColor: const Color(0xff475569),
+            side: BorderSide(
+              color: Colors.grey.shade300,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        OutlinedButton.icon(onPressed: ()
+            {
+                  exportExcelThuChi(
+                  context: context,
+                  data: _futureThuChi,
+                  tenCongTrinh: widget.tenCongTrinh,
+                    tuNgay: _fromDate,
+                    denNgay: _toDate
+                  );
+            },
+            icon: const Icon(Icons.import_export, color: Colors.green,),
+            label: const Text('Xuất excel', style: TextStyle(color: Colors.green,),),
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              foregroundColor: const Color(0xff475569),
+              side: BorderSide(
+                color: Colors.grey.shade300,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
         ),
         const SizedBox(width: 10),
         ElevatedButton.icon(
@@ -376,6 +419,12 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
               _buildFilterTitle(),
               const SizedBox(width: 24),
               datePicker,
+              const Spacer(),
+              buildTopAction(
+                icon: Icons.refresh,
+                label: 'Làm mới',
+                onPressed: _refresh,
+              ),
             ],
           );
         },
@@ -1074,7 +1123,6 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhDesktop> {
       return '${_dateFormat.format(_fromDate!)} - '
           '${_dateFormat.format(_toDate!)}';
     }
-
     return 'Toàn bộ công trình';
   }
 

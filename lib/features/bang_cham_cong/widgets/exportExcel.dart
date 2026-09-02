@@ -31,9 +31,7 @@ Future<void> exportExcelFull({
   await UngLuongExecl(sheetUngLuong: sheetUngLuong,
       idCongTrinh: idCongTrinh
   );
-  await ChiLuongExcel(sheetChiLuong: sheetChiLuong,
-
-      idCongTrinh: idCongTrinh);
+  await ChiLuongExcel(sheetChiLuong: sheetChiLuong, idCongTrinh: idCongTrinh);
   /// ===== SAVE FILE =====
   Directory? dir;
 
