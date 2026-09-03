@@ -19,7 +19,7 @@ class CongTrinhTable {
         $diaChi TEXT,
         $hinhAnh TEXT,
         $moTa TEXT,
-        $ngayBatDau TEXT NOT NULL,
+        $ngayBatDau TEXT,
         $ngayKetThuc TEXT,
         $ngayTao TEXT NOT NULL,
         $serverId TEXT,

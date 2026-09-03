@@ -10,6 +10,7 @@ class ChamCongChiTiet {
   String? tangCaBatDau ;
   String? tangCaKetthuc;
   String? ghiChu ;
+  int? idPhienChot;
   String? serverId ;
   int? isSynced ;
   String? updatedAt ;
@@ -25,6 +26,7 @@ class ChamCongChiTiet {
     this.tangCaBatDau,
     this.tangCaKetthuc,
     this.ghiChu,
+    this.idPhienChot,
     this.serverId,
     this.isSynced,
     this.updatedAt,
@@ -40,6 +42,7 @@ class ChamCongChiTiet {
     tangCaBatDau: map[ChamCongChiTietTable.tangCaBatDau] as String?,
     tangCaKetthuc: map[ChamCongChiTietTable.tangCaKetthuc] as String?,
     ghiChu: map[ChamCongChiTietTable.ghiChu] as String?,
+    idPhienChot: map[ChamCongChiTietTable.idPhienChot] as int?,
     serverId: map[ChamCongChiTietTable.serverId] as String?,
     isSynced: map[ChamCongChiTietTable.isSynced] as int?,
     updatedAt: map[ChamCongChiTietTable.updatedAt] as String?,

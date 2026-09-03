@@ -1,3 +1,5 @@
+import 'package:nhat_ky_xay_dung/data/tables/phien_chot_cong_table.dart';
+
 import 'cham_cong_table.dart';
 
 class ChamCongChiTietTable {
@@ -11,6 +13,7 @@ class ChamCongChiTietTable {
   static const String tangCaBatDau = 'tang_ca_bat_dau';
   static const String tangCaKetthuc = 'tang_ca_ket_thuc';
   static const String ghiChu = 'ghi_chu';
+  static const String idPhienChot = 'id_phien_chot';
   static const String serverId = 'server_id';
   static const String isSynced = 'is_synced';
   static const String updatedAt = 'updated_at';
@@ -26,6 +29,7 @@ class ChamCongChiTietTable {
     $tangCaBatDau TEXT,                        -- HH:mm (vd: '17:30')
     $tangCaKetthuc TEXT,                       -- HH:mm (vd: '19:30')
     $ghiChu TEXT,
+    $idPhienChot INTEGER NULL,
     $serverId TEXT,                                -- ID trên Server dùng để sync
     $isSynced INTEGER DEFAULT 0,                  -- 0: Chưa đồng bộ, 1: Đã đồng bộ
     $updatedAt TEXT,
@@ -33,7 +37,7 @@ class ChamCongChiTietTable {
 
     -- Ràng buộc: Trong 1 Bảng công, 1 Nhân viên chỉ có 1 dòng dữ liệu cho 1 Ngày
     UNIQUE($idChamCong, $idNhanVienCongTrinh, $ngay),
-
+    FOREIGN KEY ($idPhienChot) REFERENCES ${PhienChotCongTable.tableName}(${PhienChotCongTable.id}) ON DELETE SET NULL
     FOREIGN KEY ($idChamCong) REFERENCES ${ChamCongTable.tableName}(${ChamCongTable.id}) ON DELETE RESTRICT
 );
 

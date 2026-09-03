@@ -19,6 +19,7 @@ class ChamCongNgayDesktop extends StatefulWidget {
   final String? ngay;
   final String? hoTen;
   final String? tenCongTrinh;
+  final int? idPhienChot;
   final bool daKhoa;
   const ChamCongNgayDesktop({
     super.key,
@@ -29,6 +30,7 @@ class ChamCongNgayDesktop extends StatefulWidget {
     this.ngay,
     this.hoTen,
     this.tenCongTrinh,
+    this.idPhienChot,
     required this.daKhoa,
   });
   @override
@@ -125,8 +127,8 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
         isSaving = false;
       });
       showSuccessToast(context, "Lưu chấm công thành công");
-
-      await _load();
+      Navigator.of(context).pop(true);
+      // await _load();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -328,19 +330,13 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            widget.daKhoa
-                ? Icons.lock_outline
-                : Icons.lock_open_outlined,
+            widget.idPhienChot != null ? Icons.lock_outline : Icons.lock_open_outlined,
             size: 17,
             color: color,
           ),
-
           const SizedBox(width: 7),
-
           Text(
-            widget.daKhoa
-                ? "Đã khóa"
-                : "Chưa khóa",
+            widget.idPhienChot != null ? "Đã khóa" : "Chưa khóa",
             style: TextStyle(
               color: color,
               fontSize: 12,
@@ -397,7 +393,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
           _infoRow(
             icon: Icons.lock_outline,
             label: "Trạng thái",
-            value: widget.daKhoa
+            value: widget.idPhienChot != null
                 ? "Đã khóa chấm công"
                 : "Đang mở chấm công",
             valueColor: widget.daKhoa
@@ -415,7 +411,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
       title: "Chấm công",
       icon: Icons.access_time_outlined,
       iconColor: Colors.green,
-      headerAction: widget.daKhoa ? _lockedLabel() : TextButton.icon(
+      headerAction: widget.idPhienChot != null ? _lockedLabel() : TextButton.icon(
         onPressed: isSaving ? null : _toggleEdit,
         icon: Icon( _isEdit ? Icons.close : Icons.edit_outlined, size: 17, ),
         label: Text( _isEdit  ? "Hủy" : "Cập nhật", ),

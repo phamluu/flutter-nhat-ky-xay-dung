@@ -34,6 +34,7 @@ class ChamCongService {
               sang: TrangThaiChamCong.fromValue(c.trangThaiSang),
               chieu: TrangThaiChamCong.fromValue(c.trangThaiChieu),
               ghiChu: c.ghiChu ?? '',
+              idPhienChot: c.idPhienChot,
             ),
              luongNgay: luongCoBan.mucLuong!,
           );

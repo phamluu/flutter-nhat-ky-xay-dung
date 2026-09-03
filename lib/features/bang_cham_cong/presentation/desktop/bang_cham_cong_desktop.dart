@@ -19,6 +19,7 @@ import '../../data/services/cham_cong_service.dart';
 import '../../data/models/ChamCongModel.dart';
 import '../../widgets/ChamCongFilterState.dart';
 import '../../widgets/setKhoaChamCong.dart';
+import '../../widgets/setKhoaChamCongTheoNhanVien.dart';
 import '../widgets/badgeCell.dart';
 import '../widgets/textCell.dart';
 import '_buildColumns.dart';
@@ -44,6 +45,7 @@ class BangChamCongDesktop extends StatefulWidget {
 }
 
 class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
+  Set<int> selectedNhanVienIds = {};
   bool _showChucVu = true;
   bool _show10Dau = true;
   bool _show10Giua = true;
@@ -89,7 +91,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     _verticalScrollController.dispose();
     super.dispose();
   }
-
   Future<void> _load() async {
     if (widget.bangChamCong == null) return;
     if(widget.bangChamCong?.idCongTrinh == null) return;
@@ -113,7 +114,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       showErrorToast(context, e, "Không thể tải dữ liệu");
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -123,9 +123,20 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         title: buildDesktopHeader(
             theme:  theme,
             tenCongTrinh: widget.tenCongTrinh,
-            thang:'${widget.bangChamCong?.thang}/${widget.bangChamCong?.nam}',
+            thangKey:'${widget.bangChamCong?.thang}/${widget.bangChamCong?.nam}',
+            nam: widget.bangChamCong?.nam ,
+            thang: widget.bangChamCong?.thang,
             daKhoa: daKhoaCC,
             daChotLuong: coChotLuong,
+            selectedNhanVienIds: selectedNhanVienIds,
+            onChotCongTheoNhanVien: (DateTime dateSelected) async {
+              await setKhoaChamCongTheoNhanVien(
+                  context: context,
+                  idBangChamCong: widget.bangChamCong?.id,
+                  dateSelected: dateSelected,
+                  selectedNhanVienIds: selectedNhanVienIds);
+              await _load();
+            },
             onChotCong: () async {
                             await setkhoaChamCong(
                               context: context,
@@ -351,6 +362,15 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                 dataRowMaxHeight: 70,
                 headingRowColor: MaterialStateProperty.all(const Color(0xFFE8F5E9)),
                 border: TableBorder(horizontalInside: BorderSide(color: Colors.grey.shade200)),
+                onSelectAll: (bool? selected) {
+                  setState(() {
+                    if (selected == true) {
+                      selectedNhanVienIds = data.map((e) => e.chamCong.idNhanVienCongTrinh!).toSet();
+                    } else {
+                      selectedNhanVienIds.clear();
+                    }
+                  });
+                },
                 columns: buildColumns(soNgay, _showChucVu, _show10Dau, _show10Giua, _show10Cuoi),
                 rows: data.asMap().entries.map((e) => _buildDataRow(e.value, e.key)).toList(),
               ),
@@ -362,8 +382,23 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   }
 
   DataRow _buildDataRow(ChamCongLuongNhanVienModel nv, int index) {
+    final isSelected = selectedNhanVienIds.contains(nv.chamCong.idNhanVienCongTrinh);
     return DataRow(
-      color: MaterialStateProperty.all(index.isEven ? Colors.grey.shade50 : Colors.white),
+      selected: isSelected,
+      onSelectChanged: (bool? selected) {
+        setState(() {
+          if (selected == true) {
+            selectedNhanVienIds.add(nv.chamCong.idNhanVienCongTrinh!);
+          } else {
+            selectedNhanVienIds.remove(nv.chamCong.idNhanVienCongTrinh);
+          }
+        });
+      },
+      color: MaterialStateProperty.all(
+        isSelected
+            ? Theme.of(context).primaryColor.withOpacity(0.1) // Đổi màu nền nhẹ khi chọn
+            : (index.isEven ? Colors.grey.shade50 : Colors.white),
+      ),
       cells: [
         DataCell(
           InkWell(
@@ -404,6 +439,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       // 2. Lấy id chấm công ngày (nếu có) và chuỗi hiển thị
       final int? idChamCongNgay = chamCong?.id;
       final hienThi = nv.data[ngayKey]?.chamCong.hienThi ?? "...";
+      final chotCong = nv.data[ngayKey]?.chamCong.idPhienChot != null ? true : false;
       return DataCell(
         InkWell(
           onTap: () => _navigateToDay(nv:nv, ngayKey:ngayKey, idChamCongNgay: idChamCongNgay),
@@ -412,7 +448,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             height: 32,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: getChamCongColor(hienThi),
+              color: getChamCongColor(hienThi, chotCong),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -420,7 +456,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: getChamCongTextColor(hienThi),
+                color: getChamCongTextColor(hienThi, chotCong),
               ),
             ),
           ),
@@ -634,6 +670,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           ngay: ngayKey,
           hoTen: nv.ten,
           tenCongTrinh: widget.tenCongTrinh,
+          idPhienChot: nv.data[ngayKey]?.chamCong.idPhienChot,
           daKhoa: daKhoaCC,
         ),
       ),

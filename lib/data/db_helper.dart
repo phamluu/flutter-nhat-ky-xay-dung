@@ -13,6 +13,7 @@ import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_hinh_anh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/phien_chot_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ung_luong_table.dart';
@@ -20,6 +21,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'seed_data.dart';
 import 'tables/cong_trinh_table.dart';
 
 class DBHelper{
@@ -66,6 +68,10 @@ class DBHelper{
       version: 1,
       onCreate: (db, version) async {
         await _createAllTables(db);
+        // Chỉ nạp dữ liệu mẫu khi đang chạy trong môi trường Debug
+        if (kDebugMode) {
+          await SeedData.insertSampleData(db);
+        }
       },
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
@@ -97,6 +103,7 @@ class DBHelper{
     await db.execute(UngLuongTable.createTable);
     await db.execute(ChamCongTable.createTable);
     await db.execute(ChamCongChiTietTable.createTable);
+    await db.execute(PhienChotCongTable.createTable);
     await db.execute(KyLuongChiTietTable.createTable);
     await db.execute(ChiTietDoiTruUngLuongTable.createTable);
 

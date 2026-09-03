@@ -13,16 +13,22 @@ import '../models/ChamCongModel.dart';
 class ChamCongChiTietRepo {
   final _dbHelper = DBHelper.instance;
 
-  // Thêm chám công ngày
-  Future<int> insert(ChamCongChiTiet chamCong) async {
+   Future<int> insert(ChamCongChiTiet chamCong) async {
     final db = await _dbHelper.database;
     return await db.insert(
         ChamCongChiTietTable.tableName, chamCong.toMapInsert());
   }
 
-  // Cập nhật chấm công ngày
+  // Kiểm tra nếu đã khóa thì không cho cập nhật
   Future<int> update(ChamCongChiTiet chamCong) async {
     final db = await _dbHelper.database;
+    final rs = await db.query(ChamCongChiTietTable.tableName, columns: [ChamCongChiTietTable.id],
+      where: '${ChamCongChiTietTable.id} = ? AND ${ChamCongChiTietTable.idPhienChot} IS NOT NULL',
+      whereArgs: [chamCong.id]
+    );
+    if(rs.isNotEmpty){
+      throw Exception('Ngày công đã khóa');
+    }
     return await db.update(
       ChamCongChiTietTable.tableName,
       chamCong.toMapUpdate(),
@@ -35,6 +41,16 @@ class ChamCongChiTietRepo {
   Future<void> upsertChamCong(UpsertChamCongNgayParam param) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
+      // Check khóa chấm công
+      final check = await txn.query(ChamCongChiTietTable.tableName, columns: [ChamCongChiTietTable.id],
+          where: '${ChamCongChiTietTable.idPhienChot} IS NOT NULL AND (${ChamCongChiTietTable.id} = ? OR  '
+              '(${ChamCongChiTietTable.idChamCong} = ? AND ${ChamCongChiTietTable.idNhanVienCongTrinh} = ? AND date(${ChamCongChiTietTable.ngay}) = ?))',
+          whereArgs: [param.idChamCongNgay, param.idBangChamCong, param.idNhanVienCongTrinh, param.ngay]
+      );
+      if(check.isNotEmpty){
+        throw Exception('Ngày công đã khóa');
+      }
+
       final nowIso = DateTime.now().toIso8601String();
       // THƯỜNG TRƯỜNG HỢP 1: ĐÃ CÓ ID CHI TIẾT -> CẬP NHẬT TRỰC TIẾP
       if (param.idChamCongNgay != null) {

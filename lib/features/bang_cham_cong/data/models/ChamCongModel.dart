@@ -107,6 +107,7 @@ class ChamCongNhanVienModel {
 // Chấm công chi tiết
 class ChamCongNgay {
   int? id; // Dùng để update
+  int? idPhienChot;
   final TrangThaiChamCong sang;
   final TrangThaiChamCong chieu;
   final String? ghiChu;
@@ -114,7 +115,8 @@ class ChamCongNgay {
     this.id,
     required this.sang,
     required this.chieu,
-    this.ghiChu
+    this.ghiChu,
+    this.idPhienChot
   });
   /// 👉 Tính công trong ngày
   double get soCong {
