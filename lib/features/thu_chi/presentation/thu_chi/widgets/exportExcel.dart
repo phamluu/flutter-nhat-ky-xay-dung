@@ -17,16 +17,13 @@ Future<void> exportExcelThuChi({
 }) async {
   final vm = await data;
   var excel = Excel.createExcel();
-
   Sheet sheetObject = excel['Sheet1'];
-
   final titleStyle = CellStyle(
     bold: true,
     fontSize: 14,
     fontColorHex: "#DC143C",
     horizontalAlign: HorizontalAlign.Center,
   );
-
   // Style cho Header của Bảng (có border)
   final tableHeaderStyle = CellStyle(
     bold: true,
@@ -34,30 +31,13 @@ Future<void> exportExcelThuChi({
     fontColorHex: "#1F497D",
     horizontalAlign: HorizontalAlign.Center,
   );
-
-  final categoryHeaderStyle = CellStyle(
-    bold: true,
-    fontSize: 13,
-    fontColorHex: "#1F497D",
-  );
-
+  final categoryHeaderStyle = CellStyle(bold: true, fontSize: 13, fontColorHex: "#1F497D",);
   // Style dữ liệu ô (có border)
-  final alignLeftWithBorder = CellStyle(
-    horizontalAlign: HorizontalAlign.Left,
-  );
-
-  final alignCenterWithBorder = CellStyle(
-    horizontalAlign: HorizontalAlign.Center,
-  );
-
-  final alignRightWithBorder = CellStyle(
-    horizontalAlign: HorizontalAlign.Right,
-  );
-
+  final alignLeftWithBorder = CellStyle(horizontalAlign: HorizontalAlign.Left,);
+  final alignCenterWithBorder = CellStyle(horizontalAlign: HorizontalAlign.Center,);
+  final alignRightWithBorder = CellStyle(horizontalAlign: HorizontalAlign.Right,);
   int currentRow = 0;
-
-  void appendStyledRow(
-      List<dynamic> rowValues, [ CellStyle? style, Map<int, CellStyle>? columnStyles,]) {
+  void appendStyledRow( List<dynamic> rowValues, [ CellStyle? style, Map<int, CellStyle>? columnStyles,]) {
     sheetObject.appendRow(rowValues.map((v) => v?.toString() ?? '').toList());
     for (int col = 0; col < rowValues.length; col++) {
       var cell = sheetObject.cell(

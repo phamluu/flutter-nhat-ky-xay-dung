@@ -26,9 +26,7 @@ class DBHelper{
   static final DBHelper instance = DBHelper._internal();
   factory DBHelper() => instance;
   DBHelper._internal();
-
   static Database? _db;
-
   Future<Database> get database async {
     if (_db != null) return _db!;
     _db = await _initDB();
@@ -43,16 +41,16 @@ class DBHelper{
             Platform.isMacOS)) {
 
       // sử dụng
-      final appDir = await getApplicationSupportDirectory();
-      return join(appDir.path, 'ptl_app.db');
+      // final appDir = await getApplicationSupportDirectory();
+      // return join(appDir.path, 'ptl_app.db');
       // end sử dụng
 
       // Trong quá trình phát triển:
-      // final directory = Directory( r'E:\PTLApp\data');
-      // if (!await directory.exists()) {
-      //   await directory.create( recursive: true,);
-      // }
-      // return join( directory.path, 'ptl_app.db');
+      final directory = Directory( r'E:\PTLApp\data');
+      if (!await directory.exists()) {
+        await directory.create( recursive: true,);
+      }
+      return join( directory.path, 'ptl_app.db');
       // end
     }
 

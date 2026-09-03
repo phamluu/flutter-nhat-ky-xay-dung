@@ -4,6 +4,11 @@ import 'package:nhat_ky_xay_dung/data/tables/danh_muc_thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 
 import '../../../../data/db_helper.dart';
+import '../../../../data/tables/cham_cong_table.dart';
+import '../../../../data/tables/chi_luong_table.dart';
+import '../../../../data/tables/ky_luong_table.dart';
+import '../../../../data/tables/nhan_vien_cong_trinh_table.dart';
+import '../../../../data/tables/ung_luong_table.dart';
 import '../../../cong_trinh/data/models/CongTrinh.dart';
 import '../../../luong/data/repositories/ChiLuongRepository.dart';
 import '../../../luong/data/repositories/ung_luong_repository.dart';
@@ -252,25 +257,66 @@ class ThuChiService {
     return (res.first['c'] as int?) ?? 0;
   }
 
+  // Tìm min, max ngày của thu chi, ứng lương, chi lương
   Future<(DateTime?, DateTime?)> getThuChiDateRange(int? idCongTrinh) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-    SELECT 
-      MIN(${ThuChiTable.ngay}) AS min_date, 
-      MAX(${ThuChiTable.ngay}) AS max_date 
-    FROM ${ThuChiTable.tableName}
-    WHERE ${ThuChiTable.id_cong_trinh} = ?
-  ''', [idCongTrinh]);
-    if (result.isNotEmpty) {
-      // Ép kiểu về String? trước
-      final minStr = result.first['min_date'] as String?;
-      final maxStr = result.first['max_date'] as String?;
 
-      // Parse từ String sang DateTime
-      final first = minStr != null ? DateTime.tryParse(minStr) : null;
-      final last = maxStr != null ? DateTime.tryParse(maxStr) : null;
-      return (first, last);
+    final result = await db.rawQuery('''
+    SELECT
+      MIN(ngay) AS min_date,
+      MAX(ngay) AS max_date
+    FROM (
+      -- 1. Ngày ứng lương
+      SELECT 
+        ul.${UngLuongTable.ngayUng} AS ngay
+      FROM ${UngLuongTable.tableName} ul
+      JOIN ${NhanVienCongTrinhTable.tableName} nvct
+        ON nvct.${NhanVienCongTrinhTable.id} =
+           ul.${UngLuongTable.idNhanVienCongTrinh}
+      WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
+        AND ul.${UngLuongTable.is_deleted} = 0
+        AND ul.${UngLuongTable.ngayUng} IS NOT NULL
+
+      UNION ALL
+
+      -- 2. Ngày chi lương
+      SELECT 
+        cl.${ChiLuongTable.ngayChi} AS ngay
+      FROM ${ChiLuongTable.tableName} cl
+      JOIN ${KyLuongTable.tableName} kl
+        ON kl.${KyLuongTable.id} =
+           cl.${ChiLuongTable.idBangLuong}
+      JOIN ${ChamCongTable.tableName} cc
+        ON cc.${ChamCongTable.id} =
+           kl.${KyLuongTable.idBangChamCong}
+      WHERE cc.${ChamCongTable.idCongTrinh} = ?
+        AND cl.${ChiLuongTable.is_deleted} = 0
+        AND cl.${ChiLuongTable.ngayChi} IS NOT NULL
+
+      UNION ALL
+
+      -- 3. Ngày thu chi
+      SELECT 
+        tc.${ThuChiTable.ngay} AS ngay
+      FROM ${ThuChiTable.tableName} tc
+      WHERE tc.${ThuChiTable.id_cong_trinh} = ?
+    ) AS all_dates
+  ''', [
+      idCongTrinh,
+      idCongTrinh,
+      idCongTrinh,
+    ]);
+
+    if (result.isEmpty) {
+      return (null, null);
     }
-    return (null, null);
+
+    final minStr = result.first['min_date'] as String?;
+    final maxStr = result.first['max_date'] as String?;
+
+    return (
+    minStr != null ? DateTime.tryParse(minStr) : null,
+    maxStr != null ? DateTime.tryParse(maxStr) : null,
+    );
   }
 }
