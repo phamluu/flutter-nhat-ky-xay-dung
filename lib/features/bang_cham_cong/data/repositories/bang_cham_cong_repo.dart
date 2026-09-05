@@ -1,7 +1,7 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
-import 'package:nhat_ky_xay_dung/data/tables/ky_luong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/phien_chot_cong_table.dart';
 
 import '../../../../core/utils/trang_thai_khoa_cong.dart';
 import '../../../../data/db_helper.dart';
@@ -49,22 +49,16 @@ class BangChamCongRepository {
         whereArgs: [idBangChamCong],
         limit: 1
       ),
-      db.query(KyLuongTable.tableName,columns: [KyLuongChiTietTable.id],
-        where: '${KyLuongTable.idBangChamCong} = ?',
-        whereArgs: [idBangChamCong]),
-      db.query(ChamCongTable.tableName, columns: [ChamCongTable.id],
-      where: '${ChamCongTable.id} = ? AND ${ChamCongTable.daKhoa} = ${TrangThaiKhoaChamCong.dakhoa.value}',
-      whereArgs: [idBangChamCong],
-      limit: 1)
+      db.query(PhienChotCongTable.tableName, columns: [PhienChotCongTable.id],
+      where: '${PhienChotCongTable.idChamCong} = ?',
+      whereArgs: [idBangChamCong]),
+
     ]);
     if(results[0].isNotEmpty){
       throw Exception('Bảng chấm công đang tồn tại dữ liệu chấm công ngày. Hãy xóa dữ liệu của bảng chấm công');
     }
     if(results[1].isNotEmpty){
-      throw Exception('Bảng chấm công đang tồn tại dữ liệu lương. Hãy xóa dữ liệu của bảng chấm công');
-    }
-    if(results[2].isNotEmpty){
-      throw Exception('Bảng chấm công đang khóa. Hãy mở khóa chấm công');
+      throw Exception('Bảng chấm công đang tồn tại dữ liệu chốt công. Hãy xóa dữ liệu của chốt công');
     }
     try{
       if (idBangChamCong != null) {
@@ -126,7 +120,7 @@ class BangChamCongRepository {
           if(trangThai == TrangThaiKhoaChamCong.chuakhoa.value){
             final hasChotLuong = await db.query(KyLuongTable.tableName,
                 columns: [KyLuongTable.id],
-                where: '${KyLuongTable.idBangChamCong} = ? AND ${KyLuongTable.trangThai} = ${TrangThaiLuong.dachot.value}',
+                where: '${KyLuongTable.idPhienChot} = ? AND ${KyLuongTable.trangThai} = ${TrangThaiLuong.dachot.value}',
                 whereArgs: [idBangChamCong],
                 limit: 1
             );

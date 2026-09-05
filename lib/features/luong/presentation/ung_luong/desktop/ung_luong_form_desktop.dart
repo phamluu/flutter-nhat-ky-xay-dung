@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
@@ -107,7 +108,7 @@ class _UngLuongFormScreenState extends State<UngLuongFormDesktop> {
       if (!mounted) {
         return;
       }
-
+      showSuccessToast(context, "Ứng lương thành công");
       Navigator.pop(  context, true, );
     } catch (e) {
       if (!mounted) {

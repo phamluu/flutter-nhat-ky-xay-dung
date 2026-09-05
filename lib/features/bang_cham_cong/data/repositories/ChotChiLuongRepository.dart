@@ -3,7 +3,6 @@ import 'package:nhat_ky_xay_dung/core/utils/trang_thai_khoa_cong.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_xoa.dart';
 import 'package:nhat_ky_xay_dung/data/tables/chi_luong_table.dart';
-import 'package:nhat_ky_xay_dung/data/tables/ky_luong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
@@ -36,14 +35,13 @@ class ChotChiLuongRepository {
       await chotLuong(idKyLuong: idBangLuong, idNhanVienCongTrinh: idNhanVienCongTrinh, idBangChamCong: idBangChamCong);
     }
   }
-  // Tính lại chốt lương độc lập
+
   Future<void> chotLuong({int? idKyLuong, int? idNhanVienCongTrinh, int? idBangChamCong}) async {
     final db = await _dbHelper.database;
     bool isDaKhoa = await isKhoaChamCong(idBangChamCong);
     if (!isDaKhoa) {
       throw Exception('Bảng chấm công chưa khóa. Vui lòng khóa bảng chấm công trước khi chốt lương!');
     }
-
     // Lấy IdBangLuong
     List<Map<String, Object?>> listKyLuong;
     if (idKyLuong != null) {
@@ -59,7 +57,7 @@ class ChotChiLuongRepository {
         KyLuongTable.tableName,
         where:
         '${KyLuongTable.idNhanVienCongTrinh} = ? '
-            'AND ${KyLuongTable.idBangChamCong} = ?',
+            'AND ${KyLuongTable.idPhienChot} = ?',
         whereArgs: [
           idNhanVienCongTrinh,
           idBangChamCong,
@@ -74,7 +72,7 @@ class ChotChiLuongRepository {
     }else{
       idKyLuong = await db.insert(KyLuongTable.tableName,{
         KyLuongTable.idNhanVienCongTrinh: idNhanVienCongTrinh,
-        KyLuongTable.idBangChamCong: idBangChamCong,
+        KyLuongTable.idPhienChot: idBangChamCong,
       });
     }
     double _tongSoCong = 0;
@@ -91,11 +89,6 @@ class ChotChiLuongRepository {
                         idNhanVienCongTrinh,
                       ],
                       orderBy: '${ChamCongChiTietTable.ngay} ASC',
-            );
-      await txn.delete(
-              KyLuongChiTietTable.tableName,
-              where: '${KyLuongChiTietTable.idKyLuong} = ?',
-              whereArgs: [idKyLuong],
             );
       final batch = txn.batch();
       // Tạo kỳ lương chi tiết
@@ -117,15 +110,6 @@ class ChotChiLuongRepository {
         _tongSoCong +=soCong;
         _tongLuong += tienCong;
 
-        final data = KyLuongChiTietModel(
-          idChamCongChiTiet: chamCong[ChamCongChiTietTable.id] as int,
-          idKyLuong: idKyLuong,
-          idLuongCoBan: luongCoBan?.id,
-          mucLuong: mucLuong,
-          soCong: soCong,
-          tienCong: tienCong,
-        );
-        batch.insert(KyLuongChiTietTable.tableName, data.toMap());
       }
       await batch.commit(noResult: true);
     });
@@ -150,7 +134,7 @@ class ChotChiLuongRepository {
     _tongUng = listUngLuong.isEmpty? 0 : (listUngLuong.first['tong_ung'] as num?)?.toDouble() ?? 0;
     final dataKyLuong = BangLuong(
         idNhanVienCongTrinh: idNhanVienCongTrinh!,
-        idBangChamCong: idBangChamCong!,
+        // idPhienChot: idP!,
         tongCong: _tongSoCong,
         tongLuong: _tongLuong,
         tongUng: _tongUng,
@@ -294,7 +278,7 @@ class ChotChiLuongRepository {
     }
     final listBangLuong = await db.query(
       KyLuongTable.tableName,
-      where: '${KyLuongTable.id} = ? OR (${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idBangChamCong} = ? )',
+      where: '${KyLuongTable.id} = ? OR (${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idPhienChot} = ? )',
       whereArgs: [idBangLuong, idNhanVienCongTrinh, idBangChamCong],
     );
     idBangLuong = listBangLuong.first[KyLuongTable.id] as int?;
@@ -335,10 +319,6 @@ class ChotChiLuongRepository {
         where: '${KyLuongTable.id} = ?',
         whereArgs: [idBangLuong],
       );
-      // 5. Xóa chi tiết kì lương
-      await txn.delete(KyLuongChiTietTable.tableName,
-      where: '${KyLuongChiTietTable.idKyLuong} = ?',
-      whereArgs: [idBangLuong]);
     });
   }
 
@@ -350,7 +330,7 @@ class ChotChiLuongRepository {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       KyLuongTable.tableName,
-      where: '${KyLuongTable.idBangChamCong} = ? '
+      where: '${KyLuongTable.idPhienChot} = ? '
           'AND ${KyLuongTable.idNhanVienCongTrinh} = ? ',
       whereArgs: [idBangChamCong, idNhanVienCongTrinh],
       limit: 1,
@@ -366,7 +346,7 @@ class ChotChiLuongRepository {
     final db = await _dbHelper.database;
     final result = await db.query(
       KyLuongTable.tableName,
-      where: '${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idBangChamCong} = ? AND trangThai',
+      where: '${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idPhienChot} = ? AND trangThai',
       whereArgs: [idNvct, idBangChamCong, TrangThaiLuong.dachot],
       limit: 1,
     );
@@ -390,7 +370,7 @@ class ChotChiLuongRepository {
     final db = await _dbHelper.database;
     final result = await db.query(
       KyLuongTable.tableName,
-      where: '(${KyLuongTable.id} = ? OR ${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idBangChamCong} = ?) '
+      where: '(${KyLuongTable.id} = ? OR ${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idPhienChot} = ?) '
           'AND ${KyLuongTable.trangThai} = ?',
       whereArgs: [
         idBangLuong,
@@ -406,7 +386,7 @@ class ChotChiLuongRepository {
     final db = await _dbHelper.database;
     final result = await db.query(
         KyLuongTable.tableName,
-        where: '${KyLuongTable.idBangChamCong} = ? AND ${KyLuongTable.trangThai} = ?',
+        where: '${KyLuongTable.idPhienChot} = ? AND ${KyLuongTable.trangThai} = ?',
         whereArgs: [idBangChamCong, TrangThaiLuong.dachot.value]
     );
     if (result.isEmpty) return false;

@@ -1,7 +1,5 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
-import 'package:nhat_ky_xay_dung/data/tables/ky_luong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
@@ -104,7 +102,6 @@ class DBHelper{
     await db.execute(ChamCongTable.createTable);
     await db.execute(ChamCongChiTietTable.createTable);
     await db.execute(PhienChotCongTable.createTable);
-    await db.execute(KyLuongChiTietTable.createTable);
     await db.execute(ChiTietDoiTruUngLuongTable.createTable);
 
   }

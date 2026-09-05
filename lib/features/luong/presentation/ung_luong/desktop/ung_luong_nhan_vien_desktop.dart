@@ -46,32 +46,32 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
   @override
   void initState() {
     super.initState();
-    _chotLuong = Chotchiluongservice(
-      ChotChiLuongRepository(),
-    );
+    // _chotLuong = Chotchiluongservice(
+    //   ChotChiLuongRepository(),
+    // );
     _chotLuongRepo = ChotChiLuongRepository();
     _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!,
         kyLuong: widget.kyLuong);
-    _loadChotLuong();
+    // _loadChotLuong();
   }
 
-  Future<void> _loadChotLuong() async {
-    final chot = await _chotLuongRepo.checkDaChotLuong(
-        idBangChamCong: widget.idBangChamCong,
-        idNhanVienCongTrinh: widget.idNhanVienCongTrinh!);
-    if (!mounted) return;
-    setState(() {
-      daChotLuong = chot;
-    });
-  }
+  // Future<void> _loadChotLuong() async {
+  //   final chot = await _chotLuongRepo.checkDaChotLuong(
+  //       idBangChamCong: widget.idBangChamCong,
+  //       idNhanVienCongTrinh: widget.idNhanVienCongTrinh!);
+  //   if (!mounted) return;
+  //   setState(() {
+  //     daChotLuong = chot;
+  //   });
+  // }
 
   Future<void> _reload() async {
-    final chot = await _chotLuongRepo.checkDaChotLuong(
-        idBangChamCong: widget.idBangChamCong,
-        idNhanVienCongTrinh: widget.idNhanVienCongTrinh!);
+    // final chot = await _chotLuongRepo.checkDaChotLuong(
+    //     idBangChamCong: widget.idBangChamCong,
+    //     idNhanVienCongTrinh: widget.idNhanVienCongTrinh!);
     if (!mounted) return;
     setState(() {
-      daChotLuong = chot;
+      // daChotLuong = chot;
 
       _future = _service.getUngLuongNhanVien(widget.idNhanVienCongTrinh!,
           kyLuong: widget.kyLuong);

@@ -1,6 +1,7 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 
 import '../../../../core/utils/trang_thai_cham_cong.dart';
+import '../../../luong/data/models/LuongCoBan.dart';
 
 class ChamCongLuongNhanVienModel{
       final ChamCongNhanVienModel chamCong;
@@ -10,15 +11,16 @@ class ChamCongLuongNhanVienModel{
         required this.chamCong,
         required this.luong
       });
+      // Lương dự kiến
       double get tongTienCong {
         return chamCong.tongTienCong;
       }
-      double get tongLuongHienThi {
-        if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value && luong.tongLuongChot != null) {
-          return luong.tongLuongChot!;
-        }
-        return tongTienCong;
-      }
+      // double get tongLuongHienThi {
+      //   if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value && luong.tongLuongChot != null) {
+      //     return luong.tongLuongChot!;
+      //   }
+      //   return tongTienCong;
+      // }
       /// Tổng ứng hiển thị
       double get tongUngHienThi {
         if (luong.trangThaiChotLuong == TrangThaiLuong.dachot.value &&
@@ -49,7 +51,6 @@ class LuongNhanVienModel {
   final double truUng;
   final double? tongUngChot;
   final double? thucNhanChot;
-  final int? idBangLuong;
   final double tongDaChi;
 
   double get ungPhatSinhSauChot {
@@ -68,7 +69,6 @@ class LuongNhanVienModel {
     required this.truUng,
     this.tongUngChot,
     this.thucNhanChot,
-    this.idBangLuong,
     required this.tongDaChi,
   });
 }
@@ -87,6 +87,15 @@ class ChamCongNhanVienModel {
       0,
           (sum, item) => sum + item.chamCong.soCong,
     );
+  }
+  double get soCongDaChot {
+    return data.values.fold(
+      0,
+          (sum, item) => (item.chamCong.idPhienChot != null) ? sum + item.chamCong.soCong : sum,
+    );
+  }
+  double get soCongChuaChot {
+    return this.tongSoCong - this.soCongDaChot;
   }
   /// Tổng tiền công trong tháng
   double get tongTienCong {
@@ -149,10 +158,12 @@ class ChamCongNgay {
 // join theo lương ngày
 class ChamCongNgayLuong {
   final ChamCongNgay chamCong;
+  final Luongcoban? luongCoBan;
   final double luongNgay; // Lương cơ bản được áp dụng trong ngày
   ChamCongNgayLuong({
     required this.chamCong,
     required this.luongNgay,
+    this.luongCoBan
   });
   double get tienCongNgay => chamCong.soCong * luongNgay;
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/phien_chot_cong_table.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/UngLuongDataModel.dart';
 import 'package:path/path.dart';
 import '../../../../data/db_helper.dart';
@@ -41,54 +43,102 @@ class UngLuongRepository {
     }).toList();
   }
 
-  // Tính tổng số tiền ứng còn lại, k tính số tiền đã trừ trong bảng lương hiện tại
-  // Tính tổng số tiền đã ứng
-  // Tính tổng số tiền đã khấu trừ, ngoại trừ bảng lương hiện tại
-  Future<double> tongTienUngLuongForNhanVien({ required int idNhanVienCongTrinh, int? idBangLuong, }) async {
-    final db = await _dbHelper.database;
-
-    // 1. Tính tổng tất cả tiền nhân viên đã ứng (chưa bị xóa)
-    final resDaUng = await db.rawQuery('''
-    SELECT SUM(${UngLuongTable.soTien}) AS total
-    FROM ${UngLuongTable.tableName}
-    WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
-      AND ${UngLuongTable.is_deleted} = 0
-  ''', [idNhanVienCongTrinh]);
-
-    // 2. Tính tổng tiền đã đối trừ ở các bảng lương KHÁC (không tính bảng lương hiện tại idBangLuong)
-    // Kết nối (JOIN) với UngLuongTable để đảm bảo đúng idNhanVienCongTrinh
-    final resDaTruCacKyKhac = await db.rawQuery('''
-    SELECT SUM(ct.${ChiTietDoiTruUngLuongTable.soTienDoiTru}) AS total
-    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-    INNER JOIN ${UngLuongTable.tableName} ul 
-      ON ct.${ChiTietDoiTruUngLuongTable.idUngLuong} = ul.${UngLuongTable.id}
-    WHERE ul.${UngLuongTable.idNhanVienCongTrinh} = ?
-      AND ct.${ChiTietDoiTruUngLuongTable.isDeleted} = 0
-      AND ul.${UngLuongTable.is_deleted} = 0
-      ${idBangLuong != null ? 'AND ct.${ChiTietDoiTruUngLuongTable.idBangLuong} != ?' : ''}
-  ''', idBangLuong != null ? [idNhanVienCongTrinh, idBangLuong] : [idNhanVienCongTrinh]);
-
-    // Lấy giá trị num từ kết quả query (mặc định 0.0 nếu null)
-    final double tongUng = (resDaUng.first['total'] as num?)?.toDouble() ?? 0.0;
-    final double tongDaTruKhac = (resDaTruCacKyKhac.first['total'] as num?)?.toDouble() ?? 0.0;
-
-    // Số tiền ứng chưa bị trừ (hoặc chưa bị trừ ở các kỳ trước)
-    return tongUng - tongDaTruKhac;
-  }
-
-  Future<double> tongTruUng(int? idBangLuong) async {
+  // Tổng ứng đã trừ khi chốt luong phiên này
+  Future<double>tongTruUngForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
-    SELECT SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}) as total
-    FROM ${ChiTietDoiTruUngLuongTable.tableName}
-    WHERE ${ChiTietDoiTruUngLuongTable.idBangLuong} = ?
-  ''', [idBangLuong]);
-    final total = result.first['total'];
-    if (total == null) {
-      return 0.0;
-    }
-    return (total as num).toDouble();
+    SELECT COALESCE(
+      SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}),
+      0
+    ) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${KyLuongTable.tableName} kl ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
+    WHERE kl.${KyLuongTable.idPhienChot} = ? AND kl.${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.trangThai} = ${TrangThaiLuong.dachot.value}
+  ''', [
+      idPhienChot,
+      idNhanVienCongTrinh,
+    ]);
+
+    return (result.first['total'] as num).toDouble();
   }
+  // Tổng ứng còn lại chưa chốt phiên này
+  Future<double>tongUngForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
+    final db = await _dbHelper.database;
+    final rs = await db.rawQuery('''
+    SELECT COALESCE(
+      SUM(
+        COALESCE(${UngLuongTable.soTien}, 0)
+        -
+        COALESCE(${UngLuongTable.soTienDaTru}, 0)
+      ),
+      0
+    ) AS conLai
+    FROM ${UngLuongTable.tableName}
+    WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
+  ''', [
+      idNhanVienCongTrinh,
+    ]);
+    final conLai =
+    (rs.first['conLai'] as num).toDouble();
+    final daTruKyNay = await tongTruUngForPhienChot(
+      idPhienChot,
+      idNhanVienCongTrinh,
+    );
+    // Số dư ứng trước khi khấu trừ kỳ hiện tại
+    return conLai + daTruKyNay;
+  }
+  // Tổng ứng đã trừ trong thời gian chấm công
+  Future<double> tongTruUngForChamCong(int? idBangChamCong, int? idNhanVienCongTrinh,) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT COALESCE(
+      SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}),
+      0
+    ) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${KyLuongTable.tableName} kl
+      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong}
+       = kl.${KyLuongTable.id}
+    INNER JOIN ${PhienChotCongTable.tableName} pc
+      ON kl.${KyLuongTable.idPhienChot}
+       = pc.${PhienChotCongTable.id}
+    WHERE pc.${PhienChotCongTable.idChamCong} = ?
+      AND kl.${KyLuongTable.idNhanVienCongTrinh} = ?
+  ''', [
+      idBangChamCong,
+      idNhanVienCongTrinh,
+    ]);
+
+    return (result.first['total'] as num).toDouble();
+  }
+
+  // Tổng ứng còn lại trước khi khấu trừ kỳ này
+  Future<double> tongUngForNhanVien( int? idBangChamCong, int? idNhanVienCongTrinh,) async {
+    final db = await _dbHelper.database;
+    final rs = await db.rawQuery('''
+    SELECT COALESCE(
+      SUM(
+        COALESCE(${UngLuongTable.soTien}, 0)
+        -
+        COALESCE(${UngLuongTable.soTienDaTru}, 0)
+      ),
+      0
+    ) AS conLai
+    FROM ${UngLuongTable.tableName}
+    WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
+  ''', [
+      idNhanVienCongTrinh,
+    ]);
+    final conLai =
+    (rs.first['conLai'] as num).toDouble();
+    final daTruKyNay = await tongTruUngForChamCong(
+      idBangChamCong,
+      idNhanVienCongTrinh,
+    );
+    // Số dư ứng trước khi khấu trừ kỳ hiện tại
+    return conLai + daTruKyNay;
+  }
+
   Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, {int? thang,int? nam, String? kyLuong, }) async {
     final db = await _dbHelper.database;
     final ulWhere = <String>[];
@@ -215,44 +265,35 @@ class UngLuongRepository {
   }
 
   // Danh sách ứng lương của 1 nhân viên
-  Future<List<Ungluong>> getUngLuongNhanVien(
-      int idNhanVienCongTrinh, {
-        String? kyLuong,
+  Future<List<Ungluong>> getUngLuongNhanVien( int idNhanVienCongTrinh, { String? kyLuong, // Tháng trong bảng chấm công
         int? thang,
         int? nam,
       }) async {
     final db = await _dbHelper.database;
-
     final where = [
       '${UngLuongTable.idNhanVienCongTrinh} = ?',
     ];
     final whereArgs = <dynamic>[idNhanVienCongTrinh];
-
     if (kyLuong?.isNotEmpty == true) {
       where.add(
         "strftime('%Y-%m', ${UngLuongTable.ngayUng}) = ?",
       );
       whereArgs.add(kyLuong);
     }
-
     final result = await db.query(
       UngLuongTable.tableName,
       where: where.join(' AND '),
       whereArgs: whereArgs,
       orderBy: '${UngLuongTable.id} DESC',
     );
-
     final list = result.map(Ungluong.fromMap).toList();
-
     await Future.wait(
       list.map((item) async {
         item.lstDoiTru = await getDoiUngTruLuongs(item.id);
       }),
     );
-
     return list;
   }
-
   Future<List<ChiTietDoiUngTruLuong>> getDoiUngTruLuongs(int? idUngLuong,) async {
     if (idUngLuong == null) return [];
     final db = await _dbHelper.database;
@@ -261,10 +302,9 @@ class UngLuongRepository {
       d.*,
       c.${ChamCongTable.thang} AS thangKey
     FROM ${ChiTietDoiTruUngLuongTable.tableName} d
-    LEFT JOIN ${KyLuongTable.tableName} b
-      ON b.${KyLuongTable.id} = d.${ChiTietDoiTruUngLuongTable.idBangLuong}
-    LEFT JOIN ${ChamCongTable.tableName} c
-      ON c.${ChamCongTable.id} = b.${KyLuongTable.idBangChamCong}
+    LEFT JOIN ${KyLuongTable.tableName} b ON b.${KyLuongTable.id} = d.${ChiTietDoiTruUngLuongTable.idBangLuong}
+    LEFT JOIN ${PhienChotCongTable.tableName} pc on b.${KyLuongTable.idPhienChot} = pc.${PhienChotCongTable.id}
+    LEFT JOIN ${ChamCongTable.tableName} c ON c.${ChamCongTable.id} = pc.${PhienChotCongTable.idChamCong}
     WHERE d.${ChiTietDoiTruUngLuongTable.idUngLuong} = ?
     ORDER BY d.${ChiTietDoiTruUngLuongTable.id} DESC
   ''', [idUngLuong]);

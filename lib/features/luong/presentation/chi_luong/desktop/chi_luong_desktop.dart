@@ -64,12 +64,12 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
       });
     }
     try {
-      final ls = await _service.getLichSu(widget.luong?.idBangLuong,);
-      final tong = await _service.getTongDaChi(widget.luong?.idBangLuong,);
+      // final ls = await _service.getLichSu(widget.luong?.idBangLuong,);
+      // final tong = await _service.getTongDaChi(widget.luong?.idBangLuong,);
       if (!mounted) return;
       setState(() {
-        lichSu = ls;
-        daChi = tong;
+        // lichSu = ls;
+        // daChi = tong;
         loadingData = false;
       });
     } catch (e) {
@@ -97,11 +97,11 @@ class _ChiLuongDesktopState extends State<ChiLuongDesktop> {
       loading = true;
     });
     try {
-      await _service.chiLuong(
-        idBangLuong: widget.luong?.idBangLuong,
-        soTien: tien,
-        ghiChu: _noteCtrl.text.trim(),
-      );
+      // await _service.chiLuong(
+      //   idBangLuong: widget.luong?.idBangLuong,
+      //   soTien: tien,
+      //   ghiChu: _noteCtrl.text.trim(),
+      // );
       _tienCtrl.clear();
       _noteCtrl.clear();
       await _load();

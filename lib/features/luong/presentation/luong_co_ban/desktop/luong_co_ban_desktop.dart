@@ -260,9 +260,7 @@ class _LuongCoBanDesktopState extends State<LuongCoBanDesktop> {
             color: Colors.green,
           ),
         ),
-
         const SizedBox(width: 16),
-
         Expanded(
           child: _summaryCard(
             icon: Icons.payments_outlined,

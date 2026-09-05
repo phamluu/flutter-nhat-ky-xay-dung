@@ -1,6 +1,7 @@
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/ChotChiLuongRepository.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
@@ -16,7 +17,8 @@ class ChamCongService {
   final NhanVienCongTrinhRepo _nhanVienCongTrinhRepo;
   final UngLuongRepository _ungLuongRepo;
   final ChotChiLuongRepository _bangLuongRepo;
-  ChamCongService(this.repo, this.bangChamCongrepo, this._nhanVienCongTrinhRepo, this._ungLuongRepo, this._bangLuongRepo);
+  final ChamCongLuongRepo _chamCongLuongRepo;
+  ChamCongService(this.repo, this.bangChamCongrepo, this._nhanVienCongTrinhRepo, this._ungLuongRepo, this._bangLuongRepo, this._chamCongLuongRepo);
   /// Dành cho bảng chấm công
   /// Nếu chưa có bảng chấm công vẫn load danh sách nhân viên oông trình
   Future<List<ChamCongLuongNhanVienModel>> chamCongNhanViens({ required int idCongTrinh, int? idBangChamCong}) async {
@@ -37,15 +39,20 @@ class ChamCongService {
               idPhienChot: c.idPhienChot,
             ),
              luongNgay: luongCoBan.mucLuong!,
+              luongCoBan: luongCoBan
           );
         }
       }
-      BangLuong? bangLuong = await _bangLuongRepo.getBangLuongForNhanVien(idBangChamCong, nv.id);
-      final ungLuongs = await _ungLuongRepo.tongTienUngLuongForNhanVien(idNhanVienCongTrinh: nv.id!, idBangLuong: bangLuong?.id);
-      final truUng = await _ungLuongRepo.tongTruUng(bangLuong?.id);
-      final tongDaChi = await _bangLuongRepo.tongDaChi(bangLuong?.id);
-      // 3. Gán vào model nhân viên
+      // Tính tổng ứng còn lại không tính kì này
+       //final tongDaUng = await _chamCongLuongRepo.tongTienUngLuongForNhanVien(idNhanVienCongTrinh: nv.id!, idBangChamCong: idBangChamCong);
+      // Tính trừ ứng trong toàn bộ bảng chấm công kỳ ngày
+      final truUngKyNay = await _ungLuongRepo.tongTruUngForChamCong(idBangChamCong, nv.id);
+      final tongUng = await _ungLuongRepo.tongUngForNhanVien(idBangChamCong, nv.id);
+      // final tongDaChi = await _bangLuongRepo.tongDaChi(bangLuong?.id);
+      // Tổng trừ ứng trong bảng chấm công này
 
+      // 3. Gán vào model nhân viên
+      final tongLuongChot = await _chamCongLuongRepo.tongLuongChotForNhanVien( idNhanVienCongTrinh: nv.id, idBangChamCong: idBangChamCong);
       final chamCong = ChamCongNhanVienModel(
         idNhanVienCongTrinh: nv.id,
         ten: nv.tenNhanVien,
@@ -54,14 +61,13 @@ class ChamCongService {
       );
 
       final luong = LuongNhanVienModel(
-        tongUng: ungLuongs,
-        truUng: truUng,
-        trangThaiChotLuong: bangLuong?.trangThai,
-        idBangLuong: bangLuong?.id,
-        tongLuongChot: bangLuong?.tongLuong,
-        tongUngChot: bangLuong?.tongUng,
-        thucNhanChot: bangLuong?.thucNhan,
-        tongDaChi: tongDaChi,
+        tongUng: tongUng,
+        truUng: truUngKyNay,
+        trangThaiChotLuong: 0,
+        tongLuongChot: tongLuongChot,
+        tongUngChot: 0,
+        thucNhanChot: 0,
+        tongDaChi: 0,
       );
       result.add(
         ChamCongLuongNhanVienModel(

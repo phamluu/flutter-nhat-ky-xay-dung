@@ -158,7 +158,7 @@ class ChamCongChiTietNhanVienDesktop extends StatelessWidget {
       children: [
         _buildStatItem("TỔNG SỐ CÔNG", "${model.chamCong.tongSoCong} công", Colors.blue),
         const SizedBox(width: 12),
-        _buildStatItem("TỔNG TỀN CÔNG", formatCurrency(model.tongLuongHienThi), Colors.indigo),
+        _buildStatItem("TỔNG TỀN CÔNG", formatCurrency(model.tongTienCong), Colors.indigo),
         const SizedBox(width: 12),
         _buildStatItem("ĐÃ ỨNG LƯƠNG", formatCurrency(model.tongUngHienThi), Colors.orange.shade800),
         const SizedBox(width: 12),

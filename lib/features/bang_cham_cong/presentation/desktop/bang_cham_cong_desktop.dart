@@ -13,6 +13,7 @@ import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
 import '../../../luong/presentation/chi_luong/desktop/chi_luong_desktop.dart';
 import '../../data/models/bang_cham_cong.dart';
+import '../../data/models/phien_chot_cong.dart';
 import '../../data/repositories/ChotChiLuongRepository.dart';
 import '../../data/services/ChotChiLuongService.dart';
 import '../../data/services/cham_cong_service.dart';
@@ -51,6 +52,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   bool _show10Giua = true;
   bool _show10Cuoi = true;
   List<ChamCongLuongNhanVienModel> data = [];
+  List<PhienChotCong> dsDotChot = [];
   late final Chotchiluongservice _chotService;
   late final ChotChiLuongRepository _chotRepo;
   late final ChamCongService _chamCongService;
@@ -75,7 +77,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       BangChamCongRepository(),
       NhanVienCongTrinhRepo(),
       UngLuongRepository(),
-      ChotChiLuongRepository()
+      ChotChiLuongRepository(),
+      ChamCongLuongRepo()
     );
     _bangChamCongRepository = BangChamCongRepository();
     _chotRepo = ChotChiLuongRepository();
@@ -98,15 +101,16 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     try {
       final result = await _chamCongService.chamCongNhanViens(idCongTrinh: widget.bangChamCong!.idCongTrinh!, idBangChamCong: widget.bangChamCong!.id!);
       final khoa = await _bangChamCongRepository.checkKhoaChamCong(idBangChamCong: widget.bangChamCong?.id);
-      final isChotLuong = await _chotService.isTonTaiDaChotLuong( widget.bangChamCong?.id);
+      // final isChotLuong = await _chotService.isTonTaiDaChotLuong( widget.bangChamCong?.id);
+      final phienChots = await _chamCongLuongRepo.phienChotCongs(widget.bangChamCong?.id);
       if (!mounted) return;
       // 2. setState CHỈ GÁN DỮ LIỆU ĐỒNG BỘ (Không dùng async ở đây)
       setState(() {
         data = result ?? []; // Nên fallback về list rỗng nếu result null
         daKhoaCC = khoa;
-        coChotLuong = isChotLuong;
+        // coChotLuong = isChotLuong;
+        dsDotChot = phienChots;
         _isLoading = false;
-
       });
     } catch (e) {
       if (!mounted) return;
@@ -137,6 +141,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                   selectedNhanVienIds: selectedNhanVienIds);
               await _load();
             },
+            dsDotChot: dsDotChot,
             onChotCong: () async {
                             await setkhoaChamCong(
                               context: context,
@@ -148,6 +153,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                             );
                             await _load();
                           },
+            onLoad: _load,
         ),
       ),
       body: SafeArea(
@@ -416,12 +422,60 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         // textCell(nv.chamCong.ten ?? '', isBold: true),
         if (_showChucVu) textCell(nv.chamCong.chucVu ?? ''),
         ..._buildNgayCells(nv.chamCong),
-        badgeCell(nv.chamCong.tongSoCong.toString(), Colors.blue),
-        textCell(formatCurrency(nv.tongLuongHienThi), isBold: true),
-        _ungLuongCell(nv),
-        textCell(formatCurrency(nv.luong.truUng), isBold: true),
+        // badgeCell(nv.chamCong.tongSoCong.toString(), Colors.blue),
+        DataCell(
+          SizedBox(
+            width: 210,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text("${nv.chamCong.tongSoCong}", textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  child: Text("${nv.chamCong.soCongDaChot}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                ),
+                Expanded(
+                  child: Text("${nv.chamCong.soCongChuaChot}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.orange)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
+            width: 300,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text("${currencyFormat.format(nv.tongTienCong)}", textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  child: Text("${currencyFormat.format(nv.luong.tongLuongChot)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                ),
+                Expanded(
+                  child: Text("${currencyFormat.format(nv.tongTienCong - nv.luong.tongLuongChot!)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.orange)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
+            width: 200,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text("${currencyFormat.format(nv.luong.tongUng ?? 0)}", textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  child: Text("${currencyFormat.format(nv.luong.truUng ?? 0)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                ),
+              ],
+            ),
+          ),
+        ),
         textCell(formatCurrency(nv.thucNhanHienThi), color: Colors.green.shade700, isBold: true),
-        _chotLuongCell(nv),
+        // _chotLuongCell(nv),
         _chiLuongCell(nv),
         textCell(formatCurrency(nv.luong.conPhaiTra), isBold: true),
       ],
@@ -474,104 +528,104 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       ),
     ),
   );
-  DataCell _chotLuongCell(ChamCongLuongNhanVienModel nv) {
-    final isDaChot = nv.luong.trangThaiChotLuong == TrangThaiLuong.dachot.value;
-    return DataCell(
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1. Badge trạng thái
-            buildTrangThai(TrangThaiLuong.fromValue(nv.luong.trangThaiChotLuong)),
-            const SizedBox(height: 4),
-            // 2. Nút thao tác Chốt / Hủy chốt
-            InkWell(
-              onTap: () async {
-                // Hộp thoại xác nhận thao tác
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: Text(isDaChot ? 'Xác nhận hủy chốt' : 'Xác nhận chốt lương'),
-                    content: Text(
-                      isDaChot
-                          ? 'Bạn có chắc chắn muốn HỦY CHỐT lương của ${nv.chamCong.ten}?'
-                          : 'Bạn có chắc chắn muốn CHỐT LƯƠNG cho ${nv.chamCong.ten}?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Hủy'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDaChot ? Colors.red : Colors.green,
-                        ),
-                        child: Text(
-                          isDaChot ? 'Hủy chốt' : 'Chốt lương',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirm != true) return;
-                try {
-                  // Gọi hàm chốt / hủy chốt với await
-                  await _chotRepo.chotOrHuyChotLuong(
-                    idBangLuong: nv.luong.idBangLuong,
-                    idNhanVienCongTrinh: nv.chamCong.idNhanVienCongTrinh!,
-                    idBangChamCong: widget.bangChamCong!.id!,
-                  );
-
-                  if (!mounted) return;
-                    showSuccessToast(context, isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!');
-                  _load();
-                } catch (e) {
-                  if (!mounted) return;
-                  showErrorToast(context, e, "Không thể chốt lương");
-                }
-              },
-              borderRadius: BorderRadius.circular(6),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isDaChot ? Colors.red.shade50 : Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isDaChot ? Colors.red.shade300 : Colors.green.shade300,
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isDaChot ? Icons.undo_rounded : Icons.check_circle_outline_rounded,
-                      size: 12,
-                      color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isDaChot ? 'Hủy chốt' : 'Chốt lương',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // DataCell _chotLuongCell(ChamCongLuongNhanVienModel nv) {
+  //   final isDaChot = nv.luong.trangThaiChotLuong == TrangThaiLuong.dachot.value;
+  //   return DataCell(
+  //     Padding(
+  //       padding: const EdgeInsets.symmetric(vertical: 4),
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         crossAxisAlignment: CrossAxisAlignment.center,
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           // 1. Badge trạng thái
+  //           buildTrangThai(TrangThaiLuong.fromValue(nv.luong.trangThaiChotLuong)),
+  //           const SizedBox(height: 4),
+  //           // 2. Nút thao tác Chốt / Hủy chốt
+  //           InkWell(
+  //             onTap: () async {
+  //               // Hộp thoại xác nhận thao tác
+  //               final confirm = await showDialog<bool>(
+  //                 context: context,
+  //                 builder: (ctx) => AlertDialog(
+  //                   title: Text(isDaChot ? 'Xác nhận hủy chốt' : 'Xác nhận chốt lương'),
+  //                   content: Text(
+  //                     isDaChot
+  //                         ? 'Bạn có chắc chắn muốn HỦY CHỐT lương của ${nv.chamCong.ten}?'
+  //                         : 'Bạn có chắc chắn muốn CHỐT LƯƠNG cho ${nv.chamCong.ten}?',
+  //                   ),
+  //                   actions: [
+  //                     TextButton(
+  //                       onPressed: () => Navigator.pop(ctx, false),
+  //                       child: const Text('Hủy'),
+  //                     ),
+  //                     ElevatedButton(
+  //                       onPressed: () => Navigator.pop(ctx, true),
+  //                       style: ElevatedButton.styleFrom(
+  //                         backgroundColor: isDaChot ? Colors.red : Colors.green,
+  //                       ),
+  //                       child: Text(
+  //                         isDaChot ? 'Hủy chốt' : 'Chốt lương',
+  //                         style: const TextStyle(color: Colors.white),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               );
+  //               if (confirm != true) return;
+  //               try {
+  //                 // Gọi hàm chốt / hủy chốt với await
+  //                 await _chotRepo.chotOrHuyChotLuong(
+  //                   idBangLuong: nv.luong.idBangLuong,
+  //                   idNhanVienCongTrinh: nv.chamCong.idNhanVienCongTrinh!,
+  //                   idBangChamCong: widget.bangChamCong!.id!,
+  //                 );
+  //
+  //                 if (!mounted) return;
+  //                   showSuccessToast(context, isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!');
+  //                 _load();
+  //               } catch (e) {
+  //                 if (!mounted) return;
+  //                 showErrorToast(context, e, "Không thể chốt lương");
+  //               }
+  //             },
+  //             borderRadius: BorderRadius.circular(6),
+  //             child: Container(
+  //               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+  //               decoration: BoxDecoration(
+  //                 color: isDaChot ? Colors.red.shade50 : Colors.green.shade50,
+  //                 borderRadius: BorderRadius.circular(6),
+  //                 border: Border.all(
+  //                   color: isDaChot ? Colors.red.shade300 : Colors.green.shade300,
+  //                   width: 0.8,
+  //                 ),
+  //               ),
+  //               child: Row(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   Icon(
+  //                     isDaChot ? Icons.undo_rounded : Icons.check_circle_outline_rounded,
+  //                     size: 12,
+  //                     color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
+  //                   ),
+  //                   const SizedBox(width: 4),
+  //                   Text(
+  //                     isDaChot ? 'Hủy chốt' : 'Chốt lương',
+  //                     style: TextStyle(
+  //                       fontSize: 11,
+  //                       fontWeight: FontWeight.w600,
+  //                       color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
   DataCell _chiLuongCell(ChamCongLuongNhanVienModel nv) {
     return DataCell(
       Padding(

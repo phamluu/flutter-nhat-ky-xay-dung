@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 
+import '../../data/models/phien_chot_cong.dart';
+import '../../data/repositories/bang_cham_cong_repo.dart';
 import '../../widgets/chotCongBtn.dart';
+import 'dot_chot_cong_detail_desktop.dart';
 
 Widget buildDesktopHeader({
     required ThemeData theme,
@@ -13,8 +18,9 @@ Widget buildDesktopHeader({
     required bool daChotLuong,
     required VoidCallback onChotCong,
     required Function(DateTime dateSelected) onChotCongTheoNhanVien,
-    List<dynamic> dsDotChot = const [],
+    List<PhienChotCong> dsDotChot = const [],
     Function(int idPhienChot)? onHuyDotChot,
+    required Future<void> Function() onLoad,
     })
 {
   final hasSelectedEmployees = selectedNhanVienIds != null && selectedNhanVienIds.isNotEmpty;
@@ -120,9 +126,8 @@ Widget buildDesktopHeader({
               return _buildHuyDotChotMenu(
                 context: context,
                 dsDotChot: dsDotChot,
-                daKhoa: daKhoa,
-                daChotLuong: daChotLuong,
                 onHuyDotChot: onHuyDotChot ?? (_) {},
+                onLoad: onLoad,
               );
             },
           ),
@@ -134,15 +139,6 @@ Widget buildDesktopHeader({
         //   onPressed: onChotCong,
         // ),
         const SizedBox(width: 12),
-        // REFRESH
-        // OutlinedButton.icon(
-        //   onPressed: _isLoading ? null : _load,
-        //   icon: const Icon(
-        //     Icons.refresh,
-        //     size: 18,
-        //   ),
-        //   label: const Text("Làm mới"),
-        // ),
       ],
     ),
   );
@@ -150,54 +146,31 @@ Widget buildDesktopHeader({
 
 Widget _buildHuyDotChotMenu({
   required BuildContext context,
-  required List<dynamic> dsDotChot, // Thay dynamic bằng Model PhienChotCong của bạn
-  required bool daKhoa,
-  required bool daChotLuong,
+  required List<PhienChotCong> dsDotChot,
   required Function(int idPhienChot) onHuyDotChot,
+  Function(PhienChotCong phienChot)? onSelectDot, // Hàm khi bấm vào dòng đợt chốt
+  Future<void> Function()? onLoad,
 }) {
-  final bool isEnabled = !(daKhoa || daChotLuong) && dsDotChot.isNotEmpty;
-
-  return PopupMenuButton<int>(
+  return PopupMenuButton<PhienChotCong>(
     tooltip: 'Danh sách đợt chốt công',
-    enabled: isEnabled,
-    onSelected: (idPhienChot) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Xác nhận hủy đợt chốt'),
-          content: const Text(
-            'Bạn có chắc chắn muốn hủy đợt chốt này không?\n'
-                'Dữ liệu chấm công của đợt này sẽ quay về trạng thái chưa khóa.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Hủy'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                onHuyDotChot(idPhienChot);
-              },
-              child: const Text('Đồng ý hủy'),
-            ),
-          ],
-        ),
-      );
-    },
     offset: const Offset(0, 45),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
+    // Sự kiện khi bấm vào vùng TEXT của item
+    onSelected: (phienChot) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DotChotCongDetailDesktop(phienChot: phienChot),
+        ),
+      );
+    },
     itemBuilder: (context) => [
-      const PopupMenuItem<int>(
+      const PopupMenuItem<PhienChotCong>(
         enabled: false,
         child: Text(
-          'CHỌN ĐỢT ĐỂ HỦY CHỐT',
+          'DANH SÁCH ĐỢT CHỐT CÔNG',
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey,
@@ -207,27 +180,28 @@ Widget _buildHuyDotChotMenu({
       ),
       const PopupMenuDivider(),
       ...dsDotChot.map(
-            (dot) => PopupMenuItem<int>(
-          value: dot.id,
+            (dot) => PopupMenuItem<PhienChotCong>(
+          value: dot,
           child: Row(
             children: [
               const Icon(Icons.history, size: 18, color: Colors.grey),
               const SizedBox(width: 10),
+              // Vùng 1: Thông tin đợt chốt (Bấm vào đây để chọn/xem)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Đợt ${dot.maDot}: Đến ${dot.denNgayStr ?? dot.denNgay}',
+                      'Đợt ${dot.maDot}: Đến ${dot.denNgayStr ?? dot.ngayChot}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
                     ),
-                    if (dot.soLuongNV != null)
+                    if (dot.soLuongNhanVien != null)
                       Text(
-                        '${dot.soLuongNV} nhân viên',
+                        '${dot.soLuongNhanVien} nhân viên',
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade600,
@@ -237,10 +211,24 @@ Widget _buildHuyDotChotMenu({
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: Colors.red.shade600,
+              // Vùng 2: CHỈ BẤM VÀO NÚT NÀY MỚI XÓA
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  // 1. Đóng Popup Menu
+                  Navigator.of(context).pop();
+
+                  // 2. Mở dialog xác nhận xóa
+                  _xuLyXoa(context, dot, onLoad);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: Colors.red.shade600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -249,16 +237,14 @@ Widget _buildHuyDotChotMenu({
     ],
     child: OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
-        foregroundColor: isEnabled ? Colors.red.shade700 : Colors.grey,
-        side: BorderSide(
-          color: isEnabled ? Colors.red.shade300 : Colors.grey.shade300,
-        ),
+        foregroundColor: Colors.grey.shade700,
+        side: BorderSide(color: Colors.grey.shade300),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      onPressed: null, // Để null để PopupMenuButton tự nhận diện sự kiện click
+      onPressed: null, // Để null để PopupMenuButton tự kích hoạt
       icon: const Icon(Icons.history_toggle_off_outlined, size: 18),
       label: Row(
         mainAxisSize: MainAxisSize.min,
@@ -272,5 +258,52 @@ Widget _buildHuyDotChotMenu({
         ],
       ),
     ),
+  );
+}
+
+void _xuLyXoa(
+    BuildContext context,
+    PhienChotCong phienChot,
+    Future<void> Function()? onLoad,
+    ) {
+  final repo = ChamCongLuongRepo();
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Xác nhận xóa'),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa đợt chốt công ngày ${phienChot.denNgayStr ?? phienChot.ngayChot}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              // 1. Thực hiện xóa dưới Database
+              await repo.huyKhoaChamCong(phienChot.id);
+
+              // 2. Đóng Dialog
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+                showSuccessToast(context, "Hủy thành công");
+              }
+
+              // 3. Load lại danh sách
+              if (onLoad != null) {
+                await onLoad();
+              }
+            },
+            child: const Text('Đồng ý xóa'),
+          ),
+        ],
+      );
+    },
   );
 }

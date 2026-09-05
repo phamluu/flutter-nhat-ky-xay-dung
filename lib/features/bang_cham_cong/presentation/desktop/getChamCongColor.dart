@@ -2,99 +2,92 @@ import 'package:flutter/material.dart';
 
 /// 1. Hàm lấy màu nền (Background)
 Color getChamCongColor(String value, bool chotCong) {
-  if (value.isEmpty) {
-    return chotCong ? Colors.grey.shade100 : Colors.transparent;
-  }
-
-  final String code = value.toUpperCase();
-
-  // TRẠNG THÁI: ĐÃ CHỐT CÔNG (Khóa/Read-Only)
-  // Dùng tông pastel siêu nhạt, dịu mắt
+  // TRẠNG THÁI: ĐÃ CHỐT CÔNG (Khóa / Read-Only)
+  // Ép toàn bộ về tông Xám chì / Nhạt để vô hiệu hóa thị giác
   if (chotCong) {
-    switch (code) {
-      case "X":
-        return const Color(0xFFE8F5E9); // Green nhạt (Green 50)
-      case "P":
-        return const Color(0xFFFFF3E0); // Orange nhạt (Orange 50)
-      case "CT":
-        return const Color(0xFFE3F2FD); // Blue nhạt (Blue 50)
-      case "L":
-        return const Color(0xFFFFEBEE); // Red nhạt (Red 50)
-      case "O":
-        return const Color(0xFFF3E5F5); // Purple nhạt (Purple 50)
-      default:
-        return Colors.grey.shade200;
+    if (value.isEmpty) {
+      return Colors.grey.shade200; // Ô trống đã khóa: Xám xỉn
     }
+    // Tất cả mã công đã chốt đều dùng xám nhạt đồng bộ (Disabled look)
+    return Colors.grey.shade300;
   }
 
-  // TRẠNG THÁI: CHƯA CHỐT CÔNG (Đang hoạt động/Cho phép sửa)
-  // Dùng màu tươi, rực rỡ và có độ tương phản tốt hơn
-  switch (code) {
+  // TRẠNG THÁI: CHƯA CHỐT CÔNG (Active / Đang làm việc)
+  if (value.isEmpty) {
+    return Colors.white; // Ô trống chưa khóa: Trắng sạch để chờ nhập
+  }
+
+  // Sử dụng màu sắc tươi sáng, rõ ràng cho các ô đang chấm
+  switch (value.toUpperCase()) {
     case "X":
-      return Colors.green.shade100; // Xanh lá nổi
+      return const Color(0xFFC8E6C9); // Green nhạt rực (Green 100)
     case "P":
-      return Colors.orange.shade100; // Cam nổi
+      return const Color(0xFFFFE0B2); // Orange nhạt rực (Orange 100)
     case "CT":
-      return Colors.blue.shade100; // Xanh dương nổi
+      return const Color(0xFFBBDEFB); // Blue nhạt rực (Blue 100)
     case "L":
-      return Colors.red.shade100; // Đỏ nổi
+      return const Color(0xFFFFCDD2); // Red nhạt rực (Red 100)
     case "O":
-      return Colors.purple.shade100; // Tím nổi
+      return const Color(0xFFE1BEE7); // Purple nhạt rực (Purple 100)
     default:
-      return Colors.grey.shade300;
+      return Colors.grey.shade100;
   }
 }
 
 /// 2. Hàm lấy màu chữ (Text Color)
 Color getChamCongTextColor(String value, bool chotCong) {
-  if (value.isEmpty) return Colors.black87;
-
   // TRẠNG THÁI: ĐÃ CHỐT CÔNG
-  // Ép toàn bộ chữ về xám chì / xám đậm để tạo cảm giác tĩnh (Disabled/Locked)
+  // Chữ xám mờ (Disabled Text)
   if (chotCong) {
-    return Colors.grey.shade700;
+    return Colors.grey.shade600;
   }
 
+  if (value.isEmpty) return Colors.black87;
+
   // TRẠNG THÁI: CHƯA CHỐT CÔNG
-  // Chữ theo đúng tông màu đậm của từng ký hiệu để tạo điểm nhấn tương phản
+  // Chữ tông cực đậm, tương phản cao để tạo điểm nhấn
   switch (value.toUpperCase()) {
     case "X":
-      return Colors.green.shade900;
+      return const Color(0xFF1B5E20); // Dark Green
     case "P":
-      return Colors.orange.shade900;
+      return const Color(0xFFE65100); // Dark Orange
     case "CT":
-      return Colors.blue.shade900;
+      return const Color(0xFF0D47A1); // Dark Blue
     case "L":
-      return Colors.red.shade900;
+      return const Color(0xFFB71C1C); // Dark Red
     case "O":
-      return Colors.purple.shade900;
+      return const Color(0xFF4A148C); // Dark Purple
     default:
       return Colors.black87;
   }
 }
 
-/// 3. Hàm bổ sung: Lấy màu viền (Border) giúp phân biệt rõ ràng hơn
+/// 3. Hàm lấy màu viền (Border Color)
 Color getChamCongBorderColor(String value, bool chotCong) {
-  if (value.isEmpty) return Colors.grey.shade300;
-
+  // TRẠNG THÁI: ĐÃ CHỐT CÔNG
+  // Viền mờ hoặc chìm hẳn vào nền
   if (chotCong) {
-    // Viền xám mảnh tạo cảm giác các ô đã được "đóng băng"
-    return Colors.grey.shade300;
+    return Colors.grey.shade400;
   }
 
-  // Viền đậm cùng tông màu khi chưa chốt công
+  // TRẠNG THÁI: CHƯA CHỐT CÔNG
+  // Viền đậm nét, nổi bật giúp phân định ô đang tương tác
+  if (value.isEmpty) {
+    return Colors.blue.shade300; // Ô trống chưa chốt có viền xanh nhạt gợi ý nhập
+  }
+
   switch (value.toUpperCase()) {
     case "X":
-      return Colors.green.shade400;
+      return Colors.green.shade600;
     case "P":
-      return Colors.orange.shade400;
+      return Colors.orange.shade600;
     case "CT":
-      return Colors.blue.shade400;
+      return Colors.blue.shade600;
     case "L":
-      return Colors.red.shade400;
+      return Colors.red.shade600;
     case "O":
-      return Colors.purple.shade400;
+      return Colors.purple.shade600;
     default:
-      return Colors.grey.shade400;
+      return Colors.grey.shade500;
   }
 }

@@ -1,3 +1,6 @@
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_chi_tiet_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/cham_cong_table.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/bang_cham_cong.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:nhat_ky_xay_dung/data/tables/cong_trinh_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/nhan_vien_table.dart';
@@ -60,6 +63,42 @@ class SeedData {
     ];
     for (var item in listNVCT) {
       await db.insert(NhanVienCongTrinhTable.tableName, item);
+    }
+    final listBangChamCong = [
+      {
+        ChamCongTable.id : 1,
+        ChamCongTable.thang : '2026-08',
+        ChamCongTable.idCongTrinh:1,
+        ChamCongTable.ngayTao: today
+      },
+      {
+        ChamCongTable.id : 2,
+        ChamCongTable.thang : '2026-09',
+        ChamCongTable.idCongTrinh:1,
+        ChamCongTable.ngayTao: today
+      }
+    ];
+    for (var item in listBangChamCong) {
+      await db.insert(ChamCongTable.tableName, item);
+    }
+    final List<Map<String, Object?>> lstChiTietChamCong = [
+      for (int nhanVien = 1; nhanVien <= 2; nhanVien++)
+        for (int ngay = 1; ngay <= 9; ngay++)
+          {
+            ChamCongChiTietTable.idNhanVienCongTrinh: nhanVien,
+            ChamCongChiTietTable.idChamCong: 1,
+            ChamCongChiTietTable.trangThaiSang: 1,
+            ChamCongChiTietTable.trangThaiChieu: 1,
+            ChamCongChiTietTable.ngay:
+            '2026-08-${ngay.toString().padLeft(2, '0')}',
+          },
+    ];
+
+    for (final item in lstChiTietChamCong) {
+      await db.insert(
+        ChamCongChiTietTable.tableName,
+        item,
+      );
     }
   }
 }

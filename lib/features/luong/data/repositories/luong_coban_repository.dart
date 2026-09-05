@@ -1,8 +1,8 @@
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/data/tables/luong_co_ban_table.dart';
+import 'package:nhat_ky_xay_dung/data/tables/phien_chot_cong_table.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../../data/db_helper.dart';
-import '../../../../data/tables/ky_luong_chi_tiet_table.dart';
 import '../../../../data/tables/ky_luong_table.dart';
 import '../../../../data/tables/cham_cong_table.dart';
 import '../../../../data/tables/nhan_vien_cong_trinh_table.dart';
@@ -17,13 +17,17 @@ class LuongCoBanRepository {
     if(luong.ngayApDung == null || luong.idNhanVien == null){
       throw Exception('Chưa có ngày áp dụng hoặc nhân viên');
     }
-    bool isLuongBiKhoa = await isLuongCoBanBiKhoa(luong.ngayApDung, luong.idNhanVien!);
-    if(isLuongBiKhoa){
-      throw Exception('Không được thêm lương cơ bản áp dụng vào trong hoặc trước kỳ lương đã chốt');
+    bool isLuongDaChot = await isLuongCoBanDaChot(idNhanVien: luong.idNhanVien, ngayApDung: luong.ngayApDung);
+    if(isLuongDaChot){
+      throw Exception('Không thể thêm lương cơ bản trong kỳ lương đã chốt');
     }
-    final db = await _dbHelper.database;
-    return await db.insert(LuongCoBanTable.tableName, luong.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    try{
+      final db = await _dbHelper.database;
+      return await db.insert(LuongCoBanTable.tableName, luong.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }catch(e){
+      throw Exception('Lỗi');
+    }
   }
 
   Future<int> update(Luongcoban luong) async {
@@ -32,9 +36,9 @@ class LuongCoBanRepository {
     if(luong.id == null){
       throw Exception('Không tồn tại lương cơ bản');
     }
-    bool isLuongDaChot = await isLuongCoBanDaChot(idLuongCoBan: luong.id!);
+    bool isLuongDaChot = await isLuongCoBanDaChot(idNhanVien: luong.idNhanVien, ngayApDung: luong.ngayApDung);
     if(isLuongDaChot){
-      throw Exception('Không thể sửa mức lương đã được áp dụng trong kỳ lương đã chốt');
+      throw Exception('Không thể sửa mức lương trong kỳ lương đã chốt');
     }
     return await db.update(
       LuongCoBanTable.tableName,
@@ -46,9 +50,17 @@ class LuongCoBanRepository {
 
   Future<int> delete(int id) async {
     final db = await _dbHelper.database;
-    bool isLuongDaChot = await isLuongCoBanDaChot(idLuongCoBan: id);
+    final rs = await db.query(LuongCoBanTable.tableName,
+        where: '${LuongCoBanTable.id}',
+        whereArgs: [id], limit: 1);
+    if(rs.isEmpty){
+      throw Exception('Không tồn tại lương cơ bản');
+    }
+    final int? idNhanVien = rs.first[LuongCoBanTable.idNhanVien] as int?;
+    final String? ngayApDung = rs.first[LuongCoBanTable.ngayApDung] as String?;
+    bool isLuongDaChot = await isLuongCoBanDaChot(idNhanVien: idNhanVien, ngayApDung: ngayApDung);
     if(isLuongDaChot){
-      throw Exception('Không thể xóa mức lương đã được áp dụng trong kỳ lương đã chốt');
+      throw Exception('Không thể xóa mức lương trong kỳ lương đã chốt');
     }
     return await db.delete(LuongCoBanTable.tableName, where: '${LuongCoBanTable.id} = ?', whereArgs: [id]);
   }
@@ -86,49 +98,18 @@ class LuongCoBanRepository {
     });
   }
 
-  // Không cho sửa/xóa lương đã được áp dụng vào kì lương đã chốt
-  Future<bool> isLuongCoBanDaChot({ required int idLuongCoBan,}) async {
+  // Không cho thêm/sửa/xóa mức lương áp dụng trong và trước kì lương đã chốt
+  Future<bool> isLuongCoBanDaChot({ String? ngayApDung, int? idNhanVien}) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-    SELECT 1
-    FROM ${KyLuongChiTietTable.tableName} klct
-    INNER JOIN ${KyLuongTable.tableName} kl
-      ON kl.${KyLuongTable.id} = klct.${KyLuongChiTietTable.idKyLuong}
-    WHERE klct.${KyLuongChiTietTable.idLuongCoBan} = ?
-      AND kl.${KyLuongTable.trangThai} = ?
-      AND kl.${KyLuongTable.is_deleted} = 0
-      AND klct.${KyLuongChiTietTable.isDeleted} = 0
-    LIMIT 1
-  ''', [
-      idLuongCoBan,
-      TrangThaiLuong.dachot.value,
-    ]);
-    return result.isNotEmpty;
+    final rs = await db.rawQuery('''
+    SELECT * FROM ${KyLuongTable.tableName} kl
+    INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct on kl.${KyLuongTable.idNhanVienCongTrinh} = nvct.${NhanVienCongTrinhTable.id}
+    INNER JOIN ${PhienChotCongTable.tableName} pc on kl.${KyLuongTable.idPhienChot} = pc.${PhienChotCongTable.id}
+    WHERE nvct.${NhanVienCongTrinhTable.idNhanVien} = ? AND date(${PhienChotCongTable.ngayChot}) >= date(?)
+    AND kl.${KyLuongTable.trangThai} = ${TrangThaiLuong.dachot.value}
+    ''',[idNhanVien, ngayApDung]
+    );
+    return rs.isNotEmpty;
   }
 
-  // Không cho thêm mức lương của nv áp dụng vào trước kỳ lương đã chốt
-  Future<bool> isLuongCoBanBiKhoa(String? ngayApDung, int idNhanVien) async{
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-      SELECT 1
-      FROM ${KyLuongTable.tableName} kl
-      INNER JOIN ${ChamCongTable.tableName} cc on kl.${KyLuongTable.idBangChamCong} = cc.${ChamCongTable.id}
-      INNER JOIN ${NhanVienCongTrinhTable.tableName} nvct on kl.${KyLuongTable.idNhanVienCongTrinh} == nvct.${NhanVienCongTrinhTable.id}
-      WHERE kl.${KyLuongTable.trangThai} = ?
-            AND kl.${KyLuongTable.is_deleted} = 0
-            AND NVCT.${NhanVienCongTrinhTable.idNhanVien} = ?
-             -- ngày áp dụng nằm trong hoặc trước kỳ đã chốt
-            AND date(?) <= date(
-              cc.${ChamCongTable.thang} || '-01',
-              '+1 month',
-              '-1 day'
-            )
-        LIMIT 1
-    ''',[
-      TrangThaiLuong.dachot.value,
-      idNhanVien,
-      ngayApDung
-    ]);
-    return result.isNotEmpty;
-  }
 }

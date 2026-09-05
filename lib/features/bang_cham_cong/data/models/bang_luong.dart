@@ -3,7 +3,7 @@ import 'package:nhat_ky_xay_dung/data/tables/ky_luong_table.dart';
 class BangLuong {
       int? id;
       int idNhanVienCongTrinh;
-      int idBangChamCong;
+      int? idPhienChot;
       double tongCong;
       double tongLuong;
       double tongUng;
@@ -17,7 +17,7 @@ class BangLuong {
       BangLuong({
         this.id,
         required this.idNhanVienCongTrinh,
-        required this.idBangChamCong,
+        this.idPhienChot,
         required this.tongCong,
         required this.tongLuong,
         required this.tongUng,
@@ -32,7 +32,7 @@ class BangLuong {
       factory BangLuong.fromMap(Map<String, dynamic> map) => BangLuong(
         id: map[KyLuongTable.id] as int,
         idNhanVienCongTrinh: map[KyLuongTable.idNhanVienCongTrinh] as int,
-        idBangChamCong: map[KyLuongTable.idBangChamCong] as int,
+        idPhienChot: map[KyLuongTable.idPhienChot] as int,
         tongCong: map[KyLuongTable.tongCong] as double,
         tongLuong: map[KyLuongTable.tongLuong] as double,
         tongUng: map[KyLuongTable.tongUng] as double,
@@ -46,7 +46,7 @@ class BangLuong {
       );
       Map<String, dynamic> toMapInsert() => {
         KyLuongTable.idNhanVienCongTrinh: idNhanVienCongTrinh,
-        KyLuongTable.idBangChamCong: idBangChamCong,
+        KyLuongTable.idPhienChot: idPhienChot,
         KyLuongTable.tongCong: tongCong,
         KyLuongTable.tongLuong: tongLuong,
         KyLuongTable.tongUng: tongUng,
@@ -60,7 +60,7 @@ class BangLuong {
       };
       Map<String, dynamic> toMapUpdate() => {
         KyLuongTable.idNhanVienCongTrinh: idNhanVienCongTrinh,
-        KyLuongTable.idBangChamCong: idBangChamCong,
+        KyLuongTable.idPhienChot: idPhienChot,
         KyLuongTable.tongCong: tongCong,
         KyLuongTable.tongLuong: tongLuong,
         KyLuongTable.tongUng: tongUng,

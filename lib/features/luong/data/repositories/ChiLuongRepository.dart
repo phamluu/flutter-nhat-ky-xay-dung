@@ -58,7 +58,7 @@ class ChiLuongRepository {
       cl.${ChiLuongTable.updated_at},
 
       bl.${KyLuongTable.idNhanVienCongTrinh},
-      bl.${KyLuongTable.idBangChamCong},
+      bl.${KyLuongTable.idPhienChot},
       bl.${KyLuongTable.tongCong},
       bl.${KyLuongTable.tongLuong},
       bl.${KyLuongTable.tongUng},
@@ -114,7 +114,7 @@ class ChiLuongRepository {
     INNER JOIN ${NhanVienTable.tableName} nv 
         ON nvct.${NhanVienCongTrinhTable.idNhanVien} = nv.${NhanVienTable.id}
     WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
-      AND bl.${KyLuongTable.idBangChamCong} = ?
+      AND bl.${KyLuongTable.idPhienChot} = ?
     ORDER BY cl.${ChiLuongTable.ngayChi} DESC
   ''', [idCongTrinh, idBangChamCong]);
     return result.map((e) => ChiLuongModel.fromMap(e)).toList();

@@ -288,7 +288,7 @@ class ThuChiService {
            cl.${ChiLuongTable.idBangLuong}
       JOIN ${ChamCongTable.tableName} cc
         ON cc.${ChamCongTable.id} =
-           kl.${KyLuongTable.idBangChamCong}
+           kl.${KyLuongTable.idPhienChot}
       WHERE cc.${ChamCongTable.idCongTrinh} = ?
         AND cl.${ChiLuongTable.is_deleted} = 0
         AND cl.${ChiLuongTable.ngayChi} IS NOT NULL
