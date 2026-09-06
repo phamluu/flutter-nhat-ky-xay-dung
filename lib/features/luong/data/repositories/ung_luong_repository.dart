@@ -62,7 +62,7 @@ class UngLuongRepository {
     return (result.first['total'] as num).toDouble();
   }
   // Tổng ứng còn lại chưa chốt phiên này
-  Future<double>tongUngForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
+  Future<double>tongUngConLaiForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
     final db = await _dbHelper.database;
     final rs = await db.rawQuery('''
     SELECT COALESCE(
@@ -108,12 +108,11 @@ class UngLuongRepository {
       idBangChamCong,
       idNhanVienCongTrinh,
     ]);
-
     return (result.first['total'] as num).toDouble();
   }
 
   // Tổng ứng còn lại trước khi khấu trừ kỳ này
-  Future<double> tongUngForNhanVien( int? idBangChamCong, int? idNhanVienCongTrinh,) async {
+  Future<double> tongUngConLaiForChamCong( int? idBangChamCong, int? idNhanVienCongTrinh,) async {
     final db = await _dbHelper.database;
     final rs = await db.rawQuery('''
     SELECT COALESCE(
@@ -131,10 +130,7 @@ class UngLuongRepository {
     ]);
     final conLai =
     (rs.first['conLai'] as num).toDouble();
-    final daTruKyNay = await tongTruUngForChamCong(
-      idBangChamCong,
-      idNhanVienCongTrinh,
-    );
+    final daTruKyNay = await tongTruUngForChamCong( idBangChamCong,idNhanVienCongTrinh,);
     // Số dư ứng trước khi khấu trừ kỳ hiện tại
     return conLai + daTruKyNay;
   }

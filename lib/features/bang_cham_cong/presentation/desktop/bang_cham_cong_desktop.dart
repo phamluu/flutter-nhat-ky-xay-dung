@@ -425,7 +425,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         // badgeCell(nv.chamCong.tongSoCong.toString(), Colors.blue),
         DataCell(
           SizedBox(
-            width: 210,
+            width: 140,
             child: Row(
               children: [
                 Expanded(
@@ -434,16 +434,13 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                 Expanded(
                   child: Text("${nv.chamCong.soCongDaChot}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
                 ),
-                Expanded(
-                  child: Text("${nv.chamCong.soCongChuaChot}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.orange)),
-                ),
               ],
             ),
           ),
         ),
         DataCell(
           SizedBox(
-            width: 300,
+            width: 200,
             child: Row(
               children: [
                 Expanded(
@@ -451,9 +448,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                 ),
                 Expanded(
                   child: Text("${currencyFormat.format(nv.luong.tongLuongChot)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
-                ),
-                Expanded(
-                  child: Text("${currencyFormat.format(nv.tongTienCong - nv.luong.tongLuongChot!)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.orange)),
                 ),
               ],
             ),

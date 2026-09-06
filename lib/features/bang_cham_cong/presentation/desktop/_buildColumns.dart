@@ -82,7 +82,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     DataColumn(
       label: Container(
-        width: 210, // Tổng chiều rộng cho cả 3 cột con (70 * 3)
+        width: 140, // Tổng chiều rộng cho cả 3 cột con (70 * 3)
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -105,9 +105,6 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
                 Expanded(
                   child: Text("Đã chốt", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.green), textAlign: TextAlign.center),
                 ),
-                Expanded(
-                  child: Text("Chưa chốt", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.orange), textAlign: TextAlign.center),
-                ),
               ],
             ),
           ],
@@ -119,7 +116,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     DataColumn(
       label: Container(
-        width: 300, // Tổng chiều rộng cho cả 3 cột con (70 * 3)
+        width: 200, // Tổng chiều rộng cho cả 3 cột con (70 * 3)
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -141,9 +138,6 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
                 ),
                 Expanded(
                   child: Text("Đã chốt", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.green), textAlign: TextAlign.center),
-                ),
-                Expanded(
-                  child: Text("Chưa chốt", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.orange), textAlign: TextAlign.center),
                 ),
               ],
             ),

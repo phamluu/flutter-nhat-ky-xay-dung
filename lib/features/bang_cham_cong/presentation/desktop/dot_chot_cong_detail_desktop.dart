@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/currencyFormat.dart';
+import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/phien_chot_cong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
+
+import '../../../../core/utils/table_style.dart';
 
 class DotChotCongDetailDesktop extends StatefulWidget {
   final PhienChotCong phienChot;
@@ -18,6 +21,9 @@ class DotChotCongDetailDesktop extends StatefulWidget {
 }
 
 class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
+  // 1. Khai báo 2 ScrollController cho 2 chiều cuộn
+  final ScrollController _horizontalScrollController = ScrollController();
+  final ScrollController _verticalScrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchKeyword = '';
   late final ChamCongLuongRepo _repo;
@@ -25,7 +31,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
 
   // Set chứa danh sách ID nhân viên công trình đang được tích chọn
   final Set<int> _selectedIds = {};
-  final List<ChamCongLuongNhanVien> _selectedNhanVien = [];
   @override
   void initState() {
     super.initState();
@@ -34,16 +39,9 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
   }
 
   Future<void> _load() async {
-    final rs = await _repo.chamCongNhanVienPhienChot(widget.phienChot.id);
+    final rs = await _repo.chamCongNhanVienPhienChot(idPhien: widget.phienChot.id);
     setState(() {
       _model = rs;
-      _selectedNhanVien.clear();
-      _selectedNhanVien.addAll(
-        _model
-            .map((e) => e.idNhanVienCongTrinh)
-          .whereType<ChamCongLuongNhanVien>(),
-      );
-      // Mặc định chọn tất cả khi mới load danh sách
       _selectedIds.clear();
       _selectedIds.addAll(
         _model
@@ -55,6 +53,8 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
 
   @override
   void dispose() {
+    _horizontalScrollController.dispose();
+    _verticalScrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -158,7 +158,7 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     // Tính toán số liệu dựa trên các mục ĐƯỢC TÍCH CHỌN
     final selectedList = _model.where((e) => _selectedIds.contains(e.idNhanVienCongTrinh));
     final double tongSoCong = selectedList.fold(0.0, (sum, nv) => sum + nv.soCong);
-    final double tongTienLuong = selectedList.fold(0.0, (sum, nv) => sum + nv.tongLuong);
+    final double tongTienLuong = selectedList.fold(0.0, (sum, nv) => sum + nv.tongLuongDuKien);
 
     return Row(
       children: [
@@ -304,9 +304,9 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
   }
 
   // --- 3. BẢNG DỮ LIỆU NHÂN VIÊN ---
+  // --- 3. BẢNG DỮ LIỆU NHÂN VIÊN (Đã bổ sung Scroll Ngang & Dọc) ---
   Widget _buildEmployeeTable() {
     final displayList = _filteredModel;
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -315,195 +315,319 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: constraints.maxWidth,
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: DataTable(
-                    headingRowColor:
-                    WidgetStateProperty.all(Colors.grey.shade50),
-                    headingRowHeight: 45,
-                    dataRowMinHeight: 48,
-                    dataRowMaxHeight: 52,
-
-                    columnSpacing: 24,
-                    horizontalMargin: 16,
-
-                    columns: const [
-                      DataColumn(
-                        label: Text(
-                          'STT',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+        // Scrollbar bên ngoài giúp hiện thanh cuộn rõ ràng trên Desktop/Web
+        child: Scrollbar(
+          controller: _horizontalScrollController,
+          thumbVisibility: true,
+          trackVisibility: true,
+          child: SingleChildScrollView(
+            controller: _horizontalScrollController,
+            scrollDirection: Axis.horizontal, // 1. Bọc scroll chiều ngang
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical, // 2. Bọc scroll chiều dọc
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
+                headingRowHeight: 45,
+                dataRowMinHeight: 48,
+                dataRowMaxHeight: 52,
+                columnSpacing: 24,
+                horizontalMargin: 16,
+                columns: [
+                  const DataColumn(
+                    label: Text(
+                      'STT',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'HỌ VÀ TÊN',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'CHỨC VỤ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'SỐ CÔNG',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      width: 200,
+                      alignment: Alignment.center,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "TỔNG LƯƠNG",
+                            style: headerTitleStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 4),
+                          Divider(height: 1, thickness: 1),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text("Dự kiến",
+                                    style: headerSubStyle,
+                                    textAlign: TextAlign.center),
+                              ),
+                              Expanded(
+                                child: Text("Chốt",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                        color: Colors.green),
+                                    textAlign: TextAlign.center),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      width: 200,
+                      alignment: Alignment.center,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "ĐÃ ỨNG",
+                            style: headerTitleStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 4),
+                          Divider(height: 1, thickness: 1),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text("Dự kiến",
+                                    style: headerSubStyle,
+                                    textAlign: TextAlign.center),
+                              ),
+                              Expanded(
+                                child: Text("Chốt",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                        color: Colors.green),
+                                    textAlign: TextAlign.center),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'TRỪ ỨNG',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      width: 200,
+                      alignment: Alignment.center,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "THỰC NHẬN",
+                            style: headerTitleStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 4),
+                          Divider(height: 1, thickness: 1),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text("Dự kiến",
+                                    style: headerSubStyle,
+                                    textAlign: TextAlign.center),
+                              ),
+                              Expanded(
+                                child: Text("Chốt",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                        color: Colors.green),
+                                    textAlign: TextAlign.center),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'TRẠNG THÁI',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'THAO TÁC',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+                rows: displayList.asMap().entries.map((e) {
+                  final index = e.key;
+                  final item = e.value;
+                  final idNv = item.idNhanVienCongTrinh;
+                  final isSelected = _selectedIds.contains(idNv);
+                  return DataRow(
+                    selected: isSelected,
+                    onSelectChanged: (bool? selected) {
+                      if (idNv == null) return;
+                      setState(() {
+                        if (selected == true) {
+                          _selectedIds.add(idNv);
+                        } else {
+                          _selectedIds.remove(idNv);
+                        }
+                      });
+                    },
+                    cells: [
+                      DataCell(Text('${index + 1}')),
+                      DataCell(
+                        Text(
+                          item.hoTen ?? 'N/A',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          'HỌ VÀ TÊN',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataCell(Text(item.chucVu ?? '-')),
+                      DataCell(Text('${item.soCong} công')),
+                      DataCell(
+                        SizedBox(
+                          width: 200,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.tongLuongDuKien ?? 0),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.tongLuongChot ?? 0),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          'CHỨC VỤ',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataCell(
+                        SizedBox(
+                          width: 200,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.tongUngDuKien ?? 0),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.tongUngChot ?? 0),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          'SỐ CÔNG',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataCell(
+                        Text(
+                            currencyFormat.format(item.tongUngDaTru ?? 0)),
+                      ),
+                      DataCell(
+                        SizedBox(
+                          width: 200,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.thucNhanDuKien ?? 0),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  currencyFormat
+                                      .format(item.thucNhanChot ?? 0),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          'TỔNG LƯƠNG',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            TrangThaiLuong.fromValue(item.trangThaiLuong).label,
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          'ĐÃ ỨNG',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'TRỪ ỨNG',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'THỰC NHẬN',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'TRẠNG THÁI',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'THAO TÁC',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(
+                            Icons.payment,
+                            color: Colors.green,
+                            size: 20,
+                          ),
+                          tooltip: 'Chi lương riêng',
+                          onPressed: () {
+                            // TODO
+                          },
                         ),
                       ),
                     ],
-
-                    rows: displayList.asMap().entries.map((e) {
-                      final index = e.key;
-                      final item = e.value;
-                      final idNv = item.idNhanVienCongTrinh;
-
-                      final isSelected =
-                      _selectedIds.contains(idNv);
-
-                      return DataRow(
-                        selected: isSelected,
-                        onSelectChanged: (bool? selected) {
-                          if (idNv == null) return;
-                          setState(() {
-                            if (selected == true) {
-                              _selectedIds.add(idNv);
-                            } else {
-                              _selectedIds.remove(idNv);
-                            }
-                          });
-                        },
-                        cells: [
-                          DataCell(
-                            Text('${index + 1}'),
-                          ),
-
-                          DataCell(
-                            Text(
-                              item.hoTen ?? 'N/A',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-
-                          DataCell(
-                            Text(item.chucVu ?? '-'),
-                          ),
-
-                          DataCell(
-                            Text('${item.soCong} công'),
-                          ),
-
-                          DataCell(
-                            Text(
-                              currencyFormat.format(item.tongLuong),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green.shade800,
-                              ),
-                            ),
-                          ),
-
-                          DataCell(
-                            Text('${currencyFormat.format(item.tongUng ?? 0)}'),
-                          ),
-
-                          DataCell(
-                            Text('${currencyFormat.format(item.tongUngDaTru ?? 0)}'),
-                          ),
-
-                          DataCell(
-                            Text('${currencyFormat.format(item.thucNhan ?? 0)}'),
-                          ),
-
-                          DataCell(
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius:
-                                BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'Đã chốt công',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          DataCell(
-                            IconButton(
-                              icon: const Icon(
-                                Icons.payment,
-                                color: Colors.green,
-                                size: 20,
-                              ),
-                              tooltip: 'Chi lương riêng',
-                              onPressed: () {
-                                // TODO
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
+                  );
+                }).toList(),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -531,12 +655,16 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
             ),
             onPressed: () async {
               try{
-                await _repo.chotLuongTheoDanhSach(danhSachDuocChon: _selectedNhanVien, idPhienChot: widget.phienChot.id);
-                showSuccessToast(context, "Chốt lương thành công");
-                _load();
-                Navigator.pop(ctx);
+                await _repo.chotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
+                if (mounted) {
+                  showSuccessToast(context, "Chốt lương thành công");
+                  Navigator.pop(ctx);
+                  _load();
+                }
               }catch(e){
-                showErrorToast(context, e, "Không thể chốt");
+                if (mounted) {
+                  showErrorToast(context, e, "Không thể chốt");
+                }
               }
             },
             child: const Text('Đồng ý chốt'),

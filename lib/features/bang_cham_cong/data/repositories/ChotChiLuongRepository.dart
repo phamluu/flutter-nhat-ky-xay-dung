@@ -13,6 +13,7 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ky_luong_ch
 import 'package:nhat_ky_xay_dung/features/luong/data/enums.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/ChiLuong.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/models/LuongCoBan.dart';
+import 'package:sqflite/sqflite.dart';
 import '../../../../core/utils/trang_thai_cham_cong.dart';
 import '../../../../data/db_helper.dart';
 import '../../../../data/tables/cham_cong_chi_tiet_table.dart';
@@ -196,11 +197,17 @@ class ChotChiLuongRepository {
   }
 
   // Chốt đối trừ lương
-  Future<void> chotDoiTruLuong(listUngLuong, double tongLuong, int idNhanVienCongTrinh, int idBangLuong) async {
-    final db = await _dbHelper.database;
+  Future<void> chotDoiTruLuong(
+      List<Map<String, dynamic>> listUngLuong,
+      double tongLuong,
+      int idNhanVienCongTrinh,
+      int idBangLuong,
+      {DatabaseExecutor? executor} // Thêm tham số executor
+      ) async {
+    // Nếu có truyền executor (txn) thì dùng, không thì lấy db mặc định
+    final db = executor ?? await _dbHelper.database;
     final nowIso = DateTime.now().toIso8601String();
-    // Xử lý đối trừ lương
-    // 1. Tính tổng lương khả dụng để khấu trừ
+
     double soTienConDoiTru = tongLuong;
 
     for (var ungLuong in listUngLuong) {
@@ -209,16 +216,14 @@ class ChotChiLuongRepository {
       final double soTienGoc = (ungLuong[UngLuongTable.soTien] as num?)?.toDouble() ?? 0.0;
       final double soTienDaTruHienTai = (ungLuong[UngLuongTable.soTienDaTru] as num?)?.toDouble() ?? 0.0;
 
-      // Tính số tiền còn nợ của phiếu này (An toàn với Null)
       final double soTienConNoPhieuNay = soTienGoc - soTienDaTruHienTai;
       if (soTienConNoPhieuNay <= 0) continue;
 
-      // Số tiền thực tế khấu trừ đợt này cho phiếu ứng
       double soTienKhauTru = (soTienConDoiTru >= soTienConNoPhieuNay)
           ? soTienConNoPhieuNay
           : soTienConDoiTru;
 
-      // Lưu chi tiết đối trừ
+      // Các thao tác này sẽ chạy trên 'txn'
       await db.insert(
         ChiTietDoiTruUngLuongTable.tableName,
         {
@@ -231,7 +236,7 @@ class ChotChiLuongRepository {
           ChiTietDoiTruUngLuongTable.isDeleted: 0,
         },
       );
-      // Cập nhật lại số tiền đã trừ vào bảng Ứng Lương
+
       await db.update(
         UngLuongTable.tableName,
         {
@@ -240,8 +245,8 @@ class ChotChiLuongRepository {
         where: '${UngLuongTable.id} = ?',
         whereArgs: [idUngLuong],
       );
-      // Giảm số tiền quỹ lương còn khả dụng để trừ cho các phiếu tiếp theo
-      soTienConDoiTru -= soTienKhauTru; // Đã sửa: trừ đi soTienKhauTru
+
+      soTienConDoiTru -= soTienKhauTru;
     }
   }
   // Chốt hoặc hủy chốt lương dành cho Datacel chốt lương trong bảng chấm công

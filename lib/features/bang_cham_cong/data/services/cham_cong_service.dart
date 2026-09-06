@@ -47,7 +47,7 @@ class ChamCongService {
        //final tongDaUng = await _chamCongLuongRepo.tongTienUngLuongForNhanVien(idNhanVienCongTrinh: nv.id!, idBangChamCong: idBangChamCong);
       // Tính trừ ứng trong toàn bộ bảng chấm công kỳ ngày
       final truUngKyNay = await _ungLuongRepo.tongTruUngForChamCong(idBangChamCong, nv.id);
-      final tongUng = await _ungLuongRepo.tongUngForNhanVien(idBangChamCong, nv.id);
+      final tongUng = await _ungLuongRepo.tongUngConLaiForChamCong(idBangChamCong, nv.id);
       // final tongDaChi = await _bangLuongRepo.tongDaChi(bangLuong?.id);
       // Tổng trừ ứng trong bảng chấm công này
 
