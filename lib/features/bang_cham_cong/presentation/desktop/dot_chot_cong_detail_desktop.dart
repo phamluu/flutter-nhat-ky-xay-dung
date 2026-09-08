@@ -659,7 +659,7 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
                 if (mounted) {
                   showSuccessToast(context, "Chốt lương thành công");
                   Navigator.pop(ctx);
-                  _load();
+                  await _load();
                 }
               }catch(e){
                 if (mounted) {
@@ -694,9 +694,19 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
               backgroundColor: Colors.red.shade700,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              // TODO: Gọi Repo xử lý hủy chốt lương cho danh sách _selectedIds.toList()
+            onPressed: () async {
+              try{
+                await _repo.huyChotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
+                if (mounted) {
+                  showSuccessToast(context, "Hủy chốt lương thành công");
+                  Navigator.pop(ctx);
+                  await _load();
+                }
+              }catch(e){
+                if (mounted) {
+                  showErrorToast(context, e, "Không thể hủy chốt lương");
+                }
+              }
             },
             child: const Text('Đồng ý hủy chốt'),
           ),

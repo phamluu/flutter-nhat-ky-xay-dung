@@ -540,7 +540,7 @@ class _UngLuongNhanVienDesktopState extends State<UngLuongNhanVienDesktop> {
                   // Số tiền đã trừ
                   DataCell(
                     Text(
-                      formatCurrency(ul.soTienDaTru ?? 0),
+                      formatCurrency(ul.tongDaTru ?? 0),
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),

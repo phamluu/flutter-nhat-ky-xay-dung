@@ -8,7 +8,6 @@ class Ungluong {
     int? id;
     int? idNhanVienCongTrinh;
     double? soTien;
-    double? soTienDaTru;
     DateTime? ngayUng;
     int? trangThai;
     String? lyDo;
@@ -27,7 +26,6 @@ class Ungluong {
     this.id,
     this.idNhanVienCongTrinh,
     this.soTien,
-    this.soTienDaTru,
     this.ngayUng,
     this.trangThai,
     // this.nhanVien,
@@ -44,9 +42,6 @@ class Ungluong {
         soTien: (map[UngLuongTable.soTien] is int)
             ? (map[UngLuongTable.soTien] as int).toDouble()
             : map[UngLuongTable.soTien] as double?,
-        soTienDaTru: (map[UngLuongTable.soTienDaTru] is int)
-            ? (map[UngLuongTable.soTienDaTru] as int).toDouble()
-            : map[UngLuongTable.soTienDaTru] as double?,
         ngayUng: map[UngLuongTable.ngayUng] != null
             ? DateTime.tryParse(map[UngLuongTable.ngayUng].toString())
             : null,

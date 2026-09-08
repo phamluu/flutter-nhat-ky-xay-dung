@@ -72,11 +72,14 @@ class ChamCongLuongRepo {
         DateTime(dateSelected.year, dateSelected.month, dateSelected.day);
     final String dateSelectedStr = normalizedDate.toIso8601String();
     final db = await _dbHelper.database;
-    final phienChotCong = await db.query(PhienChotCongTable.tableName,
-        columns: [PhienChotCongTable.id],
-        where:
-            '${PhienChotCongTable.idChamCong} = ? AND ${PhienChotCongTable.denNgay} = ?',
-        whereArgs: [idBangChamCong, dateSelectedStr]);
+    // Cần kiểm tra lại
+    final placeholder = List.filled(selectedNhanVienIds!.length, '?').join(',');
+    final phienChotCong = await db.rawQuery('''
+      SELECT * FROM ${ChamCongChiTietTable.tableName} ct 
+                INNER JOIN ${PhienChotCongTable.tableName} pc on ct.${ChamCongChiTietTable.idPhienChot} = pc.${PhienChotCongTable.id}
+                WHERE ${PhienChotCongTable.idChamCong} = ? AND ${PhienChotCongTable.denNgay} = ? 
+                AND ct.${ChamCongChiTietTable.idNhanVienCongTrinh} IN ?
+    ''', [idBangChamCong, dateSelectedStr, placeholder]);
     if (phienChotCong.isNotEmpty) {
       throw Exception('Đã tồn tại phiên chốt công cho ngày này');
     }
@@ -98,12 +101,19 @@ class ChamCongLuongRepo {
         if (selectedNhanVienIds != null && selectedNhanVienIds.isNotEmpty) {
           final batch = txn.batch();
           for (final idNV in selectedNhanVienIds) {
-            batch.update(ChamCongChiTietTable.tableName,
-                {ChamCongChiTietTable.idPhienChot: idPhienChot},
-                where:
-                    '${ChamCongChiTietTable.idChamCong} = ? AND ${ChamCongChiTietTable.idNhanVienCongTrinh} = ? '
-                    'AND date(${ChamCongChiTietTable.ngay}) <= date(?) AND ${ChamCongChiTietTable.idPhienChot} IS NULL',
-                whereArgs: [idBangChamCong, idNV, dateSelectedStr]);
+            batch.rawInsert('''
+                INSERT INTO ${ChamCongChiTietTable.tableName} (
+                  ${ChamCongChiTietTable.idChamCong},
+                  ${ChamCongChiTietTable.idNhanVienCongTrinh},
+                  ${ChamCongChiTietTable.ngay},
+                  ${ChamCongChiTietTable.idPhienChot}
+                ) VALUES (?, ?, ?, ?)
+                ON CONFLICT(${ChamCongChiTietTable.idChamCong}, ${ChamCongChiTietTable.idNhanVienCongTrinh}, ${ChamCongChiTietTable.ngay}) 
+                DO UPDATE SET 
+                  ${ChamCongChiTietTable.idPhienChot} = excluded.${ChamCongChiTietTable.idPhienChot}
+                WHERE ${ChamCongChiTietTable.idPhienChot} IS NULL 
+                  AND date(${ChamCongChiTietTable.tableName}.${ChamCongChiTietTable.ngay}) <= date(?)
+              ''', [idBangChamCong, idNV, dateSelectedStr, idPhienChot, dateSelectedStr]);
           }
           await batch.commit(noResult: true);
         }
@@ -240,7 +250,8 @@ class ChamCongLuongRepo {
           WHERE (${idBangChamCong} IS NULL OR ${PhienChotCongTable.idChamCong} = ?)
                 AND (${idPhien} IS NULL OR ${KyLuongTable.idPhienChot} = ?)
                 AND ${KyLuongTable.trangThai} = ?
-        ''', [idBangChamCong, idPhien, TrangThaiLuong.dachot.value]);
+                AND ${KyLuongTable.idNhanVienCongTrinh} = ?
+        ''', [idBangChamCong, idPhien, TrangThaiLuong.dachot.value, idNvct]);
         double? tongLuongChot;
         double? tongUngChot;
         double? thucNhanChot;
@@ -248,7 +259,6 @@ class ChamCongLuongRepo {
           tongLuongChot = luong.first['tongLuong'] as double?;
           tongUngChot = luong.first['tongUng'] as double?;
           thucNhanChot = luong.first['thucNhan'] as double?;
-          trangThaiLuong = TrangThaiLuong.dachot.value;
         }
         resultMap[idNvct] = ChamCongLuongNhanVien(
           idNhanVienCongTrinh: idNvct,
@@ -355,10 +365,50 @@ class ChamCongLuongRepo {
       }
     });
   }
-  Future<void> huyChotLuongTheoDanhSach({ required Set<int> danhSachDuocChon, required int idPhienChot,}) async{
-    // 1. Xóa đối ứng trừ lương
-    // 2. Xóa Kỳ lương
-    // 3. Cập nhật lại số tiền đã trừ trong ứng lương
+  Future<void> huyChotLuongTheoDanhSach({required Set<int> danhSachDuocChon, required int idPhienChot}) async {
+    final db = await _dbHelper.database;
+    if (danhSachDuocChon.isEmpty) return;
+    final nhanVienPlaceholders = List.filled(danhSachDuocChon.length, '?').join(',');
+    // 1. Lấy ID kỳ lương của những nhân viên được chọn
+    final rows = await db.query(
+      KyLuongTable.tableName,
+      columns: [KyLuongTable.id],
+      where:
+      '${KyLuongTable.idNhanVienCongTrinh} IN ($nhanVienPlaceholders) '
+          'AND ${KyLuongTable.idPhienChot} = ?',
+      whereArgs: [
+        ...danhSachDuocChon,
+        idPhienChot,
+      ],
+    );
+
+    final bangLuongs = rows
+        .map((row) => row[KyLuongTable.id] as int)
+        .toList();
+
+    // 2. Xóa đối ứng trừ lương
+    if (bangLuongs.isNotEmpty) {
+      final bangLuongPlaceholders =
+      List.filled(bangLuongs.length, '?').join(',');
+      await db.delete(
+        ChiTietDoiTruUngLuongTable.tableName,
+        where:
+        '${ChiTietDoiTruUngLuongTable.idBangLuong} '
+            'IN ($bangLuongPlaceholders)',
+        whereArgs: bangLuongs,
+      );
+    }
+    // 3. Xóa kỳ lương
+    await db.delete(
+      KyLuongTable.tableName,
+      where:
+      '${KyLuongTable.idNhanVienCongTrinh} IN ($nhanVienPlaceholders) '
+          'AND ${KyLuongTable.idPhienChot} = ?',
+      whereArgs: [
+        ...danhSachDuocChon,
+        idPhienChot,
+      ],
+    );
   }
   Future<double> tongLuongChotForNhanVien({int? idNhanVienCongTrinh, int? idBangChamCong,}) async {
     final db = await _dbHelper.database;
