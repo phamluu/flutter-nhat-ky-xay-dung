@@ -32,22 +32,32 @@ class ChamCongChiTiet {
     this.updatedAt,
     this.isDeleted
 });
-  factory ChamCongChiTiet.fromMap(Map<String, dynamic> map) => ChamCongChiTiet(
-    id: map[ChamCongChiTietTable.id] as int,
-    idBangChamCong: map[ChamCongChiTietTable.idChamCong] as int,
-    idNhanVienCongTrinh: map[ChamCongChiTietTable.idNhanVienCongTrinh] as int,
-    ngay: map[ChamCongChiTietTable.ngay] as String,
-    trangThaiSang: map[ChamCongChiTietTable.trangThaiSang] as int?,
-    trangThaiChieu: map[ChamCongChiTietTable.trangThaiChieu] as int?,
-    tangCaBatDau: map[ChamCongChiTietTable.tangCaBatDau] as String?,
-    tangCaKetthuc: map[ChamCongChiTietTable.tangCaKetthuc] as String?,
-    ghiChu: map[ChamCongChiTietTable.ghiChu] as String?,
-    idPhienChot: map[ChamCongChiTietTable.idPhienChot] as int?,
-    serverId: map[ChamCongChiTietTable.serverId] as String?,
-    isSynced: map[ChamCongChiTietTable.isSynced] as int?,
-    updatedAt: map[ChamCongChiTietTable.updatedAt] as String?,
-    isDeleted: map[ChamCongChiTietTable.isDeleted] as int?
-  );
+  factory ChamCongChiTiet.fromMap(Map<String, dynamic> map) {
+    // Lấy giá trị ngày thô từ DB
+    final rawNgay = map[ChamCongChiTietTable.ngay] as String;
+
+    // Chuẩn hóa: Nếu có chứa chữ 'T' (ISO 8601) thì cắt lấy 10 ký tự đầu (YYYY-MM-DD)
+    final normalizedNgay = rawNgay.contains('T')
+        ? rawNgay.substring(0, 10)
+        : rawNgay;
+
+    return ChamCongChiTiet(
+      id: map[ChamCongChiTietTable.id] as int,
+      idBangChamCong: map[ChamCongChiTietTable.idChamCong] as int,
+      idNhanVienCongTrinh: map[ChamCongChiTietTable.idNhanVienCongTrinh] as int,
+      ngay: normalizedNgay, // Đã được chuẩn hóa YYYY-MM-DD
+      trangThaiSang: map[ChamCongChiTietTable.trangThaiSang] as int?,
+      trangThaiChieu: map[ChamCongChiTietTable.trangThaiChieu] as int?,
+      tangCaBatDau: map[ChamCongChiTietTable.tangCaBatDau] as String?,
+      tangCaKetthuc: map[ChamCongChiTietTable.tangCaKetthuc] as String?,
+      ghiChu: map[ChamCongChiTietTable.ghiChu] as String?,
+      idPhienChot: map[ChamCongChiTietTable.idPhienChot] as int?,
+      serverId: map[ChamCongChiTietTable.serverId] as String?,
+      isSynced: map[ChamCongChiTietTable.isSynced] as int?,
+      updatedAt: map[ChamCongChiTietTable.updatedAt] as String?,
+      isDeleted: map[ChamCongChiTietTable.isDeleted] as int?,
+    );
+  }
 
   Map<String, dynamic> toMapInsert() => {
     ChamCongChiTietTable.idChamCong: idBangChamCong,

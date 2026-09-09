@@ -59,9 +59,9 @@ class ChamCongLuongNhanVien {
   final String? soDienThoai;
   final String? chucVu;
 
-  final double? tongUngDaTru;
+  final double? tongUngDaTru; // chỉ tính kỳ này
   final int? trangThaiLuong;
-
+  final bool? trangThaiChiLuong;
   // Dự kiến
   double get soCong {
     return data.values.fold(
@@ -81,12 +81,17 @@ class ChamCongLuongNhanVien {
   }
 
   // Chốt
-  final double? tongSoCongChot;
+  double get tongSoCongChot {
+    return data.values.fold(
+      0.0,
+          (sum, item) => sum + (item.chamCong.idPhienChot != null ? item.chamCong.soCong : 0),
+    );
+  }
   final double? tongUngChot;
   final double? tongLuongChot;
   final double? thucNhanChot;
   final Map<String, ChamCongNgayLuong> data;
-
+  final double? tongDaChi;
   ChamCongLuongNhanVien({
     this.idNhanVienCongTrinh,
     this.hoTen,
@@ -95,16 +100,11 @@ class ChamCongLuongNhanVien {
     required this.tongUngDuKien,
     this.tongUngDaTru,
     this.trangThaiLuong,
-    this.tongSoCongChot,
+    this.trangThaiChiLuong,
     this.tongUngChot,
     this.tongLuongChot,
     this.thucNhanChot,
     required this.data,
+    this.tongDaChi
   });
-
-  /// Tự động tính tổng số công từ Map data
-
-
-  /// Tự động tính tổng lương từ Map data
-
 }

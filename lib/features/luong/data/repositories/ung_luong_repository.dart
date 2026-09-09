@@ -43,96 +43,84 @@ class UngLuongRepository {
     }).toList();
   }
 
-  // Tổng ứng đã trừ khi chốt luong phiên này
-  Future<double>tongTruUngForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
+  Future<(double, double, double)> tongUngForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh,) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-    SELECT COALESCE(
-      SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}),
-      0
-    ) AS total
-    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
-    INNER JOIN ${KyLuongTable.tableName} kl ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
-    WHERE kl.${KyLuongTable.idPhienChot} = ? AND kl.${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.trangThai} = ${TrangThaiLuong.dachot.value}
-  ''', [
-      idPhienChot,
-      idNhanVienCongTrinh,
-    ]);
-
-    return (result.first['total'] as num).toDouble();
-  }
-  // Tổng ứng còn lại chưa chốt phiên này
-  Future<double>tongUngConLaiForPhienChot(int? idPhienChot, int? idNhanVienCongTrinh) async {
-    final db = await _dbHelper.database;
-    final rs = await db.rawQuery('''
-    SELECT COALESCE(
-      SUM(
-        COALESCE(${UngLuongTable.soTien}, 0)
-        -
-        COALESCE(${UngLuongTable.soTienDaTru}, 0)
-      ),
-      0
-    ) AS conLai
+    // 1. Tính tổng đã ứng
+    final tongUngRaw = await db.rawQuery('''
+    SELECT SUM(COALESCE(${UngLuongTable.soTien}, 0)) AS tongUng
     FROM ${UngLuongTable.tableName}
     WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
-  ''', [
-      idNhanVienCongTrinh,
-    ]);
-    final conLai =
-    (rs.first['conLai'] as num).toDouble();
-    final daTruKyNay = await tongTruUngForPhienChot(
-      idPhienChot,
-      idNhanVienCongTrinh,
-    );
-    // Số dư ứng trước khi khấu trừ kỳ hiện tại
-    return conLai + daTruKyNay;
-  }
-  // Tổng ứng đã trừ trong thời gian chấm công
-  Future<double> tongTruUngForChamCong(int? idBangChamCong, int? idNhanVienCongTrinh,) async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
-    SELECT COALESCE(
-      SUM(${ChiTietDoiTruUngLuongTable.soTienDoiTru}),
-      0
-    ) AS total
+  ''', [idNhanVienCongTrinh]);
+    double tongUng = (tongUngRaw.first['tongUng'] as num?)?.toDouble() ?? 0.0;
+    // 2. Tính tổng đã trừ kỳ này
+    final daTruKyNayRow = await db.rawQuery('''
+    SELECT SUM(COALESCE(${ChiTietDoiTruUngLuongTable.soTienDoiTru}, 0)) AS total
     FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
     INNER JOIN ${KyLuongTable.tableName} kl
-      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong}
-       = kl.${KyLuongTable.id}
-    INNER JOIN ${PhienChotCongTable.tableName} pc
-      ON kl.${KyLuongTable.idPhienChot}
-       = pc.${PhienChotCongTable.id}
-    WHERE pc.${PhienChotCongTable.idChamCong} = ?
+      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
+    WHERE kl.${KyLuongTable.idPhienChot} = ?
       AND kl.${KyLuongTable.idNhanVienCongTrinh} = ?
-  ''', [
-      idBangChamCong,
-      idNhanVienCongTrinh,
-    ]);
-    return (result.first['total'] as num).toDouble();
-  }
+  ''', [idPhienChot, idNhanVienCongTrinh]);
+    double daTruKyNay = (daTruKyNayRow.first['total'] as num?)?.toDouble() ?? 0.0;
+    // 3. Tính tổng đã trừ (ngoại trừ kỳ này)
+    final daTruExcludeKyNayRaw = await db.rawQuery('''
+    SELECT SUM(COALESCE(${ChiTietDoiTruUngLuongTable.soTienDoiTru}, 0)) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${KyLuongTable.tableName} kl
+      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
+    WHERE (kl.${KyLuongTable.idPhienChot} IS NOT ? OR kl.${KyLuongTable.idPhienChot} IS NULL)
+      AND kl.${KyLuongTable.idNhanVienCongTrinh} = ?
+  ''', [idPhienChot, idNhanVienCongTrinh]);
 
-  // Tổng ứng còn lại trước khi khấu trừ kỳ này
-  Future<double> tongUngConLaiForChamCong( int? idBangChamCong, int? idNhanVienCongTrinh,) async {
+    double daTruExcludeKyNay = (daTruExcludeKyNayRaw.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    double tongUngConLai = tongUng - daTruExcludeKyNay;
+
+    return (tongUng, tongUngConLai, daTruKyNay);
+  }
+  Future<(double, double, double)> tongUngForChamCong(int? idBangChamCong, int? idNhanVienCongTrinh,) async {
     final db = await _dbHelper.database;
-    final rs = await db.rawQuery('''
-    SELECT COALESCE(
-      SUM(
-        COALESCE(${UngLuongTable.soTien}, 0)
-        -
-        COALESCE(${UngLuongTable.soTienDaTru}, 0)
-      ),
-      0
-    ) AS conLai
+
+    // 1. Tính tổng đã ứng
+    final tongUngRaw = await db.rawQuery('''
+    SELECT SUM(COALESCE(${UngLuongTable.soTien}, 0)) AS tongUng
     FROM ${UngLuongTable.tableName}
     WHERE ${UngLuongTable.idNhanVienCongTrinh} = ?
-  ''', [
-      idNhanVienCongTrinh,
-    ]);
-    final conLai =
-    (rs.first['conLai'] as num).toDouble();
-    final daTruKyNay = await tongTruUngForChamCong( idBangChamCong,idNhanVienCongTrinh,);
-    // Số dư ứng trước khi khấu trừ kỳ hiện tại
-    return conLai + daTruKyNay;
+  ''', [idNhanVienCongTrinh]);
+
+    double tongUng = (tongUngRaw.first['tongUng'] as num?)?.toDouble() ?? 0.0;
+
+    // 2. Tính tổng đã trừ kỳ này
+    final daTruKyNayRow = await db.rawQuery('''
+    SELECT SUM(COALESCE(${ChiTietDoiTruUngLuongTable.soTienDoiTru}, 0)) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${KyLuongTable.tableName} kl
+      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
+    INNER JOIN ${PhienChotCongTable.tableName} pc
+      ON kl.${KyLuongTable.idPhienChot} = pc.${PhienChotCongTable.id}
+    WHERE pc.${PhienChotCongTable.idChamCong} = ?
+      AND kl.${KyLuongTable.idNhanVienCongTrinh} = ?
+  ''', [idBangChamCong, idNhanVienCongTrinh]);
+
+    double daTruKyNay = (daTruKyNayRow.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    // 3. Tính tổng đã trừ (ngoại trừ kỳ này)
+    final daTruExcludeKyNayRaw = await db.rawQuery('''
+    SELECT SUM(COALESCE(${ChiTietDoiTruUngLuongTable.soTienDoiTru}, 0)) AS total
+    FROM ${ChiTietDoiTruUngLuongTable.tableName} ct
+    INNER JOIN ${KyLuongTable.tableName} kl
+      ON ct.${ChiTietDoiTruUngLuongTable.idBangLuong} = kl.${KyLuongTable.id}
+    INNER JOIN ${PhienChotCongTable.tableName} pc
+      ON kl.${KyLuongTable.idPhienChot} = pc.${PhienChotCongTable.id}
+    WHERE (pc.${PhienChotCongTable.idChamCong} IS NOT ? OR pc.${PhienChotCongTable.idChamCong} IS NULL)
+      AND kl.${KyLuongTable.idNhanVienCongTrinh} = ?
+  ''', [idBangChamCong, idNhanVienCongTrinh]);
+
+    double daTruExcludeKyNay = (daTruExcludeKyNayRaw.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    double tongUngConLai = tongUng - daTruExcludeKyNay;
+
+    return (tongUng, tongUngConLai, daTruKyNay);
   }
 
   Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, {int? thang,int? nam, String? kyLuong, }) async {
@@ -261,10 +249,7 @@ class UngLuongRepository {
   }
 
   // Danh sách ứng lương của 1 nhân viên
-  Future<List<Ungluong>> getUngLuongNhanVien( int idNhanVienCongTrinh, { String? kyLuong, // Tháng trong bảng chấm công
-        int? thang,
-        int? nam,
-      }) async {
+  Future<List<Ungluong>> getUngLuongNhanVien( int idNhanVienCongTrinh, { String? kyLuong, int? thang,int? nam}) async {
     final db = await _dbHelper.database;
     final where = [
       '${UngLuongTable.idNhanVienCongTrinh} = ?',
@@ -307,10 +292,8 @@ class UngLuongRepository {
     return result.map((e) => ChiTietDoiUngTruLuong.fromMap(e)).toList();
   }
 
-
   // Map trong bảng chấm công
-  Future<List<Map<String, dynamic>>> getUngLuong( {required int idCongTrinh, DateTime? tuNgay, DateTime? denNgay}) async
-  {
+  Future<List<Map<String, dynamic>>> getUngLuong( {required int idCongTrinh, DateTime? tuNgay, DateTime? denNgay}) async{
     final db = await _dbHelper.database;
     String dateCondition = '';
     final args = <dynamic>[];
@@ -327,8 +310,6 @@ class UngLuongRepository {
         ''' SELECT nvct.id AS idNhanVienCongTrinh,ul.${UngLuongTable.id} AS idUngLuong, ul.${UngLuongTable.soTien} FROM ${NhanVienCongTrinhTable.tableName} nvct LEFT JOIN ${UngLuongTable.tableName} ul ON ul.${UngLuongTable.idNhanVienCongTrinh} = nvct.${NhanVienCongTrinhTable.id} AND ul.${UngLuongTable.is_deleted} = 0 $dateCondition WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ? ORDER BY date(ul.${UngLuongTable.ngayUng}) DESC ''',
         args);
   }
-
-
 
   // lOAD DATA CHUNG CHO DANH SÁCH
   Future<List<UngLuongDataModel>> getUngLuongData({

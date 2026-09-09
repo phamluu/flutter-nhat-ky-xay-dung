@@ -51,7 +51,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   bool _show10Dau = true;
   bool _show10Giua = true;
   bool _show10Cuoi = true;
-  List<ChamCongLuongNhanVienModel> data = [];
+  List<ChamCongLuongNhanVien> data = [];
   List<PhienChotCong> dsDotChot = [];
   late final Chotchiluongservice _chotService;
   late final ChotChiLuongRepository _chotRepo;
@@ -99,7 +99,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     if(widget.bangChamCong?.idCongTrinh == null) return;
     if (mounted) setState(() => _isLoading = true);
     try {
-      final result = await _chamCongService.chamCongNhanViens(idCongTrinh: widget.bangChamCong!.idCongTrinh!, idBangChamCong: widget.bangChamCong!.id!);
+      final result = await _chamCongLuongRepo.chamCongNhanViens(idCongTrinh: widget.bangChamCong?.idCongTrinh, idBangChamCong:  widget.bangChamCong!.id!);
+      //await _chamCongService.chamCongNhanViens(idCongTrinh: widget.bangChamCong!.idCongTrinh!, idBangChamCong: widget.bangChamCong!.id!);
       final khoa = await _bangChamCongRepository.checkKhoaChamCong(idBangChamCong: widget.bangChamCong?.id);
       // final isChotLuong = await _chotService.isTonTaiDaChotLuong( widget.bangChamCong?.id);
       final phienChots = await _chamCongLuongRepo.phienChotCongs(widget.bangChamCong?.id);
@@ -371,7 +372,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                 onSelectAll: (bool? selected) {
                   setState(() {
                     if (selected == true) {
-                      selectedNhanVienIds = data.map((e) => e.chamCong.idNhanVienCongTrinh!).toSet();
+                      selectedNhanVienIds = data.map((e) => e.idNhanVienCongTrinh!).toSet();
                     } else {
                       selectedNhanVienIds.clear();
                     }
@@ -387,16 +388,16 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     );
   }
 
-  DataRow _buildDataRow(ChamCongLuongNhanVienModel nv, int index) {
-    final isSelected = selectedNhanVienIds.contains(nv.chamCong.idNhanVienCongTrinh);
+  DataRow _buildDataRow(ChamCongLuongNhanVien nv, int index) {
+    final isSelected = selectedNhanVienIds.contains(nv.idNhanVienCongTrinh);
     return DataRow(
       selected: isSelected,
       onSelectChanged: (bool? selected) {
         setState(() {
           if (selected == true) {
-            selectedNhanVienIds.add(nv.chamCong.idNhanVienCongTrinh!);
+            selectedNhanVienIds.add(nv.idNhanVienCongTrinh!);
           } else {
-            selectedNhanVienIds.remove(nv.chamCong.idNhanVienCongTrinh);
+            selectedNhanVienIds.remove(nv.idNhanVienCongTrinh);
           }
         });
       },
@@ -410,7 +411,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           InkWell(
             onTap: () => _navigateToChiTietNhanVien(nv),
             child: Text(
-              nv.chamCong.ten ?? '',
+              nv.hoTen ?? '',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColor,
@@ -420,8 +421,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           ),
         ),
         // textCell(nv.chamCong.ten ?? '', isBold: true),
-        if (_showChucVu) textCell(nv.chamCong.chucVu ?? ''),
-        ..._buildNgayCells(nv.chamCong),
+        if (_showChucVu) textCell(nv.chucVu ?? ''),
+        ..._buildNgayCells(nv),
         // badgeCell(nv.chamCong.tongSoCong.toString(), Colors.blue),
         DataCell(
           SizedBox(
@@ -429,10 +430,10 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text("${nv.chamCong.tongSoCong}", textAlign: TextAlign.center),
+                  child: Text("${nv.soCong}", textAlign: TextAlign.center),
                 ),
                 Expanded(
-                  child: Text("${nv.chamCong.soCongDaChot}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                  child: Text("${nv.tongSoCongChot ?? 0}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
                 ),
               ],
             ),
@@ -444,10 +445,10 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.tongTienCong)}", textAlign: TextAlign.center),
+                  child: Text("${currencyFormat.format(nv.tongLuongDuKien)}", textAlign: TextAlign.center),
                 ),
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.luong.tongLuongChot)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                  child: Text("${currencyFormat.format(nv.tongLuongChot)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
                 ),
               ],
             ),
@@ -459,24 +460,24 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.luong.tongUng ?? 0)}", textAlign: TextAlign.center),
+                  child: Text("${currencyFormat.format(nv.tongUngDuKien)}", textAlign: TextAlign.center),
                 ),
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.luong.truUng ?? 0)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                  child: Text("${currencyFormat.format(nv.tongUngDaTru ?? 0)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
                 ),
               ],
             ),
           ),
         ),
-        textCell(formatCurrency(nv.thucNhanHienThi), color: Colors.green.shade700, isBold: true),
+        textCell(formatCurrency(nv.thucNhanChot ?? 0), color: Colors.green.shade700, isBold: true),
         // _chotLuongCell(nv),
         _chiLuongCell(nv),
-        textCell(formatCurrency(nv.luong.conPhaiTra), isBold: true),
+        textCell(''),
       ],
     );
   }
 
-  List<DataCell> _buildNgayCells(ChamCongNhanVienModel nv) {
+  List<DataCell> _buildNgayCells(ChamCongLuongNhanVien nv) {
     return List.generate(soNgay, (i) => i + 1)
         .where((day) => isShowNgay(day, _show10Dau, _show10Giua, _show10Cuoi))
         .map((day) {
@@ -620,7 +621,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   //     ),
   //   );
   // }
-  DataCell _chiLuongCell(ChamCongLuongNhanVienModel nv) {
+  DataCell _chiLuongCell(ChamCongLuongNhanVien nv) {
     return DataCell(
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
@@ -628,60 +629,60 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              formatCurrency(nv.luong.tongDaChi),
+              formatCurrency(nv.tongDaChi ?? 0),
               style: const TextStyle(fontSize: 13,fontWeight: FontWeight.w700,),
             ),
             const SizedBox(width: 12),
-            Tooltip(
-              message: 'Xem danh sách các lần chi lương',
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChiLuongDesktop(
-                        luong: nv.luong,
-                        tenCongTrinh: widget.tenCongTrinh,
-                        tenNhanVien: nv.chamCong.ten,
-                        tongPhaiTra: nv.thucNhanHienThi,
-                        thang: widget.bangChamCong?.thang,
-                        nam: widget.bangChamCong?.nam
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.grey.shade300,
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.receipt_long_outlined,
-                        size: 16,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        'Danh sách',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            // Tooltip(
+            //   message: 'Xem danh sách các lần chi lương',
+            //   child: InkWell(
+            //     borderRadius: BorderRadius.circular(8),
+            //     onTap: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (_) => ChiLuongDesktop(
+            //             luong: nv.luong,
+            //             tenCongTrinh: widget.tenCongTrinh,
+            //             tenNhanVien: nv.chamCong.ten,
+            //             tongPhaiTra: nv.thucNhanHienThi,
+            //             thang: widget.bangChamCong?.thang,
+            //             nam: widget.bangChamCong?.nam
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //     child: Container(
+            //       padding: const EdgeInsets.symmetric(
+            //         horizontal: 9,
+            //         vertical: 7,
+            //       ),
+            //       decoration: BoxDecoration(
+            //         borderRadius: BorderRadius.circular(8),
+            //         border: Border.all(
+            //           color: Colors.grey.shade300,
+            //         ),
+            //       ),
+            //       child: const Row(
+            //         mainAxisSize: MainAxisSize.min,
+            //         children: [
+            //           Icon(
+            //             Icons.receipt_long_outlined,
+            //             size: 16,
+            //           ),
+            //           SizedBox(width: 5),
+            //           Text(
+            //             'Danh sách',
+            //             style: TextStyle(
+            //               fontSize: 12,
+            //               fontWeight: FontWeight.w600,
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -691,22 +692,22 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   // ============================================================
   // NAVIGATION HELPERS
   // ============================================================
-  Future<void> _navigateToChiTietNhanVien(ChamCongLuongNhanVienModel nv)async{
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChamCongChiTietNhanVienDesktop(
-          model: nv,
-          tenCongTrinh: widget.tenCongTrinh,
-          thangKey: widget.bangChamCong!.thangValue,
-          thang: widget.bangChamCong!.thang!,
-          nam: widget.bangChamCong!.nam!,
-        ),
-      ),
-    );
+  Future<void> _navigateToChiTietNhanVien(ChamCongLuongNhanVien nv)async{
+    // await Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => ChamCongChiTietNhanVienDesktop(
+    //       model: nv,
+    //       tenCongTrinh: widget.tenCongTrinh,
+    //       thangKey: widget.bangChamCong!.thangValue,
+    //       thang: widget.bangChamCong!.thang!,
+    //       nam: widget.bangChamCong!.nam!,
+    //     ),
+    //   ),
+    // );
     _load();
   }
-  Future<void> _navigateToDay({required ChamCongNhanVienModel nv, required String ngayKey, int? idChamCongNgay}) async {
+  Future<void> _navigateToDay({required ChamCongLuongNhanVien nv, required String ngayKey, int? idChamCongNgay}) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -716,7 +717,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           idCongTrinh: widget.bangChamCong!.idCongTrinh,
           idBangChamCong: widget.bangChamCong?.id,
           ngay: ngayKey,
-          hoTen: nv.ten,
+          hoTen: nv.hoTen,
           tenCongTrinh: widget.tenCongTrinh,
           idPhienChot: nv.data[ngayKey]?.chamCong.idPhienChot,
           daKhoa: daKhoaCC,

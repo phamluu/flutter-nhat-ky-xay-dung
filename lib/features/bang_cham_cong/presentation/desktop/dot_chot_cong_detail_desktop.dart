@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Đã thêm intl để định dạng ngày hiển thị
 import 'package:nhat_ky_xay_dung/core/utils/currencyFormat.dart';
 import 'package:nhat_ky_xay_dung/core/utils/trang_thai_luong.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
@@ -21,7 +22,6 @@ class DotChotCongDetailDesktop extends StatefulWidget {
 }
 
 class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
-  // 1. Khai báo 2 ScrollController cho 2 chiều cuộn
   final ScrollController _horizontalScrollController = ScrollController();
   final ScrollController _verticalScrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -29,8 +29,11 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
   late final ChamCongLuongRepo _repo;
   late List<ChamCongLuongNhanVien> _model = [];
 
-  // Set chứa danh sách ID nhân viên công trình đang được tích chọn
   final Set<int> _selectedIds = {};
+
+  // Ngày chi mặc định là ngày hiện tại
+  DateTime _selectedNgayChi = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +62,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     super.dispose();
   }
 
-  // Danh sách đã qua lọc tìm kiếm
   List<ChamCongLuongNhanVien> get _filteredModel {
     if (_searchKeyword.isEmpty) return _model;
     return _model.where((item) {
@@ -68,7 +70,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     }).toList();
   }
 
-  // Kiểm tra trạng thái Checkbox "Chọn tất cả"
   bool get _isAllSelected {
     final filteredList = _filteredModel;
     if (filteredList.isEmpty) return false;
@@ -86,7 +87,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
         ),
         elevation: 0.5,
         actions: [
-          // Nút Hủy chốt lương (Dành cho các mục đã chọn)
           OutlinedButton.icon(
             onPressed: _selectedIds.isEmpty
                 ? null
@@ -100,7 +100,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
             ),
           ),
           const SizedBox(width: 8),
-          // Nút Chốt lương đợt này
           ElevatedButton.icon(
             onPressed: _selectedIds.isEmpty
                 ? null
@@ -114,7 +113,19 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
             ),
           ),
           const SizedBox(width: 16),
-          // Nút Chi lương hàng loạt
+          OutlinedButton.icon(
+            onPressed: _selectedIds.isEmpty
+                ? null
+                : () => _xacNhanHuyChiLuong(context),
+            icon: const Icon(Icons.cancel_outlined, size: 18),
+            label: Text('Hủy chi lương (${_selectedIds.length})'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red.shade700,
+              side: BorderSide(color: Colors.red.shade300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+          const SizedBox(width: 16),
           ElevatedButton.icon(
             onPressed: _selectedIds.isEmpty
                 ? null
@@ -135,15 +146,10 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Thẻ thông tin tổng quan
             _buildSummaryCards(),
             const SizedBox(height: 16),
-
-            // 2. Thanh tìm kiếm & bộ lọc
             _buildFilterBar(),
             const SizedBox(height: 12),
-
-            // 3. Bảng danh sách chi tiết nhân viên
             Expanded(
               child: _buildEmployeeTable(),
             ),
@@ -153,9 +159,7 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     );
   }
 
-  // --- 1. THẺ TỔNG QUAN (Cập nhật theo danh sách tích chọn) ---
   Widget _buildSummaryCards() {
-    // Tính toán số liệu dựa trên các mục ĐƯỢC TÍCH CHỌN
     final selectedList = _model.where((e) => _selectedIds.contains(e.idNhanVienCongTrinh));
     final double tongSoCong = selectedList.fold(0.0, (sum, nv) => sum + nv.soCong);
     final double tongTienLuong = selectedList.fold(0.0, (sum, nv) => sum + nv.tongLuongDuKien);
@@ -260,7 +264,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     );
   }
 
-  // --- 2. THANH BỘ LỌC VÀ TÌM KIẾM ---
   Widget _buildFilterBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -303,8 +306,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     );
   }
 
-  // --- 3. BẢNG DỮ LIỆU NHÂN VIÊN ---
-  // --- 3. BẢNG DỮ LIỆU NHÂN VIÊN (Đã bổ sung Scroll Ngang & Dọc) ---
   Widget _buildEmployeeTable() {
     final displayList = _filteredModel;
     return Container(
@@ -315,16 +316,15 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        // Scrollbar bên ngoài giúp hiện thanh cuộn rõ ràng trên Desktop/Web
         child: Scrollbar(
           controller: _horizontalScrollController,
           thumbVisibility: true,
           trackVisibility: true,
           child: SingleChildScrollView(
             controller: _horizontalScrollController,
-            scrollDirection: Axis.horizontal, // 1. Bọc scroll chiều ngang
+            scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
-              scrollDirection: Axis.vertical, // 2. Bọc scroll chiều dọc
+              scrollDirection: Axis.vertical,
               child: DataTable(
                 headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
                 headingRowHeight: 45,
@@ -473,13 +473,13 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
                   ),
                   const DataColumn(
                     label: Text(
-                      'TRẠNG THÁI',
+                      'CHỐT LƯƠNG',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const DataColumn(
                     label: Text(
-                      'THAO TÁC',
+                      'ĐÃ CHI',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -610,16 +610,8 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
                         ),
                       ),
                       DataCell(
-                        IconButton(
-                          icon: const Icon(
-                            Icons.payment,
-                            color: Colors.green,
-                            size: 20,
-                          ),
-                          tooltip: 'Chi lương riêng',
-                          onPressed: () {
-                            // TODO
-                          },
+                        Text(
+                          currencyFormat.format(item.tongDaChi ?? 0),
                         ),
                       ),
                     ],
@@ -633,7 +625,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     );
   }
 
-  // --- DIALOG XÁC NHẬN CHỐT LƯƠNG ---
   void _xacNhanChotLuong(BuildContext context) {
     showDialog(
       context: context,
@@ -654,14 +645,14 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              try{
+              try {
                 await _repo.chotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
                 if (mounted) {
                   showSuccessToast(context, "Chốt lương thành công");
                   Navigator.pop(ctx);
                   await _load();
                 }
-              }catch(e){
+              } catch (e) {
                 if (mounted) {
                   showErrorToast(context, e, "Không thể chốt");
                 }
@@ -674,7 +665,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
     );
   }
 
-  // --- DIALOG HỦY CHỐT LƯƠNG ---
   void _xacNhanHuyChotLuong(BuildContext context) {
     showDialog(
       context: context,
@@ -695,14 +685,14 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              try{
+              try {
                 await _repo.huyChotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
                 if (mounted) {
                   showSuccessToast(context, "Hủy chốt lương thành công");
                   Navigator.pop(ctx);
                   await _load();
                 }
-              }catch(e){
+              } catch (e) {
                 if (mounted) {
                   showErrorToast(context, e, "Không thể hủy chốt lương");
                 }
@@ -714,33 +704,141 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
       ),
     );
   }
-
-  // --- DIALOG CHI LƯƠNG HÀNG LOẠT ---
-  void _xacNhanChiLuongHangLoat(BuildContext context) {
+  void _xacNhanHuyChiLuong(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xác nhận chi lương hàng loạt'),
+        title: const Text('Xác nhận hủy chi lương'),
         content: Text(
-          'Xác nhận đã thanh toán/chi lương cho ${_selectedIds.length} nhân viên đã chọn?',
+          'Bạn có chắc muốn HỦY CHI LƯƠNG cho ${_selectedIds.length} nhân viên đã chọn?\n',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
+            child: const Text('Bỏ qua'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade700,
+              backgroundColor: Colors.red.shade700,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              // TODO: Gọi Repo xử lý cập nhật trạng thái đã chi lương
+            onPressed: () async {
+              try {
+                await _repo.setHuyChiLuong(_selectedIds, widget.phienChot.id!);
+                if (mounted) {
+                  showSuccessToast(context, "Hủy chi lương thành công");
+                  Navigator.pop(ctx);
+                  await _load();
+                }
+              } catch (e) {
+                if (mounted) {
+                  showErrorToast(context, e, "Không thể hủy chi lương");
+                }
+              }
             },
-            child: const Text('Xác nhận chi'),
+            child: const Text('Đồng ý hủy chi'),
           ),
         ],
+      ),
+    );
+  }
+  // --- DIALOG CHI LƯƠNG HÀNG LOẠT (ĐÃ BỔ SUNG CHỌN NGÀY) ---
+  void _xacNhanChiLuongHangLoat(BuildContext context) {
+    DateTime ngayChiTemp = _selectedNgayChi;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Xác nhận chi lương hàng loạt'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Xác nhận đã thanh toán/chi lương cho ${_selectedIds.length} nhân viên đã chọn.',
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ngày chi lương:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: ngayChiTemp,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (pickedDate != null) {
+                      setDialogState(() {
+                        ngayChiTemp = pickedDate;
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          DateFormat('dd/MM/yyyy').format(ngayChiTemp),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        const Icon(Icons.calendar_today, size: 18, color: Colors.blue),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  try {
+                    setState(() {
+                      _selectedNgayChi = ngayChiTemp;
+                    });
+
+                    // Truyền thêm param _selectedNgayChi vào Repo
+                    await _repo.setChiLuong(
+                      _selectedIds,
+                      widget.phienChot.id,
+                      _selectedNgayChi,
+                    );
+
+                    if (mounted) {
+                      showSuccessToast(context, "Chi lương thành công");
+                      Navigator.pop(ctx);
+                      await _load();
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      showErrorToast(context, e, "Không thể chi lương");
+                    }
+                  }
+                },
+                child: const Text('Xác nhận chi'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
