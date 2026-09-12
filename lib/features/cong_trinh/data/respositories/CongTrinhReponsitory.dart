@@ -5,6 +5,7 @@ import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 
+import '../../../../core/services/trial_service.dart';
 import '../models/CongTrinh.dart';
 import '../../../../data/db_helper.dart';
 
@@ -30,6 +31,7 @@ class CongtrinhReponsitory {
 
 
   Future<int> themCongTrinh(CongTrinh congTrinh) async {
+    await TrialService.instance.checkTrialPermission();
     final db = await _dbHelper.database;
     try{
       return await db.insert(CongTrinhTable.tableName, congTrinh.toMapInsert());

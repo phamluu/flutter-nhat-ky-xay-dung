@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/models/CongTrinh.dart';
+import '../../../../../core/enum/feature_enum.dart';
+import '../../../../../core/services/PermissionManager.dart';
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../../cong_trinh/data/respositories/CongTrinhReponsitory.dart';
 import '../../../data/models/DanhMucThuChi.dart';
@@ -229,77 +231,76 @@ class _ThuChiFormDesktopState extends State<ThuChiFormDesktop> {
       int.parse(dateParts[1]),
       int.parse(dateParts[0]),
     );
-    setState(() {
-      _isSaving = true;
-    });
-    try {
-      if (widget.thuChi != null) {
-        // ==========================================
-        // TRƯỜNG HỢP SỬA: CẬP NHẬT 1 BẢN GHI DUY NHẤT
-        // ==========================================
-        final item = _hangHoaList.isNotEmpty ? _hangHoaList.first : HangHoaInput();
-        final tc = ThuChi(
-          id: widget.thuChi!.id,
-          idDanhMucThuChi: _selectedDanhMucId,
-          loai: _loai,
-          donGia: item.donGia,
-          tenHangHoa: item.tenController.text.trim(),
-          donViTinh: item.donVi,
-          soLuong: item.soLuong,
-          ngay: tcDate.toIso8601String(),
-          idCongTrinh: _selectedCongTrinhId,
-          ngayTao: widget.thuChi!.ngayTao,
-        );
-
-        await _thuChiService.update(tc);
-
-      } else {
-        // ==========================================
-        // TRƯỜNG HỢP THÊM MỚI: LƯU TẤT CẢ CÁC DÒNG ĐÃ NHẬP
-        // ==========================================
-        // Lọc bỏ những dòng hoàn toàn trống (không nhập tên và không nhập đơn giá/số lượng)
-        final validItems = _hangHoaList.where((item) {
-          return item.tenController.text.trim().isNotEmpty || item.donGia > 0 || item.soLuong > 0;
-        }).toList();
-
-        if (validItems.isEmpty) {
-          throw 'Vui lòng nhập thông tin ít nhất 1 hàng hóa';
-        }
-
-        // Tạo danh sách object ThuChi từ validItems
-        final listThuChi = validItems.map((item) {
-          return ThuChi(
-            idDanhMucThuChi: _selectedDanhMucId,
-            loai: _loai,
-            donGia: item.donGia,
-            tenHangHoa: item.tenController.text.trim().isEmpty? null: item.tenController.text.trim(),
-            donViTinh: item.donViController.text.trim().isEmpty? null: item.donViController.text.trim(),
-            soLuong: item.soLuong,
-            ngay: tcDate.toIso8601String(),
-            idCongTrinh: _selectedCongTrinhId,
-            ngayTao: DateTime.now().toIso8601String(),
-          );
-        }).toList();
-
-// Gọi insert 1 lần duy nhất
-        await _thuChiService.insertAll(listThuChi);
-      }
-
-      if (!mounted) return;
-      showSuccessToast(
+    await PermissionManager.instance.runWithPermission(
         context,
-        widget.thuChi == null ? "Thêm mới thành công" : "Cập nhật thành công",
-      );
-      Navigator.pop(context, true);
+        feature: FeatureEnum.thuChi,
+        action: () async {
+          setState(() {
+            _isSaving = true;
+          });
+          try {
+            if (widget.thuChi != null) {
+              // ==========================================
+              // TRƯỜNG HỢP SỬA: CẬP NHẬT 1 BẢN GHI DUY NHẤT
+              // ==========================================
+              final item = _hangHoaList.isNotEmpty ? _hangHoaList.first : HangHoaInput();
+              final tc = ThuChi(
+                id: widget.thuChi!.id,
+                idDanhMucThuChi: _selectedDanhMucId,
+                loai: _loai,
+                donGia: item.donGia,
+                tenHangHoa: item.tenController.text.trim(),
+                donViTinh: item.donVi,
+                soLuong: item.soLuong,
+                ngay: tcDate.toIso8601String(),
+                idCongTrinh: _selectedCongTrinhId,
+                ngayTao: widget.thuChi!.ngayTao,
+              );
+              await _thuChiService.update(tc);
+            } else {
+              // ==========================================
+              // TRƯỜNG HỢP THÊM MỚI: LƯU TẤT CẢ CÁC DÒNG ĐÃ NHẬP
+              // ==========================================
+              // Lọc bỏ những dòng hoàn toàn trống (không nhập tên và không nhập đơn giá/số lượng)
+              final validItems = _hangHoaList.where((item) {
+                return item.tenController.text.trim().isNotEmpty || item.donGia > 0 || item.soLuong > 0;
+              }).toList();
+              if (validItems.isEmpty) {
+                throw 'Vui lòng nhập thông tin ít nhất 1 hàng hóa';
+              }
+              // Tạo danh sách object ThuChi từ validItems
+              final listThuChi = validItems.map((item) {
+                return ThuChi(
+                  idDanhMucThuChi: _selectedDanhMucId,
+                  loai: _loai,
+                  donGia: item.donGia,
+                  tenHangHoa: item.tenController.text.trim().isEmpty? null: item.tenController.text.trim(),
+                  donViTinh: item.donViController.text.trim().isEmpty? null: item.donViController.text.trim(),
+                  soLuong: item.soLuong,
+                  ngay: tcDate.toIso8601String(),
+                  idCongTrinh: _selectedCongTrinhId,
+                  ngayTao: DateTime.now().toIso8601String(),
+                );
+              }).toList();
+// Gọi insert 1 lần duy nhất
+              await _thuChiService.insertAll(listThuChi);
+            }
 
-    } catch (e) {
-      if (!mounted) return;
+            if (!mounted) return;
+            showSuccessToast(
+              context,
+              widget.thuChi == null ? "Thêm mới thành công" : "Cập nhật thành công",
+            );
+            Navigator.pop(context, true);
+          } catch (e) {
+            if (!mounted) return;
+            setState(() {
+              _isSaving = false;
+            });
+            showErrorToast(context, e, 'Lưu khoản thu chi thất bại: $e');
+          }
+        });
 
-      setState(() {
-        _isSaving = false;
-      });
-      showErrorToast(context, e, 'Lưu khoản thu chi thất bại: $e');
-    }
   }
 
   Future<void> _delete() async {

@@ -1,53 +1,40 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/router/app_router.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-
+import 'core/services/trial_service.dart';
+import 'core/widgets/global_trial_banner.dart';
 import 'data/db_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   try {
     if (!kIsWeb) {
-      if (Platform.isWindows ||
-          Platform.isLinux ||
-          Platform.isMacOS) {
-        // SQLite cho Desktop
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
       }
       await DBHelper.instance.database;
     }
-
-    runApp(const MyApp());
+    // Kiểm tra bản quyền ngầm ban đầu (không chặn app)
+    if (!kIsWeb && Platform.isWindows) {
+      await TrialService.instance.checkTrialStatus();
+      TrialService.instance.startPeriodicCheck(); // Bật kiểm tra định kỳ nếu muốn
+    }
   } catch (e, s) {
-    debugPrint('Error opening database: $e');
+    debugPrint('Lỗi khởi tạo DB/App: $e');
     debugPrintStack(stackTrace: s);
-
-    runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: Text(
-              'Lỗi khởi tạo DB:\n$e',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-    );
   }
+
+  // Luôn luôn khởi chạy App chính
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -58,49 +45,40 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
       supportedLocales: const [
         Locale('vi', 'VN'),
         Locale('en', 'US'),
       ],
-
       locale: const Locale('vi', 'VN'),
       theme: ThemeData(
         useMaterial3: true,
-
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF2C3E50),
           elevation: 0,
-
-          // Tạo đường border phía dưới AppBar
           shape: Border(
-            bottom: BorderSide(
-              color: Colors.grey.shade200,
-            ),
+            bottom: BorderSide(color: Colors.grey.shade200),
           ),
-
           titleTextStyle: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Color(0xFF2C3E50),
           ),
         ),
-
-        textTheme: const TextTheme(
-          titleLarge: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2C3E50),
-          ),
-          titleMedium: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
-          ),
-          bodyMedium: TextStyle(
-            color: Color(0xFF2C3E50),
-          ),
-        ),
       ),
+      builder: (context, child) {
+        return Scaffold(
+          body: Column(
+            children: [
+              // 1. Banner chung hiển thị ở đỉnh tất cả các màn hình
+              const GlobalTrialBanner(),
+              // 2. Màn hình hiện tại của App
+              Expanded(child: child ?? const SizedBox.shrink()),
+            ],
+          ),
+        );
+      },
     );
   }
 }
+

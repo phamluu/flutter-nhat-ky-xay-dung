@@ -7,6 +7,8 @@ import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/phien_chot_cong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 
+import '../../../../core/enum/feature_enum.dart';
+import '../../../../core/services/PermissionManager.dart';
 import '../../../../core/utils/table_style.dart';
 
 class DotChotCongDetailDesktop extends StatefulWidget {
@@ -645,18 +647,24 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              try {
-                await _repo.chotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
-                if (mounted) {
-                  showSuccessToast(context, "Chốt lương thành công");
-                  Navigator.pop(ctx);
-                  await _load();
-                }
-              } catch (e) {
-                if (mounted) {
-                  showErrorToast(context, e, "Không thể chốt");
-                }
-              }
+                await PermissionManager.instance.runWithPermission(
+                  context,
+                  feature: FeatureEnum.chotLuong,
+                  action: () async {
+                    try {
+                      await _repo.chotLuongTheoDanhSach(danhSachDuocChon: _selectedIds, idPhienChot: widget.phienChot.id!);
+                      if (mounted) {
+                        showSuccessToast(context, "Chốt lương thành công");
+                        Navigator.pop(ctx);
+                        await _load();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        showErrorToast(context, e, "Không thể chốt");
+                      }
+                    }
+                  }
+                );
             },
             child: const Text('Đồng ý chốt'),
           ),
@@ -745,7 +753,6 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
   // --- DIALOG CHI LƯƠNG HÀNG LOẠT (ĐÃ BỔ SUNG CHỌN NGÀY) ---
   void _xacNhanChiLuongHangLoat(BuildContext context) {
     DateTime ngayChiTemp = _selectedNgayChi;
-
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -811,28 +818,31 @@ class _DotChotCongDetailDesktopState extends State<DotChotCongDetailDesktop> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  try {
-                    setState(() {
-                      _selectedNgayChi = ngayChiTemp;
-                    });
-
-                    // Truyền thêm param _selectedNgayChi vào Repo
-                    await _repo.setChiLuong(
-                      _selectedIds,
-                      widget.phienChot.id,
-                      _selectedNgayChi,
-                    );
-
-                    if (mounted) {
-                      showSuccessToast(context, "Chi lương thành công");
-                      Navigator.pop(ctx);
-                      await _load();
+                  await PermissionManager.instance.runWithPermission(
+                  context,
+                  feature: FeatureEnum.chiLuong,
+                  action: () async {
+                    try {
+                      setState(() {
+                        _selectedNgayChi = ngayChiTemp;
+                      });
+                      // Truyền thêm param _selectedNgayChi vào Repo
+                      await _repo.setChiLuong(
+                        _selectedIds,
+                        widget.phienChot.id,
+                        _selectedNgayChi,
+                      );
+                      if (mounted) {
+                        showSuccessToast(context, "Chi lương thành công");
+                        Navigator.pop(ctx);
+                        await _load();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        showErrorToast(context, e, "Không thể chi lương");
+                      }
                     }
-                  } catch (e) {
-                    if (mounted) {
-                      showErrorToast(context, e, "Không thể chi lương");
-                    }
-                  }
+                  });
                 },
                 child: const Text('Xác nhận chi'),
               ),

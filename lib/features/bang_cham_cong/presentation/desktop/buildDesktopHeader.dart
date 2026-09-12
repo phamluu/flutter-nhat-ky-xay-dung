@@ -16,7 +16,7 @@ Widget buildDesktopHeader({
     Set<int>? selectedNhanVienIds,
     required bool daKhoa,
     required bool daChotLuong,
-    required VoidCallback onChotCong,
+    // required VoidCallback onChotCong,
     required Function(DateTime dateSelected) onChotCongTheoNhanVien,
     List<PhienChotCong> dsDotChot = const [],
     Function(int idPhienChot)? onHuyDotChot,

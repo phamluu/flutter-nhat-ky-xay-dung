@@ -6,6 +6,8 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/cham_cong_c
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 
+import '../../../../core/enum/feature_enum.dart';
+import '../../../../core/services/PermissionManager.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_cham_cong.dart';
 import '../../data/models/ChamCongModel.dart';
@@ -106,37 +108,43 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayDesktop> {
       _showError("Bạn chưa chọn trạng thái chấm công.");
       return;
     }
-    setState(() {
-      isSaving = true;
-    });
-    try {
-      UpsertChamCongNgayParam param = UpsertChamCongNgayParam(
-        idChamCongNgay: widget.id,
-        idBangChamCong: widget.idBangChamCong,
-        idCongTrinh: widget.idCongTrinh,
-        idNhanVienCongTrinh: widget.idNhanVienCongTrinh ?? 0,
-        ngay: widget.ngay ?? '',
-        trangThaiSang: _sang?.value,
-        trangThaiChieu: _chieu?.value,
-        ghiChu: ghiChuCtrl.text.trim()
-      );
-      await _repo.upsertChamCong(param);
-      if (!mounted) return;
-      setState(() {
-        _isEdit = false;
-        isSaving = false;
-      });
-      showSuccessToast(context, "Lưu chấm công thành công");
-      Navigator.of(context).pop(true);
-      // await _load();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isSaving = false;
-      });
-      showErrorToast(context, e, "Không thể lưu chấm công");
+    await PermissionManager.instance.runWithPermission(
+        context,
+        feature: FeatureEnum.chamCongNgay,
+        action: () async {
+          setState(() {
+            isSaving = true;
+          });
+          try {
+            UpsertChamCongNgayParam param = UpsertChamCongNgayParam(
+                idChamCongNgay: widget.id,
+                idBangChamCong: widget.idBangChamCong,
+                idCongTrinh: widget.idCongTrinh,
+                idNhanVienCongTrinh: widget.idNhanVienCongTrinh ?? 0,
+                ngay: widget.ngay ?? '',
+                trangThaiSang: _sang?.value,
+                trangThaiChieu: _chieu?.value,
+                ghiChu: ghiChuCtrl.text.trim()
+            );
+            await _repo.upsertChamCong(param);
+            if (!mounted) return;
+            setState(() {
+              _isEdit = false;
+              isSaving = false;
+            });
+            showSuccessToast(context, "Lưu chấm công thành công");
+            Navigator.of(context).pop(true);
+            // await _load();
+          } catch (e) {
+            if (!mounted) return;
+            setState(() {
+              isSaving = false;
+            });
+            showErrorToast(context, e, "Không thể lưu chấm công");
 
-    }
+          }
+        }
+    );
   }
   // ============================================================
   // ERROR

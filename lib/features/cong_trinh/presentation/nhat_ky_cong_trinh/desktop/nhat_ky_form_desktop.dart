@@ -6,6 +6,8 @@ import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 
+import '../../../../../core/enum/feature_enum.dart';
+import '../../../../../core/services/PermissionManager.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/models/NhatKyCongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
@@ -152,84 +154,70 @@ showErrorToast(context, e, "Không thể tải danh sách công trình: ");
 
   Future<void> _save() async {
     if (_isSaving) return;
-
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     if (_selectedCongTrinhId == null) {
       showErrorToast(context, "","Vui lòng chọn công trình");
-
       return;
     }
-
-    setState(() {
-      _isSaving = true;
-    });
-
-    try {
-      final imagePaths =
-      _images.map((e) => e.path).toList();
-
-      final now =
-      DateTime.now().toIso8601String();
-
-      final nk = NhatKyCongTrinh(
-        id: widget.nhatKy?.id,
-        tenNhatKy: _tenController.text.trim(),
-        noiDung: _noiDungController.text.trim(),
-        ngayTao:
-        widget.nhatKy?.ngayTao ?? now,
-        idCongTrinh: _selectedCongTrinhId!,
-        ngayTrienKhai:
-        _ngayTrienKhaiController.text.isNotEmpty
-            ? _ngayTrienKhaiController.text
-            : null,
-        thoiTietSang: _thoiTietSang,
-        thoiTietChieu: _thoiTietChieu,
-      );
-
-      int nhatKyId;
-
-      if (widget.nhatKy == null) {
-        nhatKyId =
-        await _nhatKyService.insertNhatKy(nk);
-      } else {
-        if (nk.id == null) {
-          throw Exception(
-            "ID nhật ký bị null khi update",
-          );
+    await PermissionManager.instance.runWithPermission(
+        context,
+        feature: FeatureEnum.luuNhatKyCongTrinh,
+        action: () async {
+          setState(() {
+            _isSaving = true;
+          });
+          try {
+            final imagePaths =
+            _images.map((e) => e.path).toList();
+            final now = DateTime.now().toIso8601String();
+            final nk = NhatKyCongTrinh(
+              id: widget.nhatKy?.id,
+              tenNhatKy: _tenController.text.trim(),
+              noiDung: _noiDungController.text.trim(),
+              ngayTao:
+              widget.nhatKy?.ngayTao ?? now,
+              idCongTrinh: _selectedCongTrinhId!,
+              ngayTrienKhai:
+              _ngayTrienKhaiController.text.isNotEmpty
+                  ? _ngayTrienKhaiController.text
+                  : null,
+              thoiTietSang: _thoiTietSang,
+              thoiTietChieu: _thoiTietChieu,
+            );
+            int nhatKyId;
+            if (widget.nhatKy == null) {
+              nhatKyId = await _nhatKyService.insertNhatKy(nk);
+            } else {
+              if (nk.id == null) {
+                throw Exception(
+                  "ID nhật ký bị null khi update",
+                );
+              }
+              await _nhatKyService.updateNhatKy(nk);
+              nhatKyId = nk.id!;
+              await _nhatKyService.deleteImages( nk.id!,);
+            }
+            if (imagePaths.isNotEmpty) {
+              await _nhatKyService.insertImages( nhatKyId, imagePaths,);
+            }
+            if (!mounted) return;
+            showSuccessToast(context, isEdit ? "Đã cập nhật nhật ký" : "Đã thêm nhật ký");
+            Navigator.pop(context, true);
+          } catch (e) {
+            if (!mounted) return;
+            showErrorToast(context, e, "Lỗi lưu nhật ký: $e");
+          } finally {
+            if (mounted) {
+              setState(() {
+                _isSaving = false;
+              });
+            }
+          }
         }
+    );
 
-        await _nhatKyService.updateNhatKy(nk);
-
-        nhatKyId = nk.id!;
-
-        await _nhatKyService.deleteImages(
-          nk.id!,
-        );
-      }
-
-      if (imagePaths.isNotEmpty) {
-        await _nhatKyService.insertImages(
-          nhatKyId,
-          imagePaths,
-        );
-      }
-
-      if (!mounted) return;
-      showSuccessToast(context, isEdit ? "Đã cập nhật nhật ký" : "Đã thêm nhật ký");
-      Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      showErrorToast(context, e, "Lỗi lưu nhật ký: $e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-      }
-    }
   }
 
   // ============================================================

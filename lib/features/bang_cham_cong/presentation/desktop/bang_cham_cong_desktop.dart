@@ -9,6 +9,8 @@ import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/ch
 import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/ung_luong_nhan_vien_desktop.dart';
+import '../../../../core/enum/feature_enum.dart';
+import '../../../../core/services/PermissionManager.dart';
 import '../../../../core/utils/currencyFormat.dart';
 import '../../../../core/utils/trang_thai_luong.dart';
 import '../../../luong/presentation/chi_luong/desktop/chi_luong_desktop.dart';
@@ -135,25 +137,31 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             daChotLuong: coChotLuong,
             selectedNhanVienIds: selectedNhanVienIds,
             onChotCongTheoNhanVien: (DateTime dateSelected) async {
-              await setKhoaChamCongTheoNhanVien(
-                  context: context,
-                  idBangChamCong: widget.bangChamCong?.id,
-                  dateSelected: dateSelected,
-                  selectedNhanVienIds: selectedNhanVienIds);
-              await _load();
+              await PermissionManager.instance.runWithPermission(
+                context,
+                feature: FeatureEnum.chotCong,
+                action: () async {
+                  await setKhoaChamCongTheoNhanVien(
+                      context: context,
+                      idBangChamCong: widget.bangChamCong?.id,
+                      dateSelected: dateSelected,
+                      selectedNhanVienIds: selectedNhanVienIds);
+                  await _load();
+                }
+              );
             },
             dsDotChot: dsDotChot,
-            onChotCong: () async {
-                            await setkhoaChamCong(
-                              context: context,
-                              selectedMonth: widget.bangChamCong?.thang,
-                              selectedYear: widget.bangChamCong?.nam,
-                              isKhoa: !daKhoaCC,
-                              daChotLuong: coChotLuong,
-                              idBangChamCong: widget.bangChamCong?.id,
-                            );
-                            await _load();
-                          },
+            // onChotCong: () async {
+            //                 await setkhoaChamCong(
+            //                   context: context,
+            //                   selectedMonth: widget.bangChamCong?.thang,
+            //                   selectedYear: widget.bangChamCong?.nam,
+            //                   isKhoa: !daKhoaCC,
+            //                   daChotLuong: coChotLuong,
+            //                   idBangChamCong: widget.bangChamCong?.id,
+            //                 );
+            //                 await _load();
+            //               },
             onLoad: _load,
         ),
       ),
@@ -523,104 +531,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       ),
     ),
   );
-  // DataCell _chotLuongCell(ChamCongLuongNhanVienModel nv) {
-  //   final isDaChot = nv.luong.trangThaiChotLuong == TrangThaiLuong.dachot.value;
-  //   return DataCell(
-  //     Padding(
-  //       padding: const EdgeInsets.symmetric(vertical: 4),
-  //       child: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         crossAxisAlignment: CrossAxisAlignment.center,
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           // 1. Badge trạng thái
-  //           buildTrangThai(TrangThaiLuong.fromValue(nv.luong.trangThaiChotLuong)),
-  //           const SizedBox(height: 4),
-  //           // 2. Nút thao tác Chốt / Hủy chốt
-  //           InkWell(
-  //             onTap: () async {
-  //               // Hộp thoại xác nhận thao tác
-  //               final confirm = await showDialog<bool>(
-  //                 context: context,
-  //                 builder: (ctx) => AlertDialog(
-  //                   title: Text(isDaChot ? 'Xác nhận hủy chốt' : 'Xác nhận chốt lương'),
-  //                   content: Text(
-  //                     isDaChot
-  //                         ? 'Bạn có chắc chắn muốn HỦY CHỐT lương của ${nv.chamCong.ten}?'
-  //                         : 'Bạn có chắc chắn muốn CHỐT LƯƠNG cho ${nv.chamCong.ten}?',
-  //                   ),
-  //                   actions: [
-  //                     TextButton(
-  //                       onPressed: () => Navigator.pop(ctx, false),
-  //                       child: const Text('Hủy'),
-  //                     ),
-  //                     ElevatedButton(
-  //                       onPressed: () => Navigator.pop(ctx, true),
-  //                       style: ElevatedButton.styleFrom(
-  //                         backgroundColor: isDaChot ? Colors.red : Colors.green,
-  //                       ),
-  //                       child: Text(
-  //                         isDaChot ? 'Hủy chốt' : 'Chốt lương',
-  //                         style: const TextStyle(color: Colors.white),
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               );
-  //               if (confirm != true) return;
-  //               try {
-  //                 // Gọi hàm chốt / hủy chốt với await
-  //                 await _chotRepo.chotOrHuyChotLuong(
-  //                   idBangLuong: nv.luong.idBangLuong,
-  //                   idNhanVienCongTrinh: nv.chamCong.idNhanVienCongTrinh!,
-  //                   idBangChamCong: widget.bangChamCong!.id!,
-  //                 );
-  //
-  //                 if (!mounted) return;
-  //                   showSuccessToast(context, isDaChot ? 'Đã hủy chốt lương thành công!' : 'Đã chốt lương thành công!');
-  //                 _load();
-  //               } catch (e) {
-  //                 if (!mounted) return;
-  //                 showErrorToast(context, e, "Không thể chốt lương");
-  //               }
-  //             },
-  //             borderRadius: BorderRadius.circular(6),
-  //             child: Container(
-  //               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-  //               decoration: BoxDecoration(
-  //                 color: isDaChot ? Colors.red.shade50 : Colors.green.shade50,
-  //                 borderRadius: BorderRadius.circular(6),
-  //                 border: Border.all(
-  //                   color: isDaChot ? Colors.red.shade300 : Colors.green.shade300,
-  //                   width: 0.8,
-  //                 ),
-  //               ),
-  //               child: Row(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 children: [
-  //                   Icon(
-  //                     isDaChot ? Icons.undo_rounded : Icons.check_circle_outline_rounded,
-  //                     size: 12,
-  //                     color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
-  //                   ),
-  //                   const SizedBox(width: 4),
-  //                   Text(
-  //                     isDaChot ? 'Hủy chốt' : 'Chốt lương',
-  //                     style: TextStyle(
-  //                       fontSize: 11,
-  //                       fontWeight: FontWeight.w600,
-  //                       color: isDaChot ? Colors.red.shade700 : Colors.green.shade700,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
   DataCell _chiLuongCell(ChamCongLuongNhanVien nv) {
     return DataCell(
       Padding(
