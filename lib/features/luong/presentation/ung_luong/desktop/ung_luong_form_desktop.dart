@@ -6,6 +6,8 @@ import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showWarmToast.dart';
 import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 
+import '../../../../../core/enum/feature_enum.dart';
+import '../../../../../core/services/PermissionManager.dart';
 import '../../../../../core/utils/currencyFormat.dart';
 import '../../../data/models/UngLuong.dart';
 
@@ -81,47 +83,54 @@ class _UngLuongFormScreenState extends State<UngLuongFormDesktop> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    if (selectedDate == null) {
-      showWarmToast(context, message: 'Vui lòng chọn ngày ứng lương');
-      return;
-    }
-    setState(() {
-      isLoading = true;
-    });
-    final model = Ungluong(
-      id: widget.ul?.id,
-      idNhanVienCongTrinh:widget.idNhanVienCongTrinh,
-      soTien: parseCurrency( soTienCtrl.text, ),
-      ngayUng: selectedDate,
-      lyDo: lyDoCtrl.text.trim(),
+    await PermissionManager.instance.runWithPermission(
+        context,
+        feature: FeatureEnum.saveUngLuong,
+        action: () async {
+          if (!_formKey.currentState!.validate()) {
+            return;
+          }
+          if (selectedDate == null) {
+            showWarmToast(context, message: 'Vui lòng chọn ngày ứng lương');
+            return;
+          }
+          setState(() {
+            isLoading = true;
+          });
+          final model = Ungluong(
+            id: widget.ul?.id,
+            idNhanVienCongTrinh:widget.idNhanVienCongTrinh,
+            soTien: parseCurrency( soTienCtrl.text, ),
+            ngayUng: selectedDate,
+            lyDo: lyDoCtrl.text.trim(),
+          );
+          try {
+            if (widget.ul == null) {
+              await _service.addUngLuong( model, );
+            }
+            else {
+              await _service.updateUngLuong( model, );
+            }
+            if (!mounted) {
+              return;
+            }
+            showSuccessToast(context, "Ứng lương thành công");
+            Navigator.pop(  context, true, );
+          } catch (e) {
+            if (!mounted) {
+              return;
+            }
+            showErrorToast(context, e, 'Lỗi: $e');
+          } finally {
+            if (mounted) {
+              setState(() {
+                isLoading = false;
+              });
+            }
+          }
+        }
     );
-    try {
-      if (widget.ul == null) {
-        await _service.addUngLuong( model, );
-      }
-      else {
-        await _service.updateUngLuong( model, );
-      }
-      if (!mounted) {
-        return;
-      }
-      showSuccessToast(context, "Ứng lương thành công");
-      Navigator.pop(  context, true, );
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      showErrorToast(context, e, 'Lỗi: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
+
   }
 
   @override

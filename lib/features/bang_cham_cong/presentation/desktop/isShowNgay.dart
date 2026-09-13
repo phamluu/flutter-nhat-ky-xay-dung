@@ -15,3 +15,7 @@ bool isShowNgay(int day, bool _show10Dau, bool _show10Giua, bool _show10Cuoi) {
 
   return true;
 }
+
+bool isShowNgayCustom(int day, int fromDay, int toDay) {
+  return day >= fromDay && day <= toDay;
+}

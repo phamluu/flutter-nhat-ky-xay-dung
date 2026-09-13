@@ -154,62 +154,61 @@ class ChotChiLuongRepository {
   // update trạng thái kỳ lương
   // Xóa chi tiết kì lương
   // xóa đối ứng trừ lương
-  Future<void> huyChotLuong(
-      {int? idBangLuong, int? idNhanVienCongTrinh, int? idBangChamCong}) async {
-    final db = await _dbHelper.database;
-    // Tìm bảng lương cần hủy
-    if (idBangLuong == null &&
-        (idNhanVienCongTrinh == null || idBangChamCong == null)) {
-      throw Exception('Không tìm thấy bảng lương');
-    }
-    final listBangLuong = await db.query(
-      KyLuongTable.tableName,
-      where:
-          '${KyLuongTable.id} = ? OR (${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idPhienChot} = ? )',
-      whereArgs: [idBangLuong, idNhanVienCongTrinh, idBangChamCong],
-    );
-    idBangLuong = listBangLuong.first[KyLuongTable.id] as int?;
-    await db.transaction((txn) async {
-      // 1. Lấy danh sách các khoản ứng đã bị trừ bởi Bảng lương này
-      final listDoiTru = await txn.query(
-        ChiTietDoiTruUngLuongTable.tableName,
-        where: '${ChiTietDoiTruUngLuongTable.idBangLuong} = ?',
-        whereArgs: [idBangLuong],
-      );
-      // 2. Hoàn lại số tiền cho từng phiếu ứng (nếu có cập nhật so_tien_da_tru ở bảng ung_luong)
-      for (var item in listDoiTru) {
-        final int idUngLuong =
-            item[ChiTietDoiTruUngLuongTable.idUngLuong] as int;
-        final double soTienDoiTru =
-            (item[ChiTietDoiTruUngLuongTable.soTienDoiTru] as num).toDouble();
-        await txn.rawUpdate('''
-        UPDATE ${UngLuongTable.tableName}
-        SET ${UngLuongTable.soTienDaTru} = ${UngLuongTable.soTienDaTru} - ?,
-            ${UngLuongTable.trangThai} = CASE
-              WHEN (${UngLuongTable.soTienDaTru} - ?) <= 0 THEN ${TrangThaiUngLuong.chuaTru.value}
-              ELSE ${TrangThaiUngLuong.daTru.value}
-            END
-        WHERE ${UngLuongTable.id} = ?
-      ''', [soTienDoiTru, soTienDoiTru, idUngLuong]);
-      }
-      // 3. Xóa chi tiết đối trừ
-      await txn.delete(
-        ChiTietDoiTruUngLuongTable.tableName,
-        where: '${ChiTietDoiTruUngLuongTable.idBangLuong} = ?',
-        whereArgs: [idBangLuong],
-      );
-      // 4. Cập nhật trạng thái bảng lương về Chưa chốt (0)
-      await txn.update(
-        KyLuongTable.tableName,
-        {
-          KyLuongTable.trangThai: TrangThaiLuong.chuachot.value,
-          KyLuongTable.ngayChot: null,
-        },
-        where: '${KyLuongTable.id} = ?',
-        whereArgs: [idBangLuong],
-      );
-    });
-  }
+  // Future<void> huyChotLuong( {int? idBangLuong, int? idNhanVienCongTrinh, int? idBangChamCong}) async {
+  //   final db = await _dbHelper.database;
+  //   // Tìm bảng lương cần hủy
+  //   if (idBangLuong == null &&
+  //       (idNhanVienCongTrinh == null || idBangChamCong == null)) {
+  //     throw Exception('Không tìm thấy bảng lương');
+  //   }
+  //   final listBangLuong = await db.query(
+  //     KyLuongTable.tableName,
+  //     where:
+  //         '${KyLuongTable.id} = ? OR (${KyLuongTable.idNhanVienCongTrinh} = ? AND ${KyLuongTable.idPhienChot} = ? )',
+  //     whereArgs: [idBangLuong, idNhanVienCongTrinh, idBangChamCong],
+  //   );
+  //   idBangLuong = listBangLuong.first[KyLuongTable.id] as int?;
+  //   await db.transaction((txn) async {
+  //     // 1. Lấy danh sách các khoản ứng đã bị trừ bởi Bảng lương này
+  //     final listDoiTru = await txn.query(
+  //       ChiTietDoiTruUngLuongTable.tableName,
+  //       where: '${ChiTietDoiTruUngLuongTable.idBangLuong} = ?',
+  //       whereArgs: [idBangLuong],
+  //     );
+  //     // 2. Hoàn lại số tiền cho từng phiếu ứng (nếu có cập nhật so_tien_da_tru ở bảng ung_luong)
+  //     for (var item in listDoiTru) {
+  //       final int idUngLuong =
+  //           item[ChiTietDoiTruUngLuongTable.idUngLuong] as int;
+  //       final double soTienDoiTru =
+  //           (item[ChiTietDoiTruUngLuongTable.soTienDoiTru] as num).toDouble();
+  //       await txn.rawUpdate('''
+  //       UPDATE ${UngLuongTable.tableName}
+  //       SET ${UngLuongTable.soTienDaTru} = ${UngLuongTable.soTienDaTru} - ?,
+  //           ${UngLuongTable.trangThai} = CASE
+  //             WHEN (${UngLuongTable.soTienDaTru} - ?) <= 0 THEN ${TrangThaiUngLuong.chuaTru.value}
+  //             ELSE ${TrangThaiUngLuong.daTru.value}
+  //           END
+  //       WHERE ${UngLuongTable.id} = ?
+  //     ''', [soTienDoiTru, soTienDoiTru, idUngLuong]);
+  //     }
+  //     // 3. Xóa chi tiết đối trừ
+  //     await txn.delete(
+  //       ChiTietDoiTruUngLuongTable.tableName,
+  //       where: '${ChiTietDoiTruUngLuongTable.idBangLuong} = ?',
+  //       whereArgs: [idBangLuong],
+  //     );
+  //     // 4. Cập nhật trạng thái bảng lương về Chưa chốt (0)
+  //     await txn.update(
+  //       KyLuongTable.tableName,
+  //       {
+  //         KyLuongTable.trangThai: TrangThaiLuong.chuachot.value,
+  //         KyLuongTable.ngayChot: null,
+  //       },
+  //       where: '${KyLuongTable.id} = ?',
+  //       whereArgs: [idBangLuong],
+  //     );
+  //   });
+  // }
 
 // Get bảng lương của nhân viên công trình
   Future<BangLuong?> getBangLuongForNhanVien(

@@ -1,9 +1,4 @@
 enum FeatureEnum {
-  themCongTrinh,
-  suaCongTrinh,
-  xoaCongTrinh,
-  xemBaoCaoPro,
-  dongBoCloud,
   // Bảng chấm công
   chamCongNgay,
   chotCong,
@@ -13,5 +8,7 @@ enum FeatureEnum {
   chiLuong,
   // ThuChi
   thuChi,
-  luuNhatKyCongTrinh
+  luuNhatKyCongTrinh,
+  saveKeHoach,
+  saveUngLuong
 }

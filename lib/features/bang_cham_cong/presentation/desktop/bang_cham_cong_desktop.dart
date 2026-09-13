@@ -2,37 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/bang_cham_cong_repo.dart';
-import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_chi_tiet_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/buildTrangThai.dart' hide TrangThaiChiLuong;
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/cham_cong_ngay_desktop.dart';
-import 'package:nhat_ky_xay_dung/features/cong_trinh/data/respositories/nhan_vien_cong_trinh_repo.dart';
-import 'package:nhat_ky_xay_dung/features/luong/data/repositories/ung_luong_repository.dart';
 import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/ung_luong_nhan_vien_desktop.dart';
 import '../../../../core/enum/feature_enum.dart';
 import '../../../../core/services/PermissionManager.dart';
 import '../../../../core/utils/currencyFormat.dart';
-import '../../../../core/utils/trang_thai_luong.dart';
-import '../../../luong/presentation/chi_luong/desktop/chi_luong_desktop.dart';
 import '../../data/models/bang_cham_cong.dart';
 import '../../data/models/phien_chot_cong.dart';
-import '../../data/repositories/ChotChiLuongRepository.dart';
-import '../../data/services/ChotChiLuongService.dart';
-import '../../data/services/cham_cong_service.dart';
 import '../../data/models/ChamCongModel.dart';
 import '../../widgets/ChamCongFilterState.dart';
-import '../../widgets/setKhoaChamCong.dart';
 import '../../widgets/setKhoaChamCongTheoNhanVien.dart';
-import '../widgets/badgeCell.dart';
 import '../widgets/textCell.dart';
 import '_buildColumns.dart';
-import 'bang_cham_cong_nhan_vien_desktop.dart';
 import 'buildDesktopHeader.dart';
 import 'buildEmptyTable.dart';
 import 'buildLegend.dart';
 import 'buildSummary.dart';
 import 'getChamCongColor.dart';
-import 'getChamCongTextColor.dart';
 import 'isShowNgay.dart';
 
 class BangChamCongDesktop extends StatefulWidget {
@@ -48,16 +36,12 @@ class BangChamCongDesktop extends StatefulWidget {
 }
 
 class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
+  int _fromDay = 1;
+  late int _toDay;
   Set<int> selectedNhanVienIds = {};
   bool _showChucVu = true;
-  bool _show10Dau = true;
-  bool _show10Giua = true;
-  bool _show10Cuoi = true;
   List<ChamCongLuongNhanVien> data = [];
   List<PhienChotCong> dsDotChot = [];
-  late final Chotchiluongservice _chotService;
-  late final ChotChiLuongRepository _chotRepo;
-  late final ChamCongService _chamCongService;
   late final BangChamCongRepository _bangChamCongRepository;
   late final ChamCongLuongRepo _chamCongLuongRepo;
   bool daKhoaCC = false;
@@ -70,20 +54,9 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
   void initState() {
     super.initState();
     _showChucVu = ChamCongFilterState.showChucVu;
-    _show10Dau = ChamCongFilterState.show10Dau;
-    _show10Giua = ChamCongFilterState.show10Giua;
-    _show10Cuoi = ChamCongFilterState.show10Cuoi;
-    _chotService = Chotchiluongservice(ChotChiLuongRepository());
-    _chamCongService = ChamCongService(
-      ChamCongChiTietRepo(),
-      BangChamCongRepository(),
-      NhanVienCongTrinhRepo(),
-      UngLuongRepository(),
-      ChotChiLuongRepository(),
-      ChamCongLuongRepo()
-    );
+    _fromDay = 1;
+    _toDay = soNgay;
     _bangChamCongRepository = BangChamCongRepository();
-    _chotRepo = ChotChiLuongRepository();
     _chamCongLuongRepo = ChamCongLuongRepo();
     _initAndLoad();
   }
@@ -102,16 +75,13 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     if (mounted) setState(() => _isLoading = true);
     try {
       final result = await _chamCongLuongRepo.chamCongNhanViens(idCongTrinh: widget.bangChamCong?.idCongTrinh, idBangChamCong:  widget.bangChamCong!.id!);
-      //await _chamCongService.chamCongNhanViens(idCongTrinh: widget.bangChamCong!.idCongTrinh!, idBangChamCong: widget.bangChamCong!.id!);
       final khoa = await _bangChamCongRepository.checkKhoaChamCong(idBangChamCong: widget.bangChamCong?.id);
-      // final isChotLuong = await _chotService.isTonTaiDaChotLuong( widget.bangChamCong?.id);
       final phienChots = await _chamCongLuongRepo.phienChotCongs(widget.bangChamCong?.id);
       if (!mounted) return;
       // 2. setState CHỈ GÁN DỮ LIỆU ĐỒNG BỘ (Không dùng async ở đây)
       setState(() {
         data = result ?? []; // Nên fallback về list rỗng nếu result null
         daKhoaCC = khoa;
-        // coChotLuong = isChotLuong;
         dsDotChot = phienChots;
         _isLoading = false;
       });
@@ -151,17 +121,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               );
             },
             dsDotChot: dsDotChot,
-            // onChotCong: () async {
-            //                 await setkhoaChamCong(
-            //                   context: context,
-            //                   selectedMonth: widget.bangChamCong?.thang,
-            //                   selectedYear: widget.bangChamCong?.nam,
-            //                   isKhoa: !daKhoaCC,
-            //                   daChotLuong: coChotLuong,
-            //                   idBangChamCong: widget.bangChamCong?.id,
-            //                 );
-            //                 await _load();
-            //               },
             onLoad: _load,
         ),
       ),
@@ -181,7 +140,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: buildSummary(data.length, soNgay, daKhoaCC, coChotLuong),
+          child: buildSummary(data, soNgay),
         ),
         const SizedBox(height: 14),
         Expanded(
@@ -239,30 +198,37 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
           PopupMenuButton<String>(
             tooltip: "Tùy chọn hiển thị",
             icon: const Icon(Icons.settings_outlined),
-            onSelected: _handleMenuSelection,
             position: PopupMenuPosition.under,
             offset: const Offset(0, 8),
-            itemBuilder: (_) => [
+            itemBuilder: (context) => [
               CheckedPopupMenuItem<String>(
                 value: "chucvu",
                 checked: _showChucVu,
+                onTap: () {
+                  setState(() {
+                    _showChucVu = !_showChucVu;
+                    ChamCongFilterState.showChucVu = _showChucVu;
+                  });
+                },
                 child: const Text("Hiển thị chức vụ"),
               ),
               const PopupMenuDivider(),
-              CheckedPopupMenuItem<String>(
-                value: "dau",
-                checked: _show10Dau,
-                child: const Text("Ngày 01 - 10"),
-              ),
-              CheckedPopupMenuItem<String>(
-                value: "giua",
-                checked: _show10Giua,
-                child: const Text("Ngày 11 - 20"),
-              ),
-              CheckedPopupMenuItem<String>(
-                value: "cuoi",
-                checked: _show10Cuoi,
-                child: const Text("Ngày 21 - cuối tháng"),
+              PopupMenuItem<String>(
+                value: "custom_range",
+                onTap: () {
+                  // Mở dialog chọn khoảng ngày sau khi đóng popup menu
+                  Future.delayed(
+                    Duration.zero,
+                        () => _showCustomDateRangeDialog(context),
+                  );
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.date_range, size: 20, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Text("Khoảng ngày: $_fromDay - $_toDay"),
+                  ],
+                ),
               ),
             ],
           ),
@@ -326,32 +292,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     );
   }
 
-
-  void _handleMenuSelection(String value) {
-    setState(() {
-      switch (value) {
-        case "deleteAll":
-
-        case "chucvu":
-          _showChucVu = !_showChucVu;
-          ChamCongFilterState.showChucVu = _showChucVu;
-          break;
-        case "dau":
-          _show10Dau = !_show10Dau;
-          ChamCongFilterState.show10Dau = _show10Dau;
-          break;
-        case "giua":
-          _show10Giua = !_show10Giua;
-          ChamCongFilterState.show10Giua = _show10Giua;
-          break;
-        case "cuoi":
-          _show10Cuoi = !_show10Cuoi;
-          ChamCongFilterState.show10Cuoi = _show10Cuoi;
-          break;
-      }
-    });
-  }
-
   // ============================================================
   // TABLE DATA RENDER (Tối ưu hóa gọn gàng) -- CODE CHÍNH DỮ LIỆU TABLE
   // ============================================================
@@ -386,8 +326,8 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
                     }
                   });
                 },
-                columns: buildColumns(soNgay, _showChucVu, _show10Dau, _show10Giua, _show10Cuoi),
-                rows: data.asMap().entries.map((e) => _buildDataRow(e.value, e.key)).toList(),
+                columns: buildColumns(soNgay, _showChucVu, _fromDay, _toDay),
+                rows: (data ?? []).asMap().entries.map((e) => _buildDataRow(e.value, e.key)).toList(),
               ),
             ),
           ),
@@ -398,6 +338,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
 
   DataRow _buildDataRow(ChamCongLuongNhanVien nv, int index) {
     final isSelected = selectedNhanVienIds.contains(nv.idNhanVienCongTrinh);
+    final bool isEvenRow = (index ?? 0) % 2 == 0;
     return DataRow(
       selected: isSelected,
       onSelectChanged: (bool? selected) {
@@ -412,7 +353,7 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
       color: MaterialStateProperty.all(
         isSelected
             ? Theme.of(context).primaryColor.withOpacity(0.1) // Đổi màu nền nhẹ khi chọn
-            : (index.isEven ? Colors.grey.shade50 : Colors.white),
+            : (isEvenRow ? Colors.grey.shade50 : Colors.white),
       ),
       cells: [
         DataCell(
@@ -453,10 +394,10 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.tongLuongDuKien)}", textAlign: TextAlign.center),
+                  child: Text("${currencyFormat.format(nv.tongLuongDuKien ?? 0)}", textAlign: TextAlign.center),
                 ),
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.tongLuongChot)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
+                  child: Text("${currencyFormat.format(nv.tongLuongChot ?? 0)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
                 ),
               ],
             ),
@@ -468,7 +409,17 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text("${currencyFormat.format(nv.tongUngDuKien)}", textAlign: TextAlign.center),
+                  child: InkWell(
+                    onTap: () => _navigateToUngLuong(nv),
+                    child: Text(
+                      "${currencyFormat.format(nv.tongUngDuKien ?? 0)}",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Text("${currencyFormat.format(nv.tongUngDaTru ?? 0)}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.green)),
@@ -480,14 +431,13 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
         textCell(formatCurrency(nv.thucNhanChot ?? 0), color: Colors.green.shade700, isBold: true),
         // _chotLuongCell(nv),
         _chiLuongCell(nv),
-        textCell(''),
       ],
     );
   }
 
   List<DataCell> _buildNgayCells(ChamCongLuongNhanVien nv) {
     return List.generate(soNgay, (i) => i + 1)
-        .where((day) => isShowNgay(day, _show10Dau, _show10Giua, _show10Cuoi))
+        .where((day) => isShowNgayCustom(day, _fromDay, _toDay))
         .map((day) {
       final ngayKey = "${widget.bangChamCong?.thangValue}-${day.toString().padLeft(2, '0')}";
       final chamCongNgayLuong = nv.data[ngayKey];
@@ -522,15 +472,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     }).toList();
   }
 
-  DataCell _ungLuongCell(ChamCongLuongNhanVienModel nv) => DataCell(
-    InkWell(
-      onTap: () => _navigateToUngLuong(nv.chamCong),
-      child: Text(
-        formatCurrency(nv.luong.tongUng),
-        style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w600),
-      ),
-    ),
-  );
   DataCell _chiLuongCell(ChamCongLuongNhanVien nv) {
     return DataCell(
       Padding(
@@ -543,56 +484,6 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
               style: const TextStyle(fontSize: 13,fontWeight: FontWeight.w700,),
             ),
             const SizedBox(width: 12),
-            // Tooltip(
-            //   message: 'Xem danh sách các lần chi lương',
-            //   child: InkWell(
-            //     borderRadius: BorderRadius.circular(8),
-            //     onTap: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (_) => ChiLuongDesktop(
-            //             luong: nv.luong,
-            //             tenCongTrinh: widget.tenCongTrinh,
-            //             tenNhanVien: nv.chamCong.ten,
-            //             tongPhaiTra: nv.thucNhanHienThi,
-            //             thang: widget.bangChamCong?.thang,
-            //             nam: widget.bangChamCong?.nam
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //     child: Container(
-            //       padding: const EdgeInsets.symmetric(
-            //         horizontal: 9,
-            //         vertical: 7,
-            //       ),
-            //       decoration: BoxDecoration(
-            //         borderRadius: BorderRadius.circular(8),
-            //         border: Border.all(
-            //           color: Colors.grey.shade300,
-            //         ),
-            //       ),
-            //       child: const Row(
-            //         mainAxisSize: MainAxisSize.min,
-            //         children: [
-            //           Icon(
-            //             Icons.receipt_long_outlined,
-            //             size: 16,
-            //           ),
-            //           SizedBox(width: 5),
-            //           Text(
-            //             'Danh sách',
-            //             style: TextStyle(
-            //               fontSize: 12,
-            //               fontWeight: FontWeight.w600,
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -637,21 +528,113 @@ class _BangChamCongDesktopState extends State<BangChamCongDesktop> {
     _load();
   }
 
-  Future<void> _navigateToUngLuong(ChamCongNhanVienModel nv) async {
+  Future<void> _navigateToUngLuong(ChamCongLuongNhanVien nv) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => UngLuongNhanVienDesktop(
           idNhanVienCongTrinh: nv.idNhanVienCongTrinh,
-          hoTen: nv.ten,
+          hoTen: nv.hoTen,
           congTrinh: widget.tenCongTrinh,
           idBangChamCong: widget.bangChamCong?.id,
-          thang: widget.bangChamCong?.thang,
-          nam: widget.bangChamCong?.nam,
-          kyLuong: widget.bangChamCong?.thangValue,
+          // thang: widget.bangChamCong?.thang,
+          // nam: widget.bangChamCong?.nam,
+          // kyLuong: widget.bangChamCong?.thangValue,
         ),
       ),
     );
     _load();
+  }
+  void _showCustomDateRangeDialog(BuildContext context) {
+    final TextEditingController fromController =
+    TextEditingController(text: _fromDay.toString());
+    final TextEditingController toController =
+    TextEditingController(text: _toDay.toString());
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Tùy chọn khoảng ngày hiển thị", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Tháng này có $soNgay ngày. Vui lòng nhập khoảng ngày muốn xem:",
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: fromController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Từ ngày",
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
+                        validator: (val) {
+                          final d = int.tryParse(val ?? '');
+                          if (d == null || d < 1 || d > soNgay) {
+                            return "1 - $soNgay";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("-"),
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        controller: toController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Đến ngày",
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
+                        validator: (val) {
+                          final d = int.tryParse(val ?? '');
+                          final from = int.tryParse(fromController.text) ?? 1;
+                          if (d == null || d < from || d > soNgay) {
+                            return "$from - $soNgay";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Hủy"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  setState(() {
+                    _fromDay = int.parse(fromController.text);
+                    _toDay = int.parse(toController.text);
+                  });
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text("Áp dụng"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

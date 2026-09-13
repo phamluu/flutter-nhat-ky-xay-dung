@@ -123,79 +123,69 @@ class UngLuongRepository {
     return (tongUng, tongUngConLai, daTruKyNay);
   }
 
-  Future<List<UngLuongViewModel>> getDanhSach( int idCongTrinh, {int? thang,int? nam, String? kyLuong, }) async {
+  Future<List<UngLuongViewModel>> getDanhSach(
+      int idCongTrinh, {
+        int? thang,
+        int? nam,
+        String? kyLuong,
+      }) async {
     final db = await _dbHelper.database;
     final ulWhere = <String>[];
     final ulArgs = <dynamic>[];
+
     if (kyLuong != null && kyLuong.isNotEmpty) {
-      ulWhere.add(
-        "strftime('%Y-%m', ul.ngayUng) = ?",
-      );
+      ulWhere.add("strftime('%Y-%m', ul.ngayUng) = ?");
       ulArgs.add(kyLuong);
     } else if (thang != null && nam != null) {
-      ulWhere.add(
-        "strftime('%m', ul.ngayUng) = ?",
-      );
-      ulArgs.add(
-        thang.toString().padLeft(2, '0'),
-      );
-      ulWhere.add(
-        "strftime('%Y', ul.ngayUng) = ?",
-      );
+      ulWhere.add("strftime('%m', ul.ngayUng) = ?");
+      ulArgs.add(thang.toString().padLeft(2, '0'));
+      ulWhere.add("strftime('%Y', ul.ngayUng) = ?");
       ulArgs.add(nam.toString());
     } else if (thang != null) {
-      ulWhere.add(
-        "strftime('%m', ul.ngayUng) = ?",
-      );
-      ulArgs.add(
-        thang.toString().padLeft(2, '0'),
-      );
+      ulWhere.add("strftime('%m', ul.ngayUng) = ?");
+      ulArgs.add(thang.toString().padLeft(2, '0'));
     } else if (nam != null) {
-      ulWhere.add(
-        "strftime('%Y', ul.ngayUng) = ?",
-      );
+      ulWhere.add("strftime('%Y', ul.ngayUng) = ?");
       ulArgs.add(nam.toString());
     }
-    // Nếu có is_deleted
-    ulWhere.add(
-      'ul.${UngLuongTable.is_deleted} = 0',
-    );
-    final ulCondition = ulWhere.isEmpty
-        ? ''
-        : 'AND ${ulWhere.join(' AND ')}';
-    // =========================
-    // 2. Lấy nhân viên công trình
-    //    + LEFT JOIN ứng lương
-    // =========================
+
+    // Điều kiện không bị xóa
+    ulWhere.add('ul.${UngLuongTable.is_deleted} = 0');
+
+    final ulCondition = ulWhere.isEmpty ? '' : 'AND ${ulWhere.join(' AND ')}';
+
+    // ============================================================
+    // 1. Truy vấn SQL: Join thêm bảng chi tiết đối trừ & SUM số tiền
+    // ============================================================
     final result = await db.rawQuery(
       '''
     SELECT
-      nvct.${NhanVienCongTrinhTable.id}
-        AS idNhanVienCongTrinh,
-      nv.${NhanVienTable.hoTen}
-        AS hoTen,
-      ul.${UngLuongTable.id}
-        AS idUngLuong,
-      ul.${UngLuongTable.soTien}
-        AS soTien,
-      ul.${UngLuongTable.soTienDaTru}
-        AS soTienDaTru,
-      ul.${UngLuongTable.ngayUng}
-        AS ngayUng,
-      ul.${UngLuongTable.lyDo}
-        AS lyDo
+      nvct.${NhanVienCongTrinhTable.id} AS idNhanVienCongTrinh,
+      nv.${NhanVienTable.hoTen} AS hoTen,
+      ul.${UngLuongTable.id} AS idUngLuong,
+      ul.${UngLuongTable.soTien} AS soTien,
+      ul.${UngLuongTable.ngayUng} AS ngayUng,
+      ul.${UngLuongTable.lyDo} AS lyDo,
+      COALESCE(SUM(
+        CASE 
+          WHEN dt.${ChiTietDoiTruUngLuongTable.isDeleted} = 0 
+          THEN dt.${ChiTietDoiTruUngLuongTable.soTienDoiTru} 
+          ELSE 0 
+        END
+      ), 0) AS soTienDaTru
     FROM ${NhanVienCongTrinhTable.tableName} nvct
     INNER JOIN ${NhanVienTable.tableName} nv
-      ON nv.${NhanVienTable.id}
-       = nvct.${NhanVienCongTrinhTable.idNhanVien}
-
+      ON nv.${NhanVienTable.id} = nvct.${NhanVienCongTrinhTable.idNhanVien}
     LEFT JOIN ${UngLuongTable.tableName} ul
-      ON ul.${UngLuongTable.idNhanVienCongTrinh}
-       = nvct.${NhanVienCongTrinhTable.id}
+      ON ul.${UngLuongTable.idNhanVienCongTrinh} = nvct.${NhanVienCongTrinhTable.id}
       $ulCondition
-
+    LEFT JOIN ${ChiTietDoiTruUngLuongTable.tableName} dt
+      ON dt.${ChiTietDoiTruUngLuongTable.idUngLuong} = ul.${UngLuongTable.id}
     WHERE nvct.${NhanVienCongTrinhTable.idCongTrinh} = ?
-
+    GROUP BY 
+      nvct.${NhanVienCongTrinhTable.id},
+      nv.${NhanVienTable.hoTen},
+      ul.${UngLuongTable.id}
     ORDER BY
       nv.${NhanVienTable.hoTen} ASC,
       ul.${UngLuongTable.ngayUng} DESC
@@ -206,17 +196,15 @@ class UngLuongRepository {
       ],
     );
 
-    // =========================
-    // 3. Group theo nhân viên
-    // =========================
-
+    // ============================================================
+    // 2. Group theo Nhân Viên & map sang ViewModel
+    // ============================================================
     final Map<int, UngLuongViewModel> map = {};
 
     for (final row in result) {
       final idNVCT = row['idNhanVienCongTrinh'] as int?;
-      if (idNVCT == null) {
-        continue;
-      }
+      if (idNVCT == null) continue;
+
       final viewModel = map.putIfAbsent(
         idNVCT,
             () => UngLuongViewModel(
@@ -228,16 +216,14 @@ class UngLuongRepository {
         ),
       );
 
-      // Nhân viên chưa có ứng lương
-      // => idUngLuong = null
-      // => giữ nguyên daUngs = []
       final idUngLuong = row['idUngLuong'];
       if (idUngLuong != null) {
         viewModel.daUngs!.add(
           UngLuongItem(
             soTien: ((row['soTien'] as num?) ?? 0).toDouble(),
             soTienDaTru: ((row['soTienDaTru'] as num?) ?? 0).toDouble(),
-            ngayUng: row['ngayUng'] != null ? DateTime.tryParse( row['ngayUng'].toString(), )
+            ngayUng: row['ngayUng'] != null
+                ? DateTime.tryParse(row['ngayUng'].toString())
                 : null,
             lyDo: row['lyDo']?.toString(),
           ),
@@ -247,7 +233,6 @@ class UngLuongRepository {
 
     return map.values.toList();
   }
-
   // Danh sách ứng lương của 1 nhân viên
   Future<List<Ungluong>> getUngLuongNhanVien( int idNhanVienCongTrinh, { String? kyLuong, int? thang,int? nam}) async {
     final db = await _dbHelper.database;
@@ -428,16 +413,6 @@ class UngLuongRepository {
   Future<bool> isDoiUngTruLuong(int idUngLuong) async {
     final db = await _dbHelper.database;
     // Kiểm tra khoản ứng có được đối trừ chưa
-    final ungLuong = await db.query(
-      UngLuongTable.tableName,
-      columns: [UngLuongTable.id],
-      where: '''
-                      ${UngLuongTable.id} = ?
-                      AND ${UngLuongTable.soTienDaTru} > 0
-                    ''',
-      whereArgs: [idUngLuong],
-      limit: 1,
-    );
     final doiTru = await db.query(
       ChiTietDoiTruUngLuongTable.tableName,
       columns: [UngLuongTable.id],
@@ -447,7 +422,7 @@ class UngLuongRepository {
       whereArgs: [idUngLuong],
       limit: 1,
     );
-    if(ungLuong.isNotEmpty || doiTru.isNotEmpty){
+    if(doiTru.isNotEmpty){
       return true;
     }
     return false;

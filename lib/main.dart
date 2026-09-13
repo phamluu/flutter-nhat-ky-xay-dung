@@ -21,7 +21,7 @@ void main() async {
     }
     // Kiểm tra bản quyền ngầm ban đầu (không chặn app)
     if (!kIsWeb && Platform.isWindows) {
-      await TrialService.instance.checkTrialStatus();
+      await TrialService.instance.init();
       TrialService.instance.startPeriodicCheck(); // Bật kiểm tra định kỳ nếu muốn
     }
   } catch (e, s) {

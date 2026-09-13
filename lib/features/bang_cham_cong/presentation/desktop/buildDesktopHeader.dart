@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/repositories/cham_cong_luong_repo.dart';
 
@@ -250,7 +251,7 @@ Widget _buildHuyDotChotMenu({
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Hủy đợt chốt (${dsDotChot.length})',
+            'Đợt chốt (${dsDotChot.length})',
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 4),
@@ -287,17 +288,19 @@ void _xuLyXoa(
             ),
             onPressed: () async {
               // 1. Thực hiện xóa dưới Database
-              await repo.huyKhoaChamCong(phienChot.id);
-
-              // 2. Đóng Dialog
-              if (dialogContext.mounted) {
-                Navigator.of(dialogContext).pop();
-                showSuccessToast(context, "Hủy thành công");
-              }
-
-              // 3. Load lại danh sách
-              if (onLoad != null) {
-                await onLoad();
+              try{
+                await repo.huyKhoaChamCong(phienChot.id);
+                // 2. Đóng Dialog
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                  showSuccessToast(context, "Hủy thành công");
+                }
+                // 3. Load lại danh sách
+                if (onLoad != null) {
+                  await onLoad();
+                }
+              }catch(e){
+                showErrorToast(context, e, "Không thể xóa");
               }
             },
             child: const Text('Đồng ý xóa'),

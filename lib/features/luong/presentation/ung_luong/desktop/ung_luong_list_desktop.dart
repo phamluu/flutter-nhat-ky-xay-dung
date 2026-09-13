@@ -20,8 +20,7 @@ class UngLuongListDesktop extends StatefulWidget {
     this.tenCongTrinh,
   });
   @override
-  State<UngLuongListDesktop> createState() =>
-      _UngLuongListDesktopState();
+  State<UngLuongListDesktop> createState() => _UngLuongListDesktopState();
 }
 
 class _UngLuongListDesktopState extends State<UngLuongListDesktop> {

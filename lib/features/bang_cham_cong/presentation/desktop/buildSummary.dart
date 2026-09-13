@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/utils/currencyFormat.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/desktop/summaryCard.dart';
 
-Widget buildSummary(int countNhanVien, int soNgay, bool daKhoaCC, bool coChotLuong) {
+import '../../data/models/phien_chot_cong.dart';
+
+Widget buildSummary(List<ChamCongLuongNhanVien> dataList, int soNgay) {
   return Row(
     children: [
       Expanded(
         child: summaryCard(
           icon: Icons.people_alt_outlined,
           title: "Nhân viên",
-          value: "${countNhanVien}",
+          value: "${dataList.length}",
           subtitle: "Nhân viên trong công trình",
         ),
       ),
@@ -30,13 +33,9 @@ Widget buildSummary(int countNhanVien, int soNgay, bool daKhoaCC, bool coChotLuo
         child: summaryCard(
           icon: Icons.lock_outline,
           title: "Chấm công",
-          value: daKhoaCC
-              ? "Đã khóa"
-              : "Chưa khóa",
-          subtitle: "Trạng thái chấm công",
-          valueColor: daKhoaCC
-              ? Colors.green
-              : Colors.orange,
+          value: dataList.fold(0.0,(sum, item) => sum + item.soCong).toString(),
+          subtitle: "Tổng số công dự kiến",
+          valueColor: Colors.orange
         ),
       ),
 
@@ -45,14 +44,10 @@ Widget buildSummary(int countNhanVien, int soNgay, bool daKhoaCC, bool coChotLuo
       Expanded(
         child: summaryCard(
           icon: Icons.payments_outlined,
-          title: "Chốt lương",
-          value: coChotLuong
-              ? "Đã chốt"
-              : "Chưa chốt",
-          subtitle: "Trạng thái bảng lương",
-          valueColor: coChotLuong
-              ? Colors.green
-              : Colors.red,
+          title: "Lương",
+          value: currencyFormat.format(dataList.fold(0.0,(sum, item) => sum + item.tongLuongDuKien)).toString(),
+          subtitle: "Tổng lương dự kiến",
+          valueColor:  Colors.orange
         ),
       ),
     ],

@@ -14,11 +14,8 @@ class PermissionManager {
 
     switch (feature) {
     // Các tính năng yêu cầu bản quyền PRO / Trial còn hạn
-      case FeatureEnum.themCongTrinh:
-      case FeatureEnum.suaCongTrinh:
-      case FeatureEnum.xoaCongTrinh:
-      case FeatureEnum.xemBaoCaoPro:
-      case FeatureEnum.dongBoCloud:
+      case FeatureEnum.saveKeHoach:
+      case FeatureEnum.saveUngLuong:
 
         // Bảng chấm công
       case FeatureEnum.chamCongNgay:

@@ -21,7 +21,7 @@ const TextStyle headerTitleStyle = TextStyle(
   color: Colors.black87,
 );
 
-List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bool _show10Giua,  bool _show10Cuoi) {
+List<DataColumn> buildColumns(int soNgay, bool _showChucVu, int _fromDay, int _toDay) {
   final columns = <DataColumn>[];
   columns.add(
     const DataColumn(
@@ -55,7 +55,7 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   }
 
   for (int i = 1; i <= soNgay; i++) {
-    if (isShowNgay(i, _show10Dau,  _show10Giua,  _show10Cuoi)) {
+    if (isShowNgayCustom(i, _fromDay, _toDay)) {
       columns.add(
         DataColumn(
           numeric: true,
@@ -189,50 +189,50 @@ List<DataColumn> buildColumns(int soNgay, bool _showChucVu, bool _show10Dau,  bo
   columns.add(
     const DataColumn(
       label: Text(
-        "CHI LƯƠNG", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
+        "ĐÃ CHI", style: TextStyle( fontWeight: FontWeight.w700, fontSize: 12,
         ),
       ),
     ),
   );
-  columns.add(
-    DataColumn(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Còn phải trả',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Tooltip(
-            message: 'Số tiền khách hàng còn phải thanh toán',
-            child: Container(
-              width: 15,
-              height: 15,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 1,
-                ),
-              ),
-              child: const Text(
-                '?',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+  // columns.add(
+  //   DataColumn(
+  //     label: Row(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         const Text(
+  //           'Còn phải trả',
+  //           style: TextStyle(
+  //             fontWeight: FontWeight.w700,
+  //             fontSize: 12,
+  //           ),
+  //         ),
+  //         const SizedBox(width: 4),
+  //         Tooltip(
+  //           message: 'Số tiền khách hàng còn phải thanh toán',
+  //           child: Container(
+  //             width: 15,
+  //             height: 15,
+  //             alignment: Alignment.center,
+  //             decoration: BoxDecoration(
+  //               shape: BoxShape.circle,
+  //               border: Border.all(
+  //                 color: Colors.grey,
+  //                 width: 1,
+  //               ),
+  //             ),
+  //             child: const Text(
+  //               '?',
+  //               style: TextStyle(
+  //                 fontSize: 10,
+  //                 fontWeight: FontWeight.w700,
+  //                 color: Colors.grey,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   ),
+  // );
   return columns;
 }

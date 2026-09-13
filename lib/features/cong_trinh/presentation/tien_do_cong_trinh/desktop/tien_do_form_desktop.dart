@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 
+import '../../../../../core/enum/feature_enum.dart';
+import '../../../../../core/services/PermissionManager.dart';
 import '../../../../../core/utils/trang_thai_tien_do.dart';
 import '../../../data/models/TienDoCongTrinhModel.dart';
 import '../../../data/respositories/TienDoRepository.dart';
@@ -102,34 +104,39 @@ class _TienDoFormDesktopState extends State<TienDoFormDesktop> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    final phanTram = double.tryParse(_phanTramCtrl.text) ?? 0;
-    final trongSo = double.tryParse(_trongSoCtrl.text) ?? 1;
-    final model = TienDoCongTrinhModel(
-      id: widget.model?.id,
-      idCongTrinh: widget.idCongTrinh,
-      tenCongViec: _tenCtrl.text.trim(),
-      moTa: _moTaCtrl.text.trim(),
-      ngayBatDau: _ngayBatDauCtrl.text.trim(),
-      ngayKetThuc: _ngayKetThucCtrl.text.trim(),
-      phanTramThucTe: phanTram,
-      trongSo: trongSo,
-      trangThai: _trangThai,
-    );
-    setState(() {
-      _isSaving = true;
-    });
-    try {
-      await service.save(model);
-      if (!mounted) return;
-      showSuccessToast(context, "Lưu thành công");
-      Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
-      showErrorToast(context, e, 'Không thể lưu tiến độ: ');
-    }
+    await PermissionManager.instance.runWithPermission(
+        context,
+        feature: FeatureEnum.saveKeHoach,
+        action: () async {
+          final phanTram = double.tryParse(_phanTramCtrl.text) ?? 0;
+          final trongSo = double.tryParse(_trongSoCtrl.text) ?? 1;
+          final model = TienDoCongTrinhModel(
+            id: widget.model?.id,
+            idCongTrinh: widget.idCongTrinh,
+            tenCongViec: _tenCtrl.text.trim(),
+            moTa: _moTaCtrl.text.trim(),
+            ngayBatDau: _ngayBatDauCtrl.text.trim(),
+            ngayKetThuc: _ngayKetThucCtrl.text.trim(),
+            phanTramThucTe: phanTram,
+            trongSo: trongSo,
+            trangThai: _trangThai,
+          );
+          setState(() {
+            _isSaving = true;
+          });
+          try {
+            await service.save(model);
+            if (!mounted) return;
+            showSuccessToast(context, "Lưu thành công");
+            Navigator.pop(context, true);
+          } catch (e) {
+            if (!mounted) return;
+            setState(() {
+              _isSaving = false;
+            });
+            showErrorToast(context, e, 'Không thể lưu tiến độ: ');
+          }
+        });
   }
 
   // ============================================================
