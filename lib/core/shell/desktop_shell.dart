@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/global_trial_banner.dart';
 import 'desktop_sidebar.dart';
 
 class DesktopShell extends StatelessWidget {
@@ -13,12 +14,18 @@ class DesktopShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
+      body: Column(
         children: [
-          const DesktopSidebar(),
-
+          GlobalTrialBanner(),
           Expanded(
-            child: child,
+            child: Row(
+              children: [
+                const DesktopSidebar(),
+                Expanded(
+                  child: child,
+                ),
+              ],
+            ),
           ),
         ],
       ),

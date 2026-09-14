@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../enum/TrialStatusResult.dart';
 import '../utils/device_service.dart';
 
 class TrialService {
@@ -17,8 +18,10 @@ class TrialService {
 
   /// Khởi tạo khi mở App (Đọc Offline trước, sync Online sau)
   Future<void> init() async {
-    await verifyLocalLicense();
-    checkTrialStatus();
+    bool hasLocal = await verifyLocalLicense();
+    if (hasLocal) {
+      await checkTrialStatus();
+    }
   }
 
   void startPeriodicCheck({Duration interval = const Duration(minutes: 5)}) {
@@ -83,6 +86,7 @@ class TrialService {
     return false;
   }
 
+  // Lấy cấu hình văn bản nâng cấp
   Future<Map<String, dynamic>> fetchConfig() async {
     try {
       final response = await http
@@ -112,73 +116,137 @@ class TrialService {
   }
 
   /// 2. Kiểm tra trạng thái từ Server (Ghi đè hạn dùng xuống máy)
-  Future<bool> checkTrialStatus() async {
+  Future<TrialStatusResult> checkTrialStatus() async {
+    final prefs = await SharedPreferences.getInstance();
     try {
-      String deviceId = await DeviceService.getWindowsDeviceId();
-      final prefs = await SharedPreferences.getInstance();
-
       String? userName = prefs.getString('user_name');
       String? phone = prefs.getString('user_phone');
-
-      if (userName == null || phone == null) {
-        return await verifyLocalLicense();
+      // Nếu chưa nhập thông tin
+      if (userName == null || userName.isEmpty || phone == null || phone.isEmpty) {
+        statusMessage = 'Vui lòng nhập thông tin để kích hoạt bản dùng thử.';
+        isTrialValidNotifier.value = false;
+        return TrialStatusResult.noUserInfo;
       }
-
+      String deviceId = await DeviceService.getWindowsDeviceId();
+      // Chỉ gửi device_id lên để kiểm tra, tuyệt đối KHÔNG gửi thông tin cá nhân để insert
       final response = await http.post(
         Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/check-trial'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'device_id': deviceId,
-          'user_name': userName,
-          'phone': phone,
-          'email': prefs.getString('user_email') ?? '',
         }),
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['status'] == 'valid') {
-          statusMessage = '';
-
-          // Lưu ngày hết hạn từ WordPress xuống SharedPreferences
-          if (data['expire_at'] != null) {
-            await prefs.setString('trial_expire_date', data['expire_at'].toString());
-            await prefs.setString('device_id', deviceId);
-          }
-
-          // Thông báo cập nhật ValueNotifier cho Banner nhận diện
-          isTrialValidNotifier.value = true;
-          return true;
-        } else {
-          statusMessage = data['message'] ?? 'Bản dùng thử đã hết hạn.';
+        String status = data['status'] ?? '';
+        if (data['expire_at'] != null) {
+          await prefs.setString('trial_expire_date', data['expire_at']);
+        }
+        // TRƯỜNG HỢP 1: THIẾT BỊ BỊ KHÓA TỪ API
+        if (status == 'locked') {
+          await prefs.setBool('is_locked', true); // Lưu lại bộ nhớ local
           isTrialValidNotifier.value = false;
-          return false;
+          statusMessage = 'Thiết bị của bạn đã bị khóa từ hệ thống.';
+          return TrialStatusResult.locked;
+        }else{
+          await prefs.setBool('is_locked', false);
+        }
+        if (status == 'valid') {
+          if (isTrialValidNotifier.value == true) {
+            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+            isTrialValidNotifier.notifyListeners();
+          } else {
+            isTrialValidNotifier.value = true;
+          }
+          return TrialStatusResult.valid;
+        }
+        // TRƯỜNG HỢP 3: HẾT HẠN
+        if (status == 'expired') {
+          isTrialValidNotifier.value = false;
+          statusMessage = 'Bản dùng thử của bạn đã hết hạn.';
+          return TrialStatusResult.expired;
+        }
+        if (status == 'not_found') {
+          return TrialStatusResult.notFound;
         }
       }
     } catch (e) {
-      debugPrint('Lỗi kết nối kiểm tra Trial: $e');
+      debugPrint('Không kết nối được API (Offline): $e');
+      // --- XỬ LÝ KHI MẤT MẠNG / KHÔNG GỌI ĐƯỢC API ---
+      bool isLocked = prefs.getBool('is_locked') ?? false;
+      // Nếu trước đó API đã từng trả về "Khóa", khi mất mạng VẪN GIỮ KHÓA
+      if (isLocked) {
+        isTrialValidNotifier.value = false;
+        statusMessage = 'Thiết bị đã bị khóa từ hệ thống (Offline).';
+        return TrialStatusResult.locked;
+      }
+      // Nếu chưa bị khóa, đối chiếu ngày hết hạn local
+      return _checkLocalExpire(prefs);
+    }
+    return isTrialValidNotifier.value ? TrialStatusResult.valid : TrialStatusResult.expired;
+    // return await verifyLocalLicense();
+  }
+  TrialStatusResult _checkLocalExpire(SharedPreferences prefs) {
+    String? expireDateStr = prefs.getString('trial_expire_date');
+    if (expireDateStr == null) return TrialStatusResult.expired;
+
+    DateTime? expireDate = DateTime.tryParse(expireDateStr.replaceAll(' ', 'T'));
+    if (expireDate == null || DateTime.now().isAfter(expireDate)) {
+      isTrialValidNotifier.value = false;
+      statusMessage = 'Bản dùng thử đã hết hạn (Offline).';
+      return TrialStatusResult.expired;
     }
 
-    // Nếu mất mạng hoặc lỗi kết nối -> Fallback xác thực Offline từ máy
-    return await verifyLocalLicense();
+    isTrialValidNotifier.value = true;
+    return TrialStatusResult.valid;
+  }
+  /// 3. HÀM ĐĂNG KÝ MỚI (CHỈ GỌI KHI NGƯỜI DÙNG BẤM "KÍCH HOẠT NGAY")
+  Future<bool> registerTrial({ required String name, required String phone, String email = '',}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String deviceId = await DeviceService.getWindowsDeviceId();
+
+      final response = await http.post(
+        Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/register-trial'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'device_id': deviceId,
+          'user_name': name,
+          'phone': phone,
+          'email': email,
+        }),
+      ).timeout(const Duration(seconds: 7));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' || data['status'] == 'valid') {
+          await prefs.setString('user_name', name);
+          await prefs.setString('user_phone', phone);
+          await prefs.setString('user_email', email);
+          await prefs.setString('device_id', deviceId);
+
+          if (data['expire_at'] != null) {
+            await prefs.setString('trial_expire_date', data['expire_at'].toString());
+          }
+
+          isTrialValidNotifier.value = true;
+          statusMessage = '';
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Lỗi đăng ký dùng thử: $e');
+    }
+    return false;
+  }
+  Future<void> clearTrialData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_name');
+    await prefs.remove('user_phone');
+    await prefs.remove('user_email');
+    await prefs.remove('trial_expire_date');
+    await prefs.remove('device_id');
   }
 
-  static Future<void> guard(BuildContext context, VoidCallback action) async {
-    bool isValid = TrialService.instance.isValid;
-    if (isValid) {
-      action();
-    } else {
-      // Gọi Dialog nâng cấp
-    }
-  }
-
-  Future<void> checkTrialPermission() async {
-    if (!isValid) {
-      throw Exception(
-        statusMessage.isNotEmpty
-            ? statusMessage
-            : 'Bản dùng thử đã hết hạn. Vui lòng nâng cấp!',
-      );
-    }
-  }
 }

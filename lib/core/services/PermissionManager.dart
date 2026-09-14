@@ -34,7 +34,19 @@ class PermissionManager {
         return true;
     }
   }
-
+  /// Kiểm tra quyền dành cho Repository (Không cần BuildContext)
+  Future<void> assertPermission(FeatureEnum feature) async {
+    // Gọi server cập nhật trạng thái mới nhất
+    await TrialService.instance.checkTrialStatus();
+    // Nếu không có quyền -> Quăng Exception để ngắt thao tác Database
+    if (!canAccess(feature)) {
+      throw Exception(
+        TrialService.instance.statusMessage.isNotEmpty
+            ? TrialService.instance.statusMessage
+            : 'Bản dùng thử đã hết hạn. Vui lòng nâng cấp!',
+      );
+    }
+  }
   /// Hàm bọc để thực thi hoặc chặn action
   Future<void> runWithPermission(
       BuildContext context, {

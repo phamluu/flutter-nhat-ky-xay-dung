@@ -22,7 +22,7 @@ void main() async {
     // Kiểm tra bản quyền ngầm ban đầu (không chặn app)
     if (!kIsWeb && Platform.isWindows) {
       await TrialService.instance.init();
-      TrialService.instance.startPeriodicCheck(); // Bật kiểm tra định kỳ nếu muốn
+      TrialService.instance.startPeriodicCheck();
     }
   } catch (e, s) {
     debugPrint('Lỗi khởi tạo DB/App: $e');
@@ -70,9 +70,6 @@ class MyApp extends StatelessWidget {
         return Scaffold(
           body: Column(
             children: [
-              // 1. Banner chung hiển thị ở đỉnh tất cả các màn hình
-              const GlobalTrialBanner(),
-              // 2. Màn hình hiện tại của App
               Expanded(child: child ?? const SizedBox.shrink()),
             ],
           ),

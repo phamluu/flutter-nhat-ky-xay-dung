@@ -5,6 +5,7 @@ import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../../../core/utils/date_utils.dart';
+import '../../../../../core/utils/trang_thai_dong_bo.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../../data/respositories/CongTrinhReponsitory.dart';
 import 'cong_trinh_detail_desktop.dart';
@@ -288,6 +289,29 @@ showErrorToast(context, e, 'Không thể xóa công trình');
           icon: const Icon( Icons.refresh,),
           label: const Text('Làm mới'),
         ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                      Icon(
+                        Icons.cloud_done,
+                        color: Colors.green,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 5),
+                      Text('Đã đồng bộ'),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.cloud_off,
+                        color: Colors.orange,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 5),
+                      Text('Chưa đồng bộ'),
+                ]
+          ),
+        )
       ],
     );
   }
@@ -573,18 +597,6 @@ showErrorToast(context, e, 'Không thể xóa công trình');
                 children: [
                   SyncColor.icon(
                     ct.isSynced,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    ct.isSynced != null
-                        ? 'Đã đồng bộ'
-                        : 'Chưa đồng bộ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: ct.isSynced != null
-                          ? Colors.green
-                          : Colors.orange,
-                    ),
                   ),
                 ],
               ),

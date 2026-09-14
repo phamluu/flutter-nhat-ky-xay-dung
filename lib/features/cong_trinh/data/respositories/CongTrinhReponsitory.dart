@@ -5,6 +5,8 @@ import 'package:nhat_ky_xay_dung/data/tables/nhat_ky_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/thu_chi_table.dart';
 import 'package:nhat_ky_xay_dung/data/tables/tien_do_cong_trinh_table.dart';
 
+import '../../../../core/enum/feature_enum.dart';
+import '../../../../core/services/PermissionManager.dart';
 import '../../../../core/services/trial_service.dart';
 import '../models/CongTrinh.dart';
 import '../../../../data/db_helper.dart';
@@ -31,7 +33,7 @@ class CongtrinhReponsitory {
 
 
   Future<int> themCongTrinh(CongTrinh congTrinh) async {
-    await TrialService.instance.checkTrialPermission();
+    await PermissionManager.instance.assertPermission(FeatureEnum.saveCongTrinh);
     final db = await _dbHelper.database;
     try{
       return await db.insert(CongTrinhTable.tableName, congTrinh.toMapInsert());
@@ -41,6 +43,7 @@ class CongtrinhReponsitory {
 
   }
   Future<void> updateCongTrinh(CongTrinh ct) async {
+    await PermissionManager.instance.assertPermission(FeatureEnum.saveCongTrinh);
     final db = await _dbHelper.database;
     try{
       await db.update(
@@ -55,6 +58,7 @@ class CongtrinhReponsitory {
 
   }
   Future<int> deleteCongTrinh(int id) async {
+    await PermissionManager.instance.assertPermission(FeatureEnum.deleteCongTrinh);
     final db = await _dbHelper.database;
     try{
       // Kiểm tra các ràng buộc với thu chi, nhân viên công trình, kỳ lương, kế hoạch, nhật ký,
@@ -117,6 +121,7 @@ class CongtrinhReponsitory {
   }
 
   Future<List<CongTrinh>> getCongTrinhWithTienDo() async {
+    await PermissionManager.instance.assertPermission(FeatureEnum.saveCongTrinh);
     final db = await DBHelper.instance.database;
     final maps = await db.rawQuery('''
     SELECT 
