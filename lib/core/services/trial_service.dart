@@ -40,50 +40,154 @@ class TrialService {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      String? expireDateStr = prefs.getString('trial_expire_date');
-      String? storedDeviceId = prefs.getString('device_id');
-      String currentDeviceId = await DeviceService.getWindowsDeviceId();
+      final String? expireDateStr =
+      prefs.getString('trial_expire_date');
 
-      if (storedDeviceId != null && storedDeviceId != currentDeviceId) {
-        statusMessage = 'Mã bản quyền không hợp lệ cho thiết bị này.';
+      final String? storedDeviceId =
+      prefs.getString('device_id');
+
+      // Không có license local
+      if (expireDateStr == null || expireDateStr.isEmpty) {
+        statusMessage =
+        'Vui lòng kết nối mạng lần đầu để kích hoạt dùng thử.';
         isTrialValidNotifier.value = false;
         return false;
       }
 
-      if (expireDateStr != null && expireDateStr.isNotEmpty) {
-        // Thay khoảng trắng thành T để DateTime.parse không bị lỗi
-        DateTime expireDate = DateTime.parse(expireDateStr.replaceAll(' ', 'T'));
-        DateTime now = DateTime.now();
+      // Lấy Device ID
+      final String currentDeviceId = await DeviceService.getDeviceId();
 
-        // Anti-Time Rollback (Chống lùi giờ hệ thống)
-        String? lastTimeStr = prefs.getString('last_used_time');
-        if (lastTimeStr != null) {
-          DateTime lastUsedTime = DateTime.parse(lastTimeStr);
-          if (now.isBefore(lastUsedTime)) {
-            statusMessage = 'Phát hiện thay đổi thời gian hệ thống!';
-            isTrialValidNotifier.value = false;
-            return false;
-          }
-        }
-        await prefs.setString('last_used_time', now.toIso8601String());
+      // Không lấy được Device ID => KHÓA
+      if (currentDeviceId.isEmpty) {
+        await prefs.setBool('is_locked', true);
 
-        if (now.isBefore(expireDate)) {
-          isTrialValidNotifier.value = true;
-          statusMessage = '';
-          return true;
-        } else {
-          statusMessage = 'Bản dùng thử đã hết hạn.';
+        statusMessage =
+        'Không thể xác thực thiết bị. Ứng dụng đã bị khóa.';
+        isTrialValidNotifier.value = false;
+
+        debugPrint(
+          'Local License ERROR: Không lấy được Device ID',
+        );
+
+        return false;
+      }
+
+      // Có device ID đã lưu nhưng không trùng
+      if (storedDeviceId != null &&
+          storedDeviceId.isNotEmpty &&
+          storedDeviceId != currentDeviceId) {
+        await prefs.setBool('is_locked', true);
+
+        statusMessage =
+        'Mã bản quyền không hợp lệ cho thiết bị này.';
+        isTrialValidNotifier.value = false;
+
+        debugPrint(
+          'Local License ERROR: Device ID không khớp',
+        );
+
+        return false;
+      }
+
+      // Parse ngày hết hạn
+      final DateTime? expireDate = DateTime.tryParse(
+        expireDateStr.replaceAll(' ', 'T'),
+      );
+
+      if (expireDate == null) {
+        await prefs.setBool('is_locked', true);
+
+        statusMessage =
+        'Dữ liệu bản quyền không hợp lệ. Ứng dụng đã bị khóa.';
+        isTrialValidNotifier.value = false;
+
+        debugPrint(
+          'Local License ERROR: expireDate không hợp lệ',
+        );
+
+        return false;
+      }
+
+      final DateTime now = DateTime.now();
+
+      // Anti rollback
+      final String? lastTimeStr =
+      prefs.getString('last_used_time');
+
+      if (lastTimeStr != null && lastTimeStr.isNotEmpty) {
+        final DateTime? lastUsedTime =
+        DateTime.tryParse(lastTimeStr);
+
+        if (lastUsedTime == null) {
+          await prefs.setBool('is_locked', true);
+
+          statusMessage =
+          'Dữ liệu thời gian không hợp lệ. Ứng dụng đã bị khóa.';
           isTrialValidNotifier.value = false;
+
+          return false;
+        }
+
+        if (now.isBefore(lastUsedTime)) {
+          await prefs.setBool('is_locked', true);
+
+          statusMessage =
+          'Phát hiện thay đổi thời gian hệ thống.';
+          isTrialValidNotifier.value = false;
+
           return false;
         }
       }
-    } catch (e) {
-      debugPrint('Lỗi xác thực Local License: $e');
-    }
 
-    isTrialValidNotifier.value = false;
-    statusMessage = 'Vui lòng kết nối mạng lần đầu để kích hoạt dùng thử.';
-    return false;
+      await prefs.setString(
+        'last_used_time',
+        now.toIso8601String(),
+      );
+
+      // Hết hạn
+      if (!now.isBefore(expireDate)) {
+        isTrialValidNotifier.value = false;
+
+        statusMessage =
+        'Bản dùng thử đã hết hạn.';
+
+        return false;
+      }
+
+      // Tất cả hợp lệ
+      await prefs.setBool('is_locked', false);
+
+      isTrialValidNotifier.value = true;
+      statusMessage = '';
+
+      return true;
+    } catch (e, stackTrace) {
+      // =====================================================
+      // QUAN TRỌNG:
+      // BẤT KỲ LỖI NÀO TRONG QUÁ TRÌNH XÁC THỰC
+      // => FAIL CLOSED => KHÓA APP
+      // =====================================================
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('is_locked', true);
+      } catch (_) {}
+
+      isTrialValidNotifier.value = false;
+
+      statusMessage =
+      'Không thể xác thực bản quyền. Ứng dụng đã bị khóa.';
+
+      debugPrint(
+        'Lỗi xác thực Local License: $e',
+      );
+
+      debugPrint(
+        'StackTrace: $stackTrace',
+      );
+
+      return false;
+    }
   }
 
   // Lấy cấu hình văn bản nâng cấp
@@ -127,7 +231,7 @@ class TrialService {
         isTrialValidNotifier.value = false;
         return TrialStatusResult.noUserInfo;
       }
-      String deviceId = await DeviceService.getWindowsDeviceId();
+      String deviceId = await DeviceService.getDeviceId();
       // Chỉ gửi device_id lên để kiểm tra, tuyệt đối KHÔNG gửi thông tin cá nhân để insert
       final response = await http.post(
         Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/check-trial'),
@@ -205,7 +309,7 @@ class TrialService {
   Future<bool> registerTrial({ required String name, required String phone, String email = '',}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      String deviceId = await DeviceService.getWindowsDeviceId();
+      String deviceId = await DeviceService.getDeviceId();
 
       final response = await http.post(
         Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/register-trial'),

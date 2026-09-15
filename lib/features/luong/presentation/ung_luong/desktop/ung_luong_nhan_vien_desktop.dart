@@ -11,7 +11,7 @@ import 'package:nhat_ky_xay_dung/features/luong/presentation/ung_luong/desktop/u
 import '../../../../../core/utils/date_utils.dart';
 import '../../../data/models/UngLuong.dart';
 import '../../../data/repositories/ung_luong_repository.dart';
-import '../screens/🚀 📱 UngLuongFormScreen.dart';
+import '../mobile/🚀 📱 UngLuongFormScreen.dart';
 import 'ung_luong_detail_desktop.dart';
 
 class UngLuongNhanVienDesktop extends StatefulWidget {

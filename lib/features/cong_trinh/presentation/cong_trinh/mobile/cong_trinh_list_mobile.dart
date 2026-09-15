@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import '../../../../../core/utils/SyncColor.dart';
 import '../../../data/models/CongTrinh.dart';
@@ -130,12 +131,15 @@ class _CongTrinhListMobileState extends State<CongTrinhListMobile> {
                         );
 
                         if (confirm == true) {
-                          await _service.deleteCongTrinh(ct.id!);
-                          showSuccessToast(context, "Xóa công trình thành công");
-
-                          setState(() {
-                            _loadData();
-                          });
+                          try{
+                            await _service.deleteCongTrinh(ct.id!);
+                            showSuccessToast(context, "Xóa công trình thành công");
+                            setState(() {
+                              _loadData();
+                            });
+                          }catch(e){
+                            showErrorToast(context, e, "Lỗi");
+                          }
                         }
                       },
                       backgroundColor: Colors.transparent,

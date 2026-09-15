@@ -20,7 +20,7 @@ void main() async {
       await DBHelper.instance.database;
     }
     // Kiểm tra bản quyền ngầm ban đầu (không chặn app)
-    if (!kIsWeb && Platform.isWindows) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isAndroid)) {
       await TrialService.instance.init();
       TrialService.instance.startPeriodicCheck();
     }

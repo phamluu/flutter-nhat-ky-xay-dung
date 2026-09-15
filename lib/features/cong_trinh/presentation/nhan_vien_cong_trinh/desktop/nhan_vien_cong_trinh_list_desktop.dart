@@ -17,12 +17,10 @@ class NhanVienCongTrinhListDesktop extends StatefulWidget {
   });
 
   @override
-  State<NhanVienCongTrinhListDesktop> createState() =>
-      _NhanVienCongTrinhListDesktopState();
+  State<NhanVienCongTrinhListDesktop> createState() => _NhanVienCongTrinhListDesktopState();
 }
 
-class _NhanVienCongTrinhListDesktopState
-    extends State<NhanVienCongTrinhListDesktop> {
+class _NhanVienCongTrinhListDesktopState extends State<NhanVienCongTrinhListDesktop> {
   late final NhanVienCongTrinhService _service;
 
   late Future<List<NhanVienCongTrinh>> _future;
@@ -30,9 +28,7 @@ class _NhanVienCongTrinhListDesktopState
   @override
   void initState() {
     super.initState();
-
     _service = NhanVienCongTrinhService();
-
     _reload();
   }
 
@@ -60,12 +56,8 @@ class _NhanVienCongTrinhListDesktopState
     }
   }
 
-  Future<void> _deleteItem(
-      NhanVienCongTrinh item,
-      ) async {
-    final tenNhanVien =
-        item.nhanVien?.hoTen ?? "nhân viên này";
-
+  Future<void> _deleteItem( NhanVienCongTrinh item, ) async {
+    final tenNhanVien = item.nhanVien?.hoTen ?? "nhân viên này";
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -133,10 +125,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
-
               const SizedBox(height: 20),
-
               Expanded(
                 child: FutureBuilder<List<NhanVienCongTrinh>>(
                   future: _future,
@@ -147,11 +136,8 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
                         child: CircularProgressIndicator(),
                       );
                     }
-
                     if (snapshot.hasError) {
-                      return _buildError(
-                        snapshot.error.toString(),
-                      );
+                      return _buildError( snapshot.error.toString(), );
                     }
 
                     final data = snapshot.data ?? [];
@@ -618,21 +604,11 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
     );
   }
 
-  Widget _buildEmployeeCard(
-      NhanVienCongTrinh item,
-      int index,
-      ) {
+  Widget _buildEmployeeCard( NhanVienCongTrinh item, int index,) {
     final hoTen =
         item.nhanVien?.hoTen ?? "Chưa đặt tên";
-
-    final phone =
-        item.nhanVien?.soDienThoai ?? "N/A";
-
-    final vaiTro =
-    item.vaiTro?.isNotEmpty == true
-        ? item.vaiTro!
-        : "-";
-
+    final phone = item.nhanVien?.soDienThoai ?? "N/A";
+    final vaiTro = item.vaiTro?.isNotEmpty == true ? item.vaiTro! : "-";
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -647,9 +623,7 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
           Row(
             children: [
               _avatar(hoTen),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment:
@@ -662,17 +636,13 @@ showErrorToast(context, e, "Lỗi khi xóa: ");
                         fontSize: 15,
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     _roleBadge(vaiTro),
                   ],
                 ),
               ),
 
-              SyncColor.icon(
-                item.isSynced,
-              ),
+              SyncColor.icon( item.isSynced,),
             ],
           ),
 

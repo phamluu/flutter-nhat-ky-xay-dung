@@ -1,14 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/features/bang_cham_cong/presentation/mobile/bang_cham_cong_list_mobile.dart';
 import 'package:nhat_ky_xay_dung/features/cong_trinh/presentation/tien_do_cong_trinh/TienDoScreen.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../../controllers/thong_ke_controller.dart';
-import '../../../../bang_cham_cong/screens/BangChamCongScreen.dart';
-import '../../../../luong/LuongScreen.dart';
-import '../../../../luong/presentation/ung_luong/screens/UngLuongListScreen.dart';
-import '../../../../thu_chi/presentation/thu_chi/screens/thu_chi_cong_trinh_screen.dart';
+import '../../../../luong/presentation/ung_luong/mobile/UngLuongListScreen.dart';
+import '../../../../thu_chi/presentation/thu_chi/mobile/thu_chi_cong_trinh_screen.dart';
 import '../../../data/models/CongTrinh.dart';
 import '../../nhan_vien_cong_trinh/mobile/nhan_vien_cong_trinh_list_screen.dart';
 import '../../nhat_ky_cong_trinh/mobile/DanhSachNhatKyScreen.dart';
@@ -16,9 +14,7 @@ import 'cong_trinh_thong_ke.dart';
 
 class ChiTietCongTrinhScreen extends StatelessWidget {
   final CongTrinh congTrinh;
-
   const ChiTietCongTrinhScreen({super.key, required this.congTrinh});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -74,21 +70,21 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
             //     color: const Color(0xFF27AE60),
             //     reloadAfterPop: true
             // ),
-            // Item(
-            //     icon: Icons.people,
-            //     label: 'Bảng chấm công',
-            //     page: ChamCong2Screen(
-            //       idCongTrinh: congTrinh.id,
-            //       tenCongTrinh: congTrinh.ten,
-            //     ),
-            //     value: controller.soLuongCoMat.toString(),
-            //     color: const Color(0xFF27AE60),
-            //     reloadAfterPop: true
-            // ),
+            Item(
+                icon: Icons.people,
+                label: 'Bảng chấm công',
+                page: BangChamCongListMobile(
+                  idCongTrinh: congTrinh.id,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongCoMat.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
             Item(
                 icon: Icons.attach_money,
                 label: 'Thu chi',
-                page: ThuChiCongTrinhScreen(
+                page: ThuChiCongTrinhMobile(
                   idCongTrinh: congTrinh.id,
                   tenCongTrinh: congTrinh.ten,
                 ),
@@ -96,17 +92,17 @@ class ChiTietCongTrinhScreen extends StatelessWidget {
                 color: const Color(0xFF27AE60),
                 reloadAfterPop: true
             ),
-            // Item(
-            //     icon: Icons.money,
-            //     label: 'Ứng lương',
-            //     page: UngLuongListScreen(
-            //       idCongTrinh: congTrinh.id!,
-            //       tenCongTrinh: congTrinh.ten,
-            //     ),
-            //     value: controller.soLuongUngLuong.toString(),
-            //     color: const Color(0xFF27AE60),
-            //     reloadAfterPop: true
-            // ),
+            Item(
+                icon: Icons.money,
+                label: 'Ứng lương',
+                page: UngLuongListMobile(
+                  idCongTrinh: congTrinh.id!,
+                  tenCongTrinh: congTrinh.ten,
+                ),
+                value: controller.soLuongUngLuong.toString(),
+                color: const Color(0xFF27AE60),
+                reloadAfterPop: true
+            ),
             // Item(
             //     icon: Icons.money,
             //     label: 'Bảng lương',

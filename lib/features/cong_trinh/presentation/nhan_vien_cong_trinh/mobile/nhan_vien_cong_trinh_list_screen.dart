@@ -137,7 +137,7 @@ class _NhanVienCongTrinhListScreenState extends State<NhanVienCongTrinhListScree
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "${index + 1}. ${item.nhanVien?.hoTen ?? "Chưa đặt tên"}",
+                          "${index + 1}. ${item.tenNhanVien ?? "Chưa đặt tên"}",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SyncColor.icon(item.isSynced)

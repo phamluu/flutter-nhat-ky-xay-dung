@@ -53,7 +53,6 @@ class _LuongCoBanNhanVienScreenState extends State<LuongCoBanNhanVienScreen> {
               ),
             ],
           ),
-          backgroundColor: Colors.blue,
         ),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),

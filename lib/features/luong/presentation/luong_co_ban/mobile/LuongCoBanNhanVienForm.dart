@@ -109,7 +109,6 @@ class _LuongcobannhanvienformScreenState extends State<LuongcobannhanvienformScr
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.luong != null;
-
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -121,7 +120,6 @@ class _LuongcobannhanvienformScreenState extends State<LuongcobannhanvienformScr
             ),
           ],
         ),
-        backgroundColor: Colors.blue,
       ),
       body:
       SingleChildScrollView(

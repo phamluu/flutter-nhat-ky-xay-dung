@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../enum/TrialStatusResult.dart';
@@ -11,6 +13,7 @@ class GlobalTrialBanner extends StatefulWidget {
   State<GlobalTrialBanner> createState() => _GlobalTrialBannerState();
 
   /// Popup Đăng ký thông tin dùng thử
+  /// Popup Đăng ký thông tin dùng thử (Đã tối ưu cho cả Mobile & Desktop)
   static Future<bool?> showRegisterDialog(BuildContext context) {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
@@ -21,14 +24,14 @@ class GlobalTrialBanner extends StatefulWidget {
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.7),
       builder: (ctx) => PopScope(
-        canPop: false,
-        child: Listener(
-          onPointerDown: (_) {},
-          child: Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Container(
-              width: 420,
-              padding: const EdgeInsets.all(20),
+        canPop: false, // Ngăn bấm nút Back của hệ thống để thoát
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            // SỬA: Dùng constraints thay vì width cố định để co giãn tốt trên Mobile
+            constraints: const BoxConstraints(maxWidth: 420),
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView( // SỬA: Bọc SingleChildScrollView tránh lỗi tràn bàn phím (bottom overflow)
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,19 +39,24 @@ class GlobalTrialBanner extends StatefulWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.assignment_ind_rounded, color: Color(0xFF2C3E50)),
-                          SizedBox(width: 8),
-                          Text(
-                            'Kích hoạt dùng thử',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.assignment_ind_rounded, color: Color(0xFF2C3E50)),
+                            SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Kích hoạt dùng thử',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.grey),
-                        onPressed: () => Navigator.pop(ctx, false),
+                        onPressed: () => Navigator.of(ctx).pop(false),
                         tooltip: 'Đóng',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -102,18 +110,29 @@ class GlobalTrialBanner extends StatefulWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2C3E50),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          bool success = await TrialService.instance.registerTrial(
-                            name: nameController.text.trim(),
-                            phone: phoneController.text.trim(),
-                          );
-                          if (ctx.mounted) {
-                            Navigator.pop(ctx, success);
+                          // Hiển thị loading indicator nếu cần
+                          try{
+                            bool success = await TrialService.instance.registerTrial(
+                              name: nameController.text.trim(),
+                              phone: phoneController.text.trim(),
+                            );
+                            if(success){
+                              showSuccessToast(context, "Đăng ký thành công");
+                            }else{
+                              showErrorToast(context, "", "Đăng ký thất bại");
+                            }
+                            if (ctx.mounted) {
+                              Navigator.of(ctx).pop(success);
+                            }
+                          }catch(e){
+                            showErrorToast(context, e, "Lỗi: ");
                           }
+
                         }
                       },
                       child: const Text('Kích hoạt ngay', style: TextStyle(fontWeight: FontWeight.bold)),

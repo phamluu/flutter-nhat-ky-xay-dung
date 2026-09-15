@@ -33,8 +33,6 @@ class _DanhSachDanhMucThuChiMobileState extends State<DanhSachDanhMucThuChiMobil
     return Scaffold(
       appBar: AppBar(
         title: const Text("Danh mục thu chi"),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
         elevation: 0,
         actions: [
           OpenFormButton(

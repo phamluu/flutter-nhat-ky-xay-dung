@@ -45,9 +45,6 @@ class _ThemDanhMucThuChiScreenState extends State<ThemDanhMucThuChiScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.danhMuc == null ? "Thêm danh mục" : "Sửa danh mục"),
-        backgroundColor: Colors.blue.shade100,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
