@@ -55,7 +55,9 @@ class PermissionManager {
       }) async {
     // Cập nhật trạng thái mới nhất từ Server
     await TrialService.instance.checkTrialStatus();
-
+    // 2. Ép ValueNotifier thông báo để các widget đăng ký listener (như Banner) tính toán lại UI
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    TrialService.instance.isTrialValidNotifier.notifyListeners();
     if (canAccess(feature)) {
       action();
     } else {

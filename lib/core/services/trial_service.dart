@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../enum/TrialStatusResult.dart';
+import '../models/TrialInfo.dart';
 import '../utils/device_service.dart';
+import '../widgets/RegisterResult.dart';
 
 class TrialService {
   static final TrialService instance = TrialService._internal();
@@ -121,8 +123,7 @@ class TrialService {
         if (lastUsedTime == null) {
           await prefs.setBool('is_locked', true);
 
-          statusMessage =
-          'Dữ liệu thời gian không hợp lệ. Ứng dụng đã bị khóa.';
+          statusMessage = 'Dữ liệu thời gian không hợp lệ. Ứng dụng đã bị khóa.';
           isTrialValidNotifier.value = false;
 
           return false;
@@ -131,8 +132,7 @@ class TrialService {
         if (now.isBefore(lastUsedTime)) {
           await prefs.setBool('is_locked', true);
 
-          statusMessage =
-          'Phát hiện thay đổi thời gian hệ thống.';
+          statusMessage ='Phát hiện thay đổi thời gian hệ thống.';
           isTrialValidNotifier.value = false;
 
           return false;
@@ -175,8 +175,7 @@ class TrialService {
 
       isTrialValidNotifier.value = false;
 
-      statusMessage =
-      'Không thể xác thực bản quyền. Ứng dụng đã bị khóa.';
+      statusMessage = 'Không thể xác thực bản quyền. Ứng dụng đã bị khóa.';
 
       debugPrint(
         'Lỗi xác thực Local License: $e',
@@ -205,8 +204,7 @@ class TrialService {
     }
 
     return {
-      'status_message': statusMessage.isNotEmpty
-          ? statusMessage
+      'status_message': statusMessage.isNotEmpty ? statusMessage
           : 'Bản dùng thử của bạn đã hết hạn. Hãy nâng cấp để sử dụng trọn bộ tính năng.',
       'hotline': '0335800619',
       'zalo_url': 'https://zalo.me/',
@@ -219,78 +217,136 @@ class TrialService {
     };
   }
 
+  final ValueNotifier<TrialInfo> trialInfoNotifier = ValueNotifier<TrialInfo>(TrialInfo.empty());
   /// 2. Kiểm tra trạng thái từ Server (Ghi đè hạn dùng xuống máy)
-  Future<TrialStatusResult> checkTrialStatus() async {
+  Future<TrialInfo> checkTrialStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    TrialInfo result;
+
     try {
-      String? userName = prefs.getString('user_name');
-      String? phone = prefs.getString('user_phone');
-      // Nếu chưa nhập thông tin
-      if (userName == null || userName.isEmpty || phone == null || phone.isEmpty) {
-        statusMessage = 'Vui lòng nhập thông tin để kích hoạt bản dùng thử.';
-        isTrialValidNotifier.value = false;
-        return TrialStatusResult.noUserInfo;
-      }
       String deviceId = await DeviceService.getDeviceId();
-      // Chỉ gửi device_id lên để kiểm tra, tuyệt đối KHÔNG gửi thông tin cá nhân để insert
+
       final response = await http.post(
         Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/check-trial'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'device_id': deviceId,
-        }),
+        body: jsonEncode({'device_id': deviceId}),
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String status = data['status'] ?? '';
-        if (data['expire_at'] != null) {
-          await prefs.setString('trial_expire_date', data['expire_at']);
+        String? expireAtStr = data['expire_at'];
+
+        if (expireAtStr != null) {
+          await prefs.setString('trial_expire_date', expireAtStr);
         }
-        // TRƯỜNG HỢP 1: THIẾT BỊ BỊ KHÓA TỪ API
-        if (status == 'locked') {
-          await prefs.setBool('is_locked', true); // Lưu lại bộ nhớ local
-          isTrialValidNotifier.value = false;
-          statusMessage = 'Thiết bị của bạn đã bị khóa từ hệ thống.';
-          return TrialStatusResult.locked;
-        }else{
+
+        if (status == 'licensed') {
           await prefs.setBool('is_locked', false);
-        }
-        if (status == 'valid') {
-          if (isTrialValidNotifier.value == true) {
-            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-            isTrialValidNotifier.notifyListeners();
+          result = _buildInfo(TrialStatusResult.licensed, 'Bản quyền PRO vĩnh viễn', expireAtStr, isPro: true);
+        } else if (status == 'locked' || status == 'license_locked') {
+          await prefs.setBool('is_locked', true);
+          result = _buildInfo(
+              TrialStatusResult.locked,
+              status == 'license_locked' ? 'Mã License của bạn đã bị khóa.' : TrialStatusResult.locked.description,
+              expireAtStr
+          );
+        } else if (status == 'valid') {
+          await prefs.setBool('is_locked', false);
+          result = _buildInfo(TrialStatusResult.valid, TrialStatusResult.valid.description, expireAtStr);
+        } else if (status == 'expired' || status == 'license_expired') {
+          result = _buildInfo(
+              TrialStatusResult.expired,
+              status == 'license_expired' ? 'Mã License của bạn đã hết hạn.' : TrialStatusResult.expired.description,
+              expireAtStr
+          );
+        } else { // not_found
+          String? userName = prefs.getString('user_name');
+          if (userName == null || userName.isEmpty) {
+            result = _buildInfo(TrialStatusResult.noUserInfo, TrialStatusResult.noUserInfo.description, null);
           } else {
-            isTrialValidNotifier.value = true;
+            result = _buildInfo(TrialStatusResult.notFound, TrialStatusResult.notFound.description, null);
           }
-          return TrialStatusResult.valid;
         }
-        // TRƯỜNG HỢP 3: HẾT HẠN
-        if (status == 'expired') {
-          isTrialValidNotifier.value = false;
-          statusMessage = 'Bản dùng thử của bạn đã hết hạn.';
-          return TrialStatusResult.expired;
-        }
-        if (status == 'not_found') {
-          return TrialStatusResult.notFound;
-        }
+      } else {
+        result = _checkLocalFallback(prefs);
       }
     } catch (e) {
-      debugPrint('Không kết nối được API (Offline): $e');
-      // --- XỬ LÝ KHI MẤT MẠNG / KHÔNG GỌI ĐƯỢC API ---
-      bool isLocked = prefs.getBool('is_locked') ?? false;
-      // Nếu trước đó API đã từng trả về "Khóa", khi mất mạng VẪN GIỮ KHÓA
-      if (isLocked) {
-        isTrialValidNotifier.value = false;
-        statusMessage = 'Thiết bị đã bị khóa từ hệ thống (Offline).';
-        return TrialStatusResult.locked;
-      }
-      // Nếu chưa bị khóa, đối chiếu ngày hết hạn local
-      return _checkLocalExpire(prefs);
+      result = _checkLocalFallback(prefs);
     }
-    return isTrialValidNotifier.value ? TrialStatusResult.valid : TrialStatusResult.expired;
-    // return await verifyLocalLicense();
+
+    // Cập nhật trạng thái mở/khóa app
+    isTrialValidNotifier.value = (result.status == TrialStatusResult.valid || result.status == TrialStatusResult.licensed);
+    statusMessage = result.message;
+
+    // Phát tín hiệu cho UI Banner
+    trialInfoNotifier.value = result;
+    return result;
   }
+
+  TrialInfo _buildInfo(TrialStatusResult status, String message, String? expireStr, {bool isPro = false}) {
+    if (isPro || expireStr == null || expireStr.isEmpty) {
+      return TrialInfo(
+        status: status,
+        message: message,
+        expireText: isPro ? 'Bản PRO' : '',
+        daysLeft: isPro ? 9999 : 0,
+        isPro: isPro,
+      );
+    }
+
+    DateTime? expireDate = DateTime.tryParse(expireStr.replaceAll(' ', 'T'));
+    if (expireDate == null) {
+      return TrialInfo(status: status, message: message, expireText: '', daysLeft: 0, isPro: false);
+    }
+
+    Duration diff = expireDate.difference(DateTime.now());
+    if (diff.isNegative || diff.inSeconds <= 0) {
+      return TrialInfo(
+        status: TrialStatusResult.expired,
+        message: 'Bản dùng thử đã hết hạn',
+        expireText: 'Đã hết hạn',
+        daysLeft: 0,
+        isPro: false,
+      );
+    }
+
+    String text = '';
+    if (diff.inDays > 0) {
+      text = 'Còn ${diff.inDays} ngày';
+    } else if (diff.inHours > 0) {
+      text = 'Còn ${diff.inHours} giờ';
+    } else {
+      text = 'Còn ${diff.inMinutes} phút';
+    }
+
+    return TrialInfo(
+      status: status,
+      message: message,
+      expireText: text,
+      daysLeft: diff.inDays,
+      isPro: false,
+    );
+  }
+  /// Tải dữ liệu Offline khi không kết nối được Server
+  TrialInfo _checkLocalFallback(SharedPreferences prefs) {
+    bool isLocked = prefs.getBool('is_locked') ?? false;
+    if (isLocked) {
+      return _buildInfo(TrialStatusResult.locked, 'Thiết bị đã bị khóa từ hệ thống (Offline).', null);
+    }
+
+    String? expireStr = prefs.getString('trial_expire_date');
+    if (expireStr == null) {
+      return _buildInfo(TrialStatusResult.noInternet, TrialStatusResult.noInternet.description, null);
+    }
+
+    TrialInfo info = _buildInfo(TrialStatusResult.valid, TrialStatusResult.valid.description, expireStr);
+    if (info.daysLeft <= 0 && info.expireText == 'Đã hết hạn') {
+      return _buildInfo(TrialStatusResult.noInternet, TrialStatusResult.noInternet.description, null);
+    }
+    return info;
+  }
+
   TrialStatusResult _checkLocalExpire(SharedPreferences prefs) {
     String? expireDateStr = prefs.getString('trial_expire_date');
     if (expireDateStr == null) return TrialStatusResult.expired;
@@ -305,8 +361,14 @@ class TrialService {
     isTrialValidNotifier.value = true;
     return TrialStatusResult.valid;
   }
+
   /// 3. HÀM ĐĂNG KÝ MỚI (CHỈ GỌI KHI NGƯỜI DÙNG BẤM "KÍCH HOẠT NGAY")
-  Future<bool> registerTrial({ required String name, required String phone, String email = '',}) async {
+  Future<RegisterResult> registerTrial({
+    required String name,
+    required String phone,
+    String email = '',
+    String? licenseKey,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       String deviceId = await DeviceService.getDeviceId();
@@ -319,30 +381,58 @@ class TrialService {
           'user_name': name,
           'phone': phone,
           'email': email,
+          'license_key': licenseKey?.trim(),
         }),
       ).timeout(const Duration(seconds: 7));
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success' || data['status'] == 'valid') {
+        // Chuẩn hóa status về dạng chuỗi viết thường để so sánh chính xác
+        String status = (data['status'] ?? '').toString().toLowerCase().trim();
+
+        bool isOk = status == 'success' || status == 'valid' || status == 'licensed';
+
+        if (isOk) {
+          // Lưu thông tin người dùng vào Local Storage
           await prefs.setString('user_name', name);
           await prefs.setString('user_phone', phone);
           await prefs.setString('user_email', email);
           await prefs.setString('device_id', deviceId);
 
+          if (data['license_key'] != null && data['license_key'].toString().isNotEmpty) {
+            await prefs.setString('license_key', data['license_key'].toString());
+          }
           if (data['expire_at'] != null) {
             await prefs.setString('trial_expire_date', data['expire_at'].toString());
           }
 
-          isTrialValidNotifier.value = true;
-          statusMessage = '';
-          return true;
+          // Đồng bộ trạng thái mới cho Banner
+          await checkTrialStatus();
+
+          return RegisterResult(
+            isSuccess: true,
+            message: data['message'] ?? 'Kích hoạt thành công!',
+          );
+        } else {
+          return RegisterResult(
+            isSuccess: false,
+            message: data['message'] ?? 'Kích hoạt thất bại.',
+          );
         }
+      } else {
+        return RegisterResult(
+          isSuccess: false,
+          message: data['message'] ?? 'Mã License không hợp lệ hoặc đã được sử dụng.',
+        );
       }
     } catch (e) {
-      debugPrint('Lỗi đăng ký dùng thử: $e');
+      debugPrint('Lỗi kích hoạt/đăng ký: $e');
+      return RegisterResult(
+        isSuccess: false,
+        message: 'Lỗi kết nối máy chủ: $e',
+      );
     }
-    return false;
   }
   Future<void> clearTrialData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -352,5 +442,48 @@ class TrialService {
     await prefs.remove('trial_expire_date');
     await prefs.remove('device_id');
   }
+  /// Kích hoạt License Key trực tiếp
+  /// Kích hoạt License Key bằng device_id và license_key
+  Future<RegisterResult> activateLicense({required String licenseKey}) async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      String deviceId = await DeviceService.getDeviceId();
 
+      final response = await http.post(
+        Uri.parse('https://inanhonglen.com/wp-json/app-trial/v1/activate-license'), // Thay đúng endpoint API kích hoạt
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'device_id': deviceId,
+          'license_key': licenseKey,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        // Cập nhật ngày hết hạn mới nếu Server trả về
+        if (data['expires_at'] != null) {
+          await prefs.setString('trial_expire_date', data['expires_at']);
+        }
+        // Mở khóa ứng dụng
+        await prefs.setBool('is_locked', false);
+        isTrialValidNotifier.value = true;
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        isTrialValidNotifier.notifyListeners();
+        return RegisterResult(
+          isSuccess: true,
+          message: data['message'] ?? 'Kích hoạt bản quyền thành công!',
+        );
+      } else {
+        return RegisterResult(
+          isSuccess: false,
+          message: data['message'] ?? 'Kích hoạt thất bại',
+        );
+      }
+    } catch (e) {
+      debugPrint('Lỗi kích hoạt License: $e');
+      return RegisterResult(
+        isSuccess: false,
+        message: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng!',
+      );
+    }
+  }
 }

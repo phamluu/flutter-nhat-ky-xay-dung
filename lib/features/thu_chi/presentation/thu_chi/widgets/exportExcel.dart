@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:nhat_ky_xay_dung/core/utils/currencyFormat.dart';
 import 'package:nhat_ky_xay_dung/core/utils/date_utils.dart';
+import 'package:nhat_ky_xay_dung/core/widgets/showErrorToast.dart';
 import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../data/models/ThuChi.dart';
 
@@ -184,24 +188,65 @@ Future<void> exportExcelThuChi({
       .replaceAll(RegExp(r'\s+'), '_');
 
   String fileName = 'ThuChi_${sanitizedName}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
-
-  String? outputFile = await FilePicker.platform.saveFile(
-    dialogTitle: 'Chọn nơi lưu file Excel',
-    fileName: fileName,
-    type: FileType.custom,
-    allowedExtensions: ['xlsx'],
-  );
-
-  if (outputFile != null) {
-    final fileBytes = excel.save();
-    if (fileBytes != null) {
-      File(outputFile)
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-
-      if (context.mounted) {
-        showSuccessToast(context, 'Đã lưu file tại: $outputFile');
-      }
+  final excelBytes = excel.encode();
+  if (excelBytes == null) {
+    if (context.mounted) {
+      showErrorToast(
+        context,
+        "",
+        'Không thể tạo file Excel',
+      );
     }
+    return;
   }
+  final bytes = Uint8List.fromList(excelBytes);
+  String? filePath;
+  if (Platform.isAndroid || Platform.isIOS) {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File(
+      '${directory.path}/$fileName',
+    );
+    await file.writeAsBytes(bytes, flush: true);
+    filePath = file.path;
+  }else{
+    filePath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Chọn nơi lưu file Excel',
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+      bytes: bytes,
+    );
+  }
+  if (filePath == null) {
+    return;
+  }
+  debugPrint('Excel file: $filePath');
+  final file = File(filePath);
+  if (!await file.exists()) {
+    if (context.mounted) {
+      showSuccessToast(
+        context,
+        'Tệp không tồn tại',
+      );
+    }
+    return;
+  }
+  if (context.mounted) {
+    showSuccessToast( context,'Đã lưu file Excel',);
+  }
+  final result = await OpenFilex.open(filePath);
+  debugPrint(
+    'Open Excel: ${result.type} - ${result.message}',
+  );
+  // final fileBytes = excel.save();
+  // if (fileBytes != null) {
+  //   File(outputFile)
+  //     ..createSync(recursive: true)
+  //     ..writeAsBytesSync(fileBytes);
+  //   if (context.mounted) {
+  //     showSuccessToast(context, 'Đã lưu file tại: $outputFile');
+  //   }
+
+  // }
+
 }

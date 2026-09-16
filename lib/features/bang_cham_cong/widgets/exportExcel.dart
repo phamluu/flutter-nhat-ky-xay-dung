@@ -5,8 +5,8 @@ import 'package:nhat_ky_xay_dung/core/widgets/showSuccessToast.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChamCong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/widgets/exportExcelChiLuong.dart';
 import 'package:nhat_ky_xay_dung/features/bang_cham_cong/data/models/ChamCongModel.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 import 'exportExcelUngLuong.dart';
 Future<void> exportExcelFull({
   required BuildContext context,
@@ -48,7 +48,7 @@ Future<void> exportExcelFull({
     ..createSync(recursive: true)
     ..writeAsBytesSync(excel.encode()!);
 
-  OpenFile.open(path);
+  OpenFilex.open(path);
 showSuccessToast(context, "Đã xuất file FULL: $path");
 
 }

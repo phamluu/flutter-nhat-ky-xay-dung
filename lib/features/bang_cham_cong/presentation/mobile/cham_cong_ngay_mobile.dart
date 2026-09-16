@@ -41,10 +41,9 @@ class ChamCongNgayMobile extends StatefulWidget {
     required this.daKhoa,
   });
   @override
-  State<ChamCongNgayMobile> createState() =>
-      _ChamCongNgayDesktopState();
+  State<ChamCongNgayMobile> createState() => _ChamCongNgayMobileState();
 }
-class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
+class _ChamCongNgayMobileState extends State<ChamCongNgayMobile> {
   late final ChamCongChiTietRepo _repo;
   final TextEditingController ghiChuCtrl = TextEditingController();
   ChamCongNgayLuong? data;
@@ -233,69 +232,72 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
           color: Colors.grey.shade200,
         ),
       ),
-      child: Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
                   widget.hoTen?.trim().isNotEmpty == true
                       ? widget.hoTen!
                       : "Nhân viên",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                _buildLockStatus(),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(
-                  Icons.business_outlined,
-                  size: 16,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    widget.tenCongTrinh
-                        ?.trim()
-                        .isNotEmpty ==
-                        true
-                        ? widget.tenCongTrinh!
-                        : "---",
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 18),
-                Icon(
-                  Icons.event_outlined,
-                  size: 16,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  widget.ngay ?? "---",
+              ),
+              const SizedBox(width: 12),
+              _buildLockStatus(),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          Row(
+            children: [
+              Icon(
+                Icons.business_outlined,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+              const SizedBox(width: 6),
+
+              Expanded(
+                child: Text(
+                  widget.tenCongTrinh?.trim().isNotEmpty == true
+                      ? widget.tenCongTrinh!
+                      : "---",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade600,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+
+              const SizedBox(width: 18),
+
+              Icon(
+                Icons.event_outlined,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                widget.ngay ?? "---",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -519,23 +521,19 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
     required String title,
     required IconData icon,
     required TrangThaiChamCong? groupValue,
-    required ValueChanged<
-        TrangThaiChamCong?>
-    onChanged,
+    required ValueChanged<TrangThaiChamCong?> onChanged,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        borderRadius:
-        BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: Colors.grey.shade200,
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -548,8 +546,7 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontWeight:
-                  FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
               ),
@@ -559,20 +556,23 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children:
-            TrangThaiChamCong.values
-                .map(
-                  (e) {
-                return radioCompact(
-                  value: e,
-                  groupValue:
-                  groupValue,
-                  onChanged:
-                  onChanged,
-                );
-              },
-            )
-                .toList(),
+            // Sử dụng List.unmodifiable để tránh tạo mảng mới và leak render ở Release
+            children: List<Widget>.unmodifiable(
+              TrangThaiChamCong.values.map(
+                    (e) => KeyedSubtree(
+                  key: ValueKey(e), // Thêm Key để Flutter định danh chính xác ở Release
+                  child: radioCompact(
+                    value: e,
+                    groupValue: groupValue,
+                    onChanged: (val) {
+                      if (groupValue != val) {
+                        onChanged(val);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -748,42 +748,34 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
       title: "Thông tin tiền công",
       icon: Icons.payments_outlined,
       iconColor: Colors.green,
-      child: Row(
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
         children: [
-          Expanded(
+          SizedBox(
+            width: 160,
             child: salaryItem(
               title: "Lương ngày",
-              value:
-              formatCurrency(
-                data!.luongNgay,
-              ),
-              icon:
-              Icons.account_balance_wallet_outlined,
+              value: formatCurrency(data!.luongNgay),
+              icon: Icons.account_balance_wallet_outlined,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          SizedBox(
+            width: 160,
             child: salaryItem(
               title: "Tiền công",
-              value:
-              formatCurrency(
-                data!.tienCongNgay,
-              ),
-              icon:
-              Icons.payments_outlined,
-              valueColor:
-              Colors.green.shade700,
+              value: formatCurrency(data!.tienCongNgay),
+              icon: Icons.payments_outlined,
+              valueColor: Colors.green.shade700,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          SizedBox(
+            width: 160,
             child: salaryItem(
               title: "Công",
               value: data!.chamCong.soCong.toString(),
-              icon:
-              Icons.calculate_outlined,
-              valueColor:
-              Colors.blue.shade700,
+              icon: Icons.calculate_outlined,
+              valueColor: Colors.blue.shade700,
             ),
           ),
         ],
@@ -853,23 +845,4 @@ class _ChamCongNgayDesktopState extends State<ChamCongNgayMobile> {
     });
   }
 
-  // ============================================================
-  // STATUS COLOR
-  // ============================================================
-
-  // Color _statusColor(TrangThaiChamCong status ) {
-  //   switch (status) {
-  //     case TrangThaiChamCong.coMat:
-  //       return Colors.green.shade700;
-  //
-  //     case TrangThaiChamCong.khongXacDinh:
-  //       return Colors.orange.shade800;
-  //
-  //     case TrangThaiChamCong.vang:
-  //       return Colors.red.shade700;
-  //
-  //     default:
-  //       return Colors.grey.shade700;
-  //   }
-  // }
 }

@@ -888,7 +888,7 @@ class _ThuChiCongTrinhDesktopState extends State<ThuChiCongTrinhMobile> {
               ],
             ),
           ),
-          ThuChiTableDesktop(items: items, onRefresh: _load)
+          ThuChiTableMobile(items: items, onRefresh: _load)
         ],
       ),
     );

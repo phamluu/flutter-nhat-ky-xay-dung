@@ -34,11 +34,21 @@ class _DanhSachDanhMucThuChiMobileState extends State<DanhSachDanhMucThuChiMobil
       appBar: AppBar(
         title: const Text("Danh mục thu chi"),
         elevation: 0,
-        actions: [
-          OpenFormButton(
-            onUpdated: () => setState(() => _load()),
-          )
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ThemDanhMucThuChiScreen(),
+            ),
+          );
+
+          if (result == true) {
+            setState(() => _load());
+          }
+        },
       ),
       body: FutureBuilder<List<DanhMucThuChi>>(
         future: _future,
