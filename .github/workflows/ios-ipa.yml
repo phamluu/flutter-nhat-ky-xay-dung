@@ -32,8 +32,22 @@ jobs:
           cd ios
           pod install
 
+
       - name: Build iOS release
-        run: flutter build ios --release --no-codesign
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R build/ios/iphoneos/Runner.app "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP"
+          zip -qry "$GITHUB_WORKSPACE/Runner-unsigned.ipa" Payload
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flutter-unsigned-IPA
+          path: Runner-unsigned.ipa
+          retention-days: 7
+
 
       - name: Package unsigned IPA
         run: |
